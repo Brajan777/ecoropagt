@@ -1,0 +1,2366 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+    <title>EcoRopaGT | Clósets Virtuales y Ropa de Segunda Mano para Toda la Familia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        beige: {
+                            50: '#FAF7F2',
+                            100: '#F3EDE2',
+                            200: '#E6DEC8',
+                            300: '#D5C7A9'
+                        },
+                        lavanda: {
+                            50: '#F5F2FA',
+                            100: '#EBE4F5',
+                            200: '#D8C9EC',
+                            400: '#A58AD1',
+                            500: '#8B6BBF',
+                            600: '#7251A8',
+                            700: '#5B3E8A'
+                        },
+                        verde: {
+                            50: '#F1F8F4',
+                            100: '#DEF0E6',
+                            200: '#BFE2CF',
+                            300: '#98CFB2',
+                            500: '#5DA683',
+                            600: '#458968',
+                            700: '#356C52'
+                        },
+                        grafito: {
+                            700: '#4A4552',
+                            800: '#322E38',
+                            900: '#1F1C24'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body {
+            background-color: #FAF7F2;
+            color: #1F1C24;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            max-width: 100vw;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Evitar auto-zoom en iOS Safari al tocar inputs en móvil */
+        @media screen and (max-width: 767px) {
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Soporte para Dynamic Viewport Height en navegadores móviles */
+        .h-dvh-safe {
+            height: 100vh;
+            height: 100dvh;
+        }
+        .max-h-modal-safe {
+            max-height: 90vh;
+            max-height: 88dvh;
+        }
+
+        /* Safe area para iPhones con barra inferior */
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1), transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.97);
+            transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .reveal.active, .reveal-scale.active {
+            opacity: 1;
+            transform: translate(0, 0) scale(1);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3EDE2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #A58AD1;
+            border-radius: 9999px;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="antialiased selection:bg-lavanda-500 selection:text-white pb-20 md:pb-0">
+
+    <!-- Top Eco Announcement Strip (Adaptado a móvil) -->
+    <div class="bg-verde-100 border-b border-verde-200 text-grafito-800 text-[11px] sm:text-xs py-1.5 sm:py-2 px-3 sm:px-4">
+        <div class="max-w-7xl mx-auto flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 sm:gap-2 font-medium min-w-0">
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-verde-200 text-verde-700 font-bold text-[10px] sm:text-[11px] shrink-0">
+                    <i class="ph-fill ph-leaf"></i> Eco-GT
+                </span>
+                <span id="topAnnouncementText" class="truncate sm:whitespace-normal">
+                    Moda circular familiar • Envío gratis desde <strong>Q250</strong>
+                </span>
+            </div>
+            <div class="hidden sm:flex items-center gap-4 shrink-0">
+                <a href="#closets-destacados" class="inline-flex items-center gap-1 font-bold text-verde-700 hover:underline">
+                    <i class="ph-fill ph-storefront"></i>
+                    <span>Clósets Destacados</span>
+                </a>
+                <a href="#mi-closet-virtual" class="inline-flex items-center gap-1 font-bold text-lavanda-600 hover:underline">
+                    <span>Mi Clóset</span>
+                    <i class="ph-bold ph-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER MOBILE-FIRST (Diseño de 2 filas en móvil para que nada se aplaste) -->
+    <header class="sticky top-0 z-40 bg-beige-50/95 backdrop-blur-md border-b border-beige-200 shadow-2xs">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-0">
+            
+            <!-- Fila Principal: Logo + Buscador (Desktop) + Botones de Acción -->
+            <div class="flex items-center justify-between gap-2 sm:gap-5 sm:h-20">
+                
+                <!-- Brand Logo -->
+                <a href="#" onclick="resetAllFilters()" class="flex items-center gap-2 shrink-0 group">
+                    <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-lavanda-500 text-white flex items-center justify-center shadow-xs group-hover:bg-lavanda-600 transition-colors">
+                        <i class="ph-bold ph-recycle text-xl sm:text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="font-display text-lg sm:text-2xl font-extrabold tracking-tight text-grafito-900">ecoropa<span class="text-lavanda-500">gt</span></span>
+                        <span class="block text-[9px] sm:text-[10px] font-semibold text-grafito-700 -mt-1">Clósets en familia</span>
+                    </div>
+                </a>
+
+                <!-- Buscador Desktop (Oculto en móvil para darle fila propia completa abajo) -->
+                <div class="hidden md:block flex-1 max-w-2xl">
+                    <div class="flex items-center bg-beige-100 hover:bg-beige-200/70 focus-within:bg-white border border-beige-200 focus-within:border-lavanda-500 rounded-xl px-3 py-2 transition-all">
+                        <select id="headerQuickType" onchange="syncHeaderCategory(this.value)" class="bg-transparent text-xs font-semibold text-grafito-800 pr-2.5 mr-2.5 border-r border-beige-300 focus:outline-none cursor-pointer">
+                            <option value="todos">Catálogo</option>
+                            <option value="mujer">Mujer</option>
+                            <option value="hombre">Hombre</option>
+                            <option value="ninos">Niños</option>
+                            <option value="calzado">Zapatos y Bolsos</option>
+                        </select>
+                        <i class="ph ph-magnifying-glass text-grafito-700 text-lg mr-2"></i>
+                        <input id="searchInputDesktop" oninput="syncSearchInputs(this.value)" type="text" placeholder="Busca prendas, tallas, marcas (Zara, Levi's) o @closets..." 
+                            class="w-full bg-transparent text-sm text-grafito-900 placeholder-grafito-700/60 focus:outline-none">
+                        <button id="clearSearchIconDesktop" onclick="clearSearchInput()" class="hidden text-grafito-700 hover:text-grafito-900 ml-1">
+                            <i class="ph-fill ph-x-circle text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Controles Superiores Derechos (Optimizados para pulgar en móvil) -->
+                <div class="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+                    <button onclick="toggleWishlistOnly()" id="wishlistFilterBtn" class="relative w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-xl border border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800 flex items-center justify-center transition" title="Mis prendas favoritas">
+                        <i id="wishlistHeaderIcon" class="ph ph-heart text-xl"></i>
+                        <span id="wishlistBadge" class="hidden absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-lavanda-500 text-white text-[10px] font-bold flex items-center justify-center">0</span>
+                    </button>
+
+                    <button onclick="toggleCartDrawer(true)" class="relative h-10 px-2.5 sm:px-3.5 sm:py-2.5 rounded-xl border border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="ph ph-shopping-bag text-xl text-lavanda-600"></i>
+                        <span class="hidden lg:inline">Mi Bolsa</span>
+                        <span id="cartCountBadge" class="px-1.5 py-0.5 rounded-md bg-verde-200 text-verde-700 text-[11px] font-bold">0</span>
+                    </button>
+
+                    <button onclick="openSellModal()" class="h-10 px-3 sm:px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-1.5">
+                        <i class="ph-bold ph-plus-circle text-base"></i>
+                        <span class="hidden xs:inline sm:inline">Vender</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Buscador Móvil Dedicado (100% de ancho, cómodo para escribir con el pulgar) -->
+            <div class="mt-2 md:hidden">
+                <div class="flex items-center bg-white border border-beige-300 focus-within:border-lavanda-500 rounded-xl px-3 py-2 shadow-2xs">
+                    <i class="ph ph-magnifying-glass text-lavanda-600 text-lg mr-2 shrink-0"></i>
+                    <input id="searchInputMobile" oninput="syncSearchInputs(this.value)" type="search" placeholder="Buscar vestido, jeans, Zara, @sofia_gt..." 
+                        class="w-full bg-transparent text-grafito-900 placeholder-grafito-700/60 focus:outline-none">
+                    <button id="clearSearchIconMobile" onclick="clearSearchInput()" class="hidden text-grafito-700 p-1">
+                        <i class="ph-fill ph-x-circle text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier 2: Píldoras de Categorías Deslizables Horizontalmente -->
+        <div class="border-t border-beige-200 bg-beige-50">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center overflow-x-auto no-scrollbar">
+                <nav class="flex items-center gap-1.5 py-1.5 text-xs font-medium text-grafito-700 whitespace-nowrap">
+                    <a href="#closets-destacados" class="px-3 py-1.5 sm:py-2 rounded-lg bg-verde-100 text-verde-800 font-bold transition flex items-center gap-1">
+                        <i class="ph-fill ph-storefront text-verde-700"></i> ★ Clósets Top
+                    </a>
+                    <button onclick="setCategoryFilter('todos')" data-cat="todos" class="cat-tab px-3 py-1.5 sm:py-2 rounded-lg bg-lavanda-100 text-lavanda-700 font-bold transition">
+                        Todo
+                    </button>
+                    <button onclick="setCategoryFilter('mujer')" data-cat="mujer" class="cat-tab px-3 py-1.5 sm:py-2 rounded-lg hover:bg-beige-100 transition flex items-center gap-1">
+                        <i class="ph ph-dress text-lavanda-500"></i> Mujer
+                    </button>
+                    <button onclick="setCategoryFilter('hombre')" data-cat="hombre" class="cat-tab px-3 py-1.5 sm:py-2 rounded-lg hover:bg-beige-100 transition flex items-center gap-1">
+                        <i class="ph ph-t-shirt text-verde-600"></i> Hombre
+                    </button>
+                    <button onclick="setCategoryFilter('ninos')" data-cat="ninos" class="cat-tab px-3 py-1.5 sm:py-2 rounded-lg hover:bg-beige-100 transition flex items-center gap-1">
+                        <i class="ph ph-baby text-lavanda-500"></i> Niños
+                    </button>
+                    <button onclick="setCategoryFilter('calzado')" data-cat="calzado" class="cat-tab px-3 py-1.5 sm:py-2 rounded-lg hover:bg-beige-100 transition flex items-center gap-1">
+                        <i class="ph ph-sneaker text-verde-600"></i> Calzado
+                    </button>
+                    <a href="#mi-closet-virtual" class="px-3 py-1.5 sm:py-2 rounded-lg text-lavanda-700 hover:bg-lavanda-100 font-bold transition flex items-center gap-1">
+                        <i class="ph-fill ph-coat-hanger"></i> Mi Clóset
+                    </a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- HERO SECTION (Optimizado para pantallas móviles desde 320px) -->
+    <section class="relative bg-beige-100 border-b border-beige-200 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8">
+            <div class="relative rounded-2xl sm:rounded-3xl overflow-hidden min-h-[340px] sm:min-h-[450px] flex items-end sm:items-center shadow-sm border border-beige-200">
+                
+                <img id="heroBannerImg" src="https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80" 
+                     onerror="this.src='https://placehold.co/1400x600/E6DEC8/5B3E8A?text=EcoRopaGT+Moda+Circular'"
+                     alt="Clóset organizado con prendas de segunda mano" 
+                     class="absolute inset-0 w-full h-full object-cover object-center">
+                
+                <div class="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-grafito-900/80 via-grafito-900/45 to-transparent"></div>
+
+                <div class="relative z-10 w-full max-w-lg m-3 sm:m-10 bg-beige-50/95 backdrop-blur-md p-4 sm:p-8 rounded-2xl shadow-xl border border-beige-200 space-y-3 sm:space-y-4 reveal active">
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-verde-100 border border-verde-300 text-verde-700 text-[11px] sm:text-xs font-bold">
+                        <i class="ph-fill ph-sparkle"></i>
+                        <span id="heroBadgeText">Clósets familiares verificados en GT</span>
+                    </div>
+
+                    <h1 id="heroTitleText" class="font-display text-xl sm:text-3xl font-extrabold text-grafito-900 leading-tight">
+                        Dale una segunda oportunidad a la ropa de tu familia
+                    </h1>
+
+                    <p id="heroDescText" class="text-xs sm:text-sm text-grafito-700 leading-relaxed">
+                        Compra en los <strong>mejores clósets virtuales de Guatemala</strong> o abre el tuyo para vender ropa impecable de Mujer, Hombre y Niños.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <a href="#closets-destacados" class="py-3 px-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-1.5 text-center">
+                            <i class="ph-bold ph-storefront text-sm sm:text-base shrink-0"></i>
+                            <span>Clósets Top</span>
+                        </a>
+                        <button onclick="openSellModal()" class="py-3 px-3 rounded-xl bg-verde-100 hover:bg-verde-200 text-verde-800 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-center">
+                            <i class="ph-bold ph-plus-circle text-sm sm:text-base shrink-0"></i>
+                            <span>Vender Ropa</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Floating Eco Impact Pill on Desktop -->
+                <div class="hidden lg:flex absolute bottom-6 right-6 z-10 bg-beige-50/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg border border-beige-200 items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-verde-200 text-verde-700 flex items-center justify-center text-xl">
+                        <i class="ph-fill ph-drop"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-grafito-900">Ahorra 2,700 L de agua por prenda</p>
+                        <p class="text-[11px] text-grafito-700">Comunidad de clósets verificados en GT</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ★ SECCIÓN DE CLÓSETS DESTACADOS (Carrusel Deslizable en Móvil + Grid) -->
+    <!-- ===================================================================== -->
+    <section id="closets-destacados" class="py-6 sm:py-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 border-b border-beige-200">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between mb-4 sm:mb-6 gap-2">
+            <div>
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-lavanda-100 text-lavanda-700 text-[11px] font-bold mb-1.5">
+                    <i class="ph-fill ph-crown"></i>
+                    <span>Vendedores Verificados • Guatemala</span>
+                </div>
+                <h2 class="font-display text-xl sm:text-3xl font-extrabold text-grafito-900">
+                    ★ Los Mejores Clósets Virtuales
+                </h2>
+                <p class="text-xs sm:text-sm text-grafito-700 mt-0.5">
+                    Desliza para explorar los mejores clósets o toca uno para ver todas sus prendas disponibles.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+                <button id="toggleAllClosetsBtn" onclick="toggleShowAllClosets()" class="px-3 py-2 rounded-xl bg-white hover:bg-beige-100 border border-beige-200 text-xs font-bold text-grafito-800 transition">
+                    Ver todos (4)
+                </button>
+                <a href="#mi-closet-virtual" class="px-3.5 py-2 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1 shadow-2xs">
+                    <i class="ph-bold ph-coat-hanger"></i>
+                    <span>Mi Clóset</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Carrusel Horizontal con Snap en Móvil / Grid en Desktop -->
+        <div id="featuredClosetsGrid" class="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 overflow-x-auto md:overflow-visible snap-x snap-mandatory no-scrollbar pb-2">
+            <!-- Renderizado dinámicamente por JS -->
+        </div>
+
+        <!-- VISOR DE CLÓSET VIRTUAL COMPLETO (Adaptado a Móvil y Escritorio) -->
+        <div id="inlineClosetViewer" class="hidden mt-5 sm:mt-8 bg-white rounded-2xl sm:rounded-3xl border-2 border-lavanda-400 shadow-xl overflow-hidden transition-all duration-300">
+            <!-- Renderizado dinámicamente por JS -->
+        </div>
+    </section>
+
+    <!-- CHIPS RÁPIDOS DE MARCAS -->
+    <section class="pt-6 pb-2 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between mb-2.5">
+            <h2 class="font-display text-xs sm:text-base font-bold text-grafito-800 flex items-center gap-1.5">
+                <i class="ph-fill ph-fire text-lavanda-500"></i>
+                <span>Explorar por marca o selección</span>
+            </h2>
+            <button onclick="resetAllFilters()" id="clearFiltersBtn" class="hidden text-xs font-bold text-lavanda-600 hover:underline flex items-center gap-1">
+                <span>Limpiar filtros</span>
+                <i class="ph-bold ph-x"></i>
+            </button>
+        </div>
+
+        <div class="hidden sm:flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+            <button onclick="filterByBrand('todas')" class="px-3 py-2 rounded-xl bg-lavanda-500 text-white text-xs font-semibold shrink-0 transition shadow-2xs">
+                Todas
+            </button>
+            <button onclick="filterByBrand('Selección EcoRopa')" class="px-3 py-2 rounded-xl bg-verde-100 hover:bg-verde-200 border border-verde-300 text-verde-700 text-xs font-semibold shrink-0 transition flex items-center gap-1">
+                <i class="ph-fill ph-sparkle"></i> Sin marca (Selección Eco)
+            </button>
+            <button onclick="filterByBrand('Zara')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Zara
+            </button>
+            <button onclick="filterByBrand('Levi\'s')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Levi's
+            </button>
+            <button onclick="filterByBrand('Mango')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Mango
+            </button>
+            <button onclick="filterByBrand('Carter\'s & Gap')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Carter's & Gap
+            </button>
+            <button onclick="filterByBrand('Massimo Dutti')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Massimo Dutti
+            </button>
+            <button onclick="filterByBrand('Ralph Lauren')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Ralph Lauren
+            </button>
+            <button onclick="filterByBrand('Nike & Adidas')" class="px-3 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800 text-xs font-semibold shrink-0 transition">
+                Nike & Adidas
+            </button>
+        </div>
+    </section>
+
+    <!-- CATÁLOGO GENERAL & BARRA DE FILTROS ADAPTADA A MÓVIL (Grid 2x2 en celular) -->
+    <section id="catalogo" class="py-3 sm:py-4 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        
+        <div class="bg-white border border-beige-200 rounded-2xl p-3 sm:p-4 mb-5 shadow-2xs">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                
+                <!-- Grid 2 columnas en móvil para evitar desbordes horizontales -->
+                <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                    <!-- Filtro por Clóset -->
+                    <select id="closetFilterSelect" onchange="applyCatalogFilters()" class="w-full sm:w-auto px-2.5 py-2 rounded-xl bg-lavanda-50 border border-lavanda-200 text-xs font-bold text-lavanda-700 focus:outline-none truncate">
+                        <option value="todos">Clóset: Todos</option>
+                        <option value="@sofia_gt">@sofia_gt (Sofía)</option>
+                        <option value="@carlos_vintage">@carlos_vintage (Carlos)</option>
+                        <option value="@mama_eco">@mama_eco (Mamá Eco)</option>
+                        <option value="@mariana_closet">@mariana_closet (Mariana)</option>
+                    </select>
+
+                    <!-- Integrante -->
+                    <select id="genderSelect" onchange="applyCatalogFilters()" class="w-full sm:w-auto px-2.5 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs font-semibold text-grafito-800 focus:outline-none truncate">
+                        <option value="todos">Familia: Todos</option>
+                        <option value="Mujer">Mujer</option>
+                        <option value="Hombre">Hombre</option>
+                        <option value="Niños">Niños y Bebés</option>
+                        <option value="Unisex">Unisex</option>
+                    </select>
+
+                    <!-- Marca -->
+                    <select id="brandSelect" onchange="applyCatalogFilters()" class="w-full sm:w-auto px-2.5 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs font-semibold text-grafito-800 focus:outline-none truncate">
+                        <option value="todas">Marca: Todas</option>
+                        <option value="Selección EcoRopa">Selección EcoRopa</option>
+                        <option value="Zara">Zara</option>
+                        <option value="Massimo Dutti">Massimo Dutti</option>
+                        <option value="Levi's">Levi's</option>
+                        <option value="Ralph Lauren">Ralph Lauren</option>
+                        <option value="Mango">Mango</option>
+                        <option value="Carter's & Gap">Carter's & Gap</option>
+                        <option value="Nike & Adidas">Nike & Adidas</option>
+                    </select>
+
+                    <!-- Estado -->
+                    <select id="conditionSelect" onchange="applyCatalogFilters()" class="w-full sm:w-auto px-2.5 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs font-semibold text-grafito-800 focus:outline-none truncate">
+                        <option value="todas">Estado: Todos</option>
+                        <option value="Nuevo con etiqueta">Con etiqueta</option>
+                        <option value="Como nuevo">Como nuevo</option>
+                        <option value="Excelente estado">Excelente estado</option>
+                    </select>
+                </div>
+
+                <!-- Ordenar y Contador -->
+                <div class="flex items-center justify-between sm:justify-end gap-2 border-t lg:border-t-0 pt-2.5 lg:pt-0 border-beige-200">
+                    <span id="resultsCount" class="text-[11px] sm:text-xs font-semibold text-grafito-700">12 prendas</span>
+                    <select id="sortSelect" onchange="applyCatalogFilters()" class="px-2.5 py-1.5 sm:py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs font-semibold text-grafito-800 focus:outline-none">
+                        <option value="destacados">Orden: Relevancia</option>
+                        <option value="menor-precio">Menor precio</option>
+                        <option value="mayor-precio">Mayor precio</option>
+                        <option value="mayor-ahorro">Mayor descuento</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- GRID DE PRODUCTOS (2 columnas en todo celular, 3 en tablet, 4 en desktop) -->
+        <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-5">
+            <!-- Populated dynamically via JS -->
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyCatalogState" class="hidden text-center py-12 px-4 bg-white rounded-3xl border border-beige-200 my-4">
+            <div class="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center mx-auto mb-3 text-xl">
+                <i class="ph-bold ph-magnifying-glass"></i>
+            </div>
+            <h3 class="font-display text-base sm:text-lg font-bold text-grafito-900">No encontramos prendas con estos filtros</h3>
+            <p class="text-xs text-grafito-700 max-w-md mx-auto mt-1 mb-4">Prueba cambiando el clóset, categoría o marca para ver todo el catálogo.</p>
+            <button onclick="resetAllFilters()" class="px-5 py-2.5 rounded-xl bg-lavanda-500 text-white text-xs font-bold hover:bg-lavanda-600 transition">
+                Ver todo el catálogo
+            </button>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- ★ SECCIÓN DE VENDEDOR & MI CLÓSET VIRTUAL (PROTEGIDA CON LOGIN)       -->
+    <!-- ===================================================================== -->
+    <section id="mi-closet-virtual" class="py-8 sm:py-12 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        
+        <!-- VISTA PÚBLICA (Compradores y nuevos vendedores) -->
+        <div id="sellerPublicInvitation" class="bg-lavanda-50/80 border-2 border-lavanda-200 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-xs">
+            <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+                <div class="max-w-2xl space-y-3">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-lavanda-700 text-xs font-bold shadow-2xs">
+                        <i class="ph-fill ph-coat-hanger"></i>
+                        <span>¿Tienes ropa en excelente estado?</span>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-3xl font-extrabold text-grafito-900 leading-tight">
+                        Abre tu Clóset Virtual y genera ingresos con la ropa de toda tu familia
+                    </h2>
+                    <p class="text-xs sm:text-sm text-grafito-700 leading-relaxed">
+                        Toma fotos con tu celular, tú pones los precios y nosotros coordinamos la recolección en tu casa con Forza / Cargo Expreso. Tu pago queda protegido hasta la entrega.
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2">
+                        <div class="bg-white p-3 rounded-xl border border-lavanda-200 flex items-center gap-2">
+                            <i class="ph-bold ph-camera text-lavanda-600 text-base shrink-0"></i>
+                            <span class="text-[11px] font-bold text-grafito-800">Fotos con compresión</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-lavanda-200 flex items-center gap-2">
+                            <i class="ph-bold ph-truck text-verde-600 text-base shrink-0"></i>
+                            <span class="text-[11px] font-bold text-grafito-800">Recolección a tu puerta</span>
+                        </div>
+                        <div class="bg-white p-3 rounded-xl border border-lavanda-200 flex items-center gap-2">
+                            <i class="ph-bold ph-shield-check text-lavanda-600 text-base shrink-0"></i>
+                            <span class="text-[11px] font-bold text-grafito-800">Pago 100% resguardado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col sm:flex-row lg:flex-col gap-3 w-full lg:w-auto shrink-0">
+                    <button onclick="openSellerAuthModal()" class="py-3.5 px-6 rounded-2xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-storefront text-base"></i>
+                        <span>Ingresar a Mi Clóset (Vendedores)</span>
+                    </button>
+                    <button onclick="openSellerAuthModal()" class="py-3 px-6 rounded-2xl bg-white hover:bg-beige-100 border border-beige-300 text-grafito-800 font-bold text-xs text-center transition">
+                        Crear Clóset / Vender Mi Ropa
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- VISTA PRIVADA DEL VENDEDOR (Solo visible al autenticarse por WhatsApp) -->
+        <div id="sellerPrivateStudio" class="hidden bg-lavanda-50/80 border-2 border-lavanda-200 rounded-2xl sm:rounded-3xl p-4 sm:p-10 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-lavanda-200">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white text-lavanda-700 text-[11px] font-bold shadow-2xs mb-1.5">
+                        <i class="ph-fill ph-check-circle text-verde-600"></i>
+                        <span>Sesión Activa de Vendedor</span>
+                    </div>
+                    <h2 class="font-display text-xl sm:text-3xl font-extrabold text-grafito-900">
+                        Estudio de <span id="privateStudioSellerHandle">@sofia_gt</span>
+                    </h2>
+                    <p class="text-xs sm:text-sm text-grafito-700 mt-0.5">
+                        Gestiona tu inventario personal, cambia el estado a vendida o sube nuevas fotos desde tu celular.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="openSellModal()" class="py-2.5 px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-2xs">
+                        <i class="ph-bold ph-camera text-base"></i>
+                        <span>Subir Prenda (Cámara / Galería)</span>
+                    </button>
+                    <button onclick="logoutSeller()" class="py-2.5 px-3.5 rounded-xl bg-white hover:bg-red-50 text-red-600 border border-beige-300 text-xs font-bold transition flex items-center gap-1">
+                        <i class="ph-bold ph-sign-out"></i>
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- KPIs del Clóset -->
+            <div id="sellerStudioKpis" class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 my-5">
+                <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Listado de Prendas del Clóset: TARJETAS EN MÓVIL + TABLA EN DESKTOP -->
+            <div class="bg-white rounded-2xl border border-beige-200 overflow-hidden">
+                <div class="p-3.5 sm:p-4 border-b border-beige-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h3 id="studioTableTitle" class="font-display text-sm sm:text-base font-bold text-grafito-900">
+                            Inventario de tu Clóset
+                        </h3>
+                        <p class="text-[11px] text-grafito-700">
+                            Cambia el estado entre Disponible y Vendida con un toque. Sincronizado en la nube.
+                        </p>
+                    </div>
+                    <button onclick="openClosetViewer(currentActiveSeller)" class="self-start sm:self-auto text-xs font-bold text-lavanda-600 hover:underline flex items-center gap-1">
+                        <i class="ph-bold ph-eye"></i>
+                        <span>Ver mi perfil público</span>
+                    </button>
+                </div>
+
+                <!-- VISTA MÓVIL: Tarjetas apiladas sin scroll horizontal (md:hidden) -->
+                <div id="sellerStudioMobileCards" class="divide-y divide-beige-100 md:hidden">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- VISTA DESKTOP: Tabla completa (hidden md:block) -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-beige-50 text-grafito-700 uppercase text-[10px] font-bold border-b border-beige-200">
+                            <tr>
+                                <th class="py-3 px-4">Prenda</th>
+                                <th class="py-3 px-4">Talla / Medidas (cm)</th>
+                                <th class="py-3 px-4">Precio</th>
+                                <th class="py-3 px-4">Vistas & Likes</th>
+                                <th class="py-3 px-4">Disponibilidad</th>
+                                <th class="py-3 px-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sellerStudioTableBody" class="divide-y divide-beige-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MODAL DE ACCESO PRIVADO POR WHATSAPP PARA VENDEDORES -->
+    <div id="sellerAuthModal" onclick="if(event.target === this) closeSellerAuthModal()" class="fixed inset-0 z-50 hidden items-center justify-center bg-grafito-900/60 backdrop-blur-xs p-4">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-beige-200 relative">
+            <button onclick="closeSellerAuthModal()" class="absolute top-4 right-4 p-2 text-grafito-600 hover:text-grafito-900 rounded-full">
+                <i class="ph-bold ph-x text-lg"></i>
+            </button>
+            <div class="w-12 h-12 rounded-2xl bg-verde-100 text-verde-700 flex items-center justify-center mb-4">
+                <i class="ph-bold ph-whatsapp-logo text-2xl"></i>
+            </div>
+            <h3 class="font-display text-lg sm:text-xl font-extrabold text-grafito-900">
+                Acceso a tu Clóset Virtual
+            </h3>
+            <p class="text-xs text-grafito-700 mt-1 mb-4 leading-relaxed">
+                Ingresa tu número de WhatsApp para gestionar tu inventario y ver tus ventas.
+            </p>
+            <form onsubmit="handleSellerAuthSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">
+                        Número de WhatsApp en Guatemala
+                    </label>
+                    <input id="sellerAuthPhoneInput" type="tel" required placeholder="Ej. 55551234 (o Sofía: 55551234)" class="w-full px-4 py-3 rounded-xl border border-beige-300 text-sm font-bold bg-beige-50 focus:border-lavanda-500 focus:outline-none">
+                    <p class="text-[11px] text-grafito-700/80 mt-1">
+                        Sellers de prueba: <strong>55551234</strong> (Sofía), <strong>55552345</strong> (Carlos)
+                    </p>
+                </div>
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-xs sm:text-sm shadow-xs transition">
+                    Ingresar a Mi Clóset
+                </button>
+            </form>
+        </div>
+    </div>
+
+                <!-- VISTA MÓVIL: Tarjetas apiladas sin scroll horizontal (md:hidden) -->
+                <div id="sellerStudioMobileCards" class="divide-y divide-beige-100 md:hidden">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- VISTA DESKTOP: Tabla completa (hidden md:block) -->
+                <div class="hidden md:block overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-beige-50 text-grafito-700 uppercase text-[10px] font-bold border-b border-beige-200">
+                            <tr>
+                                <th class="py-3 px-4">Prenda</th>
+                                <th class="py-3 px-4">Talla / Medidas</th>
+                                <th class="py-3 px-4">Precio</th>
+                                <th class="py-3 px-4">Vistas & Likes</th>
+                                <th class="py-3 px-4">Disponibilidad</th>
+                                <th class="py-3 px-4 text-right">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sellerStudioTableBody" class="divide-y divide-beige-100">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN DE LOGÍSTICA Y ENVÍO SEGURO -->
+    <section id="vender" class="py-6 sm:py-12 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="bg-verde-100/80 border border-verde-200 rounded-2xl sm:rounded-3xl p-5 sm:p-10 lg:p-12 shadow-xs">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
+                
+                <div class="lg:col-span-6 space-y-4">
+                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white text-verde-700 text-xs font-bold shadow-2xs">
+                        <i class="ph-fill ph-truck"></i>
+                        <span>Logística Circular en Guatemala</span>
+                    </div>
+
+                    <h2 class="font-display text-xl sm:text-3xl font-extrabold text-grafito-900 leading-tight">
+                        2 formas fáciles de enviar o recolectar tu ropa sin errores
+                    </h2>
+
+                    <div class="space-y-3">
+                        <div class="bg-beige-50 p-3.5 sm:p-4 rounded-2xl border border-beige-200 flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center text-sm font-bold shrink-0">1</span>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-grafito-900">Desde tu Casa con Guía Prepagada</h4>
+                                <p class="text-xs text-grafito-700 mt-0.5">
+                                    Subes fotos a tu clóset. Al venderse, Forza / Cargo Expreso recoge en tu puerta y liberamos tu pago al entregarse.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-beige-50 p-3.5 sm:p-4 rounded-2xl border border-beige-200 flex items-start gap-3">
+                            <span class="w-8 h-8 rounded-xl bg-verde-200 text-verde-800 flex items-center justify-center text-sm font-bold shrink-0">2</span>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-grafito-900">Eco-Bolsa VIP (Lote +8 Prendas)</h4>
+                                <p class="text-xs text-grafito-700 mt-0.5">
+                                    Pre-aprobamos tu lote por WhatsApp, lo recolectamos a domicilio y nos encargamos de las fotos y entregas por ti.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-6">
+                    <div class="bg-beige-50 rounded-2xl p-4 sm:p-7 border border-beige-200 shadow-sm space-y-3">
+                        <div class="flex items-center justify-between border-b border-beige-200 pb-3">
+                            <h3 class="font-display text-base sm:text-lg font-bold text-grafito-900">Garantía EcoRopaGT</h3>
+                            <span class="px-2.5 py-1 rounded-lg bg-verde-100 text-verde-700 text-xs font-bold">Pago Protegido</span>
+                        </div>
+                        <p class="text-xs text-grafito-700 leading-relaxed">
+                            • <strong>Pack de Clóset (-10% OFF):</strong> Lleva 2+ prendas del mismo vendedor con descuento automático y 1 solo envío.<br>
+                            • <strong>Medidas verificadas en cm:</strong> Revisa pecho/ancho y largo antes de comprar.<br>
+                            • <strong>Retención de seguridad 24h:</strong> Cuidamos tanto al comprador como al dueño del clóset.
+                        </p>
+                        <button onclick="openSellModal()" class="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center justify-center gap-2">
+                            <i class="ph-bold ph-camera text-base"></i>
+                            <span>Subir Prenda con Cámara / Galería</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-beige-100 border-t border-beige-200 mt-8 py-8 text-xs text-grafito-700">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
+            <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-lavanda-500 text-white flex items-center justify-center">
+                    <i class="ph-bold ph-recycle text-base"></i>
+                </div>
+                <span class="font-display text-base font-extrabold text-grafito-900">ecoropa<span class="text-lavanda-500">gt</span></span>
+                <span>• Clósets Familiares GT</span>
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <p>© 2026 EcoRopaGT. Moda circular familiar en Guatemala.</p>
+                <span class="inline-flex items-center gap-1 text-verde-700 font-bold">
+                    <i class="ph-bold ph-shield-check text-verde-600"></i>
+                    <span>Compra y Venta Protegida</span>
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!-- ★ BARRA DE NAVEGACIÓN INFERIOR FIJA PARA MÓVIL (ESTILO APP NATIVA)    -->
+    <!-- ===================================================================== -->
+    <nav class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-beige-200 shadow-lg md:hidden pb-safe">
+        <div class="grid grid-cols-5 items-center h-15 px-1 text-[10px] font-bold text-grafito-700">
+            <a href="#catalogo" class="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition">
+                <i class="ph-bold ph-squares-four text-lg text-lavanda-600"></i>
+                <span>Catálogo</span>
+            </a>
+            <a href="#closets-destacados" class="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition">
+                <i class="ph-fill ph-storefront text-lg text-verde-600"></i>
+                <span>Clósets</span>
+            </a>
+            <div class="flex items-center justify-center -mt-4">
+                <button onclick="openSellModal()" class="w-12 h-12 rounded-2xl bg-lavanda-500 text-white shadow-md flex flex-col items-center justify-center active:scale-95 transition border-2 border-white">
+                    <i class="ph-bold ph-camera text-xl"></i>
+                    <span class="text-[8px] font-extrabold -mt-0.5">Vender</span>
+                </button>
+            </div>
+            <a href="#mi-closet-virtual" class="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition">
+                <i class="ph-bold ph-coat-hanger text-lg text-grafito-800"></i>
+                <span>Mi Clóset</span>
+            </a>
+            <button onclick="toggleCartDrawer(true)" class="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition">
+                <i class="ph-bold ph-shopping-bag text-lg text-grafito-800"></i>
+                <span>Bolsa</span>
+                <span id="mobileNavCartBadge" class="hidden absolute top-1 right-3 w-4 h-4 rounded-full bg-verde-500 text-white text-[9px] font-extrabold flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- QUICK VIEW MODAL CON MINI-GALERÍA DE 3 ÁNGULOS + MEDIDAS EN CM + BUNDLE BANNER -->
+    <div id="quickViewModal" onclick="if(event.target === this) closeQuickView()" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-grafito-900/60 backdrop-blur-xs p-0 sm:p-4">
+        <div class="bg-beige-50 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full max-h-modal-safe overflow-y-auto shadow-2xl border border-beige-200 grid grid-cols-1 md:grid-cols-12 relative">
+            <button onclick="closeQuickView()" class="sticky sm:absolute top-3 right-3 ml-auto mr-3 mt-3 sm:m-0 z-20 w-9 h-9 rounded-full bg-white/95 text-grafito-900 flex items-center justify-center shadow-md hover:bg-lavanda-100 transition">
+                <i class="ph-bold ph-x text-base"></i>
+            </button>
+
+            <!-- Columna Izquierda: Foto Principal + Miniaturas de 3 ángulos -->
+            <div class="md:col-span-6 bg-beige-100 flex flex-col justify-between -mt-12 sm:mt-0">
+                <div class="relative h-64 sm:h-80 md:h-96 bg-beige-100 overflow-hidden">
+                    <img id="qvImage" src="" alt="" class="w-full h-full object-cover transition-all duration-300">
+                    <span id="qvPhotoLabelBadge" class="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-full bg-grafito-900/75 text-white text-[10px] font-bold backdrop-blur-xs">
+                        1. Frente
+                    </span>
+                </div>
+                <div id="qvThumbnails" class="grid grid-cols-3 gap-2 p-3 bg-white border-t border-beige-200">
+                    <!-- Populated via JS: 1. Frente, 2. Etiqueta, 3. Textura -->
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Detalles + Medidas en CM + Pack Descuento -->
+            <div class="md:col-span-6 p-4 sm:p-6 flex flex-col justify-between space-y-3.5">
+                <div>
+                    <div class="flex items-center justify-between pb-2.5 mb-2.5 border-b border-beige-200">
+                        <div onclick="openClosetFromModal()" class="flex items-center gap-2 cursor-pointer group">
+                            <span id="qvSellerAvatar" class="w-8 h-8 rounded-full bg-lavanda-200 text-lavanda-700 font-bold text-xs flex items-center justify-center">E</span>
+                            <div>
+                                <p id="qvSellerName" class="text-xs font-bold text-grafito-900 group-hover:text-lavanda-600 transition">@closet_gt</p>
+                                <p class="text-[10px] text-verde-700 font-semibold">★ Clóset verificado • Toca para abrir</p>
+                            </div>
+                        </div>
+                        <span id="qvDiscountBadge" class="px-2.5 py-1 rounded-md bg-verde-100 text-verde-700 text-xs font-bold"></span>
+                    </div>
+
+                    <h3 id="qvTitle" class="font-display text-lg sm:text-xl font-extrabold text-grafito-900"></h3>
+
+                    <div class="flex items-baseline gap-2.5 mt-1">
+                        <span id="qvPrice" class="font-display text-2xl font-extrabold text-lavanda-600"></span>
+                        <span id="qvRetailPrice" class="text-xs text-grafito-700/60 line-through"></span>
+                    </div>
+
+                    <!-- Tabla de Marca / Talla / Estado -->
+                    <div class="mt-2.5 bg-white rounded-xl p-3 border border-beige-200 space-y-1.5 text-xs">
+                        <div class="flex justify-between">
+                            <span class="text-grafito-700">Marca:</span>
+                            <span id="qvBrand" class="font-bold text-grafito-900"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-grafito-700">Talla Etiqueta:</span>
+                            <span id="qvSize" class="font-bold text-grafito-900"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-grafito-700">Condición:</span>
+                            <span id="qvCondition" class="font-bold text-verde-700"></span>
+                        </div>
+                    </div>
+
+                    <!-- ★ MEJORA 3: Medidas Exactas en Centímetros (cm) -->
+                    <div class="mt-2.5 bg-lavanda-50/80 rounded-xl p-3 border border-lavanda-200">
+                        <div class="flex items-center justify-between mb-1.5">
+                            <span class="text-[11px] font-extrabold text-lavanda-700 flex items-center gap-1">
+                                <i class="ph-bold ph-ruler"></i> Medidas Reales Verificadas (cm)
+                            </span>
+                            <span id="qvFitNote" class="text-[10px] font-bold text-grafito-700 bg-white px-2 py-0.5 rounded-md border border-beige-200">Corte regular</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-center">
+                            <div class="bg-white rounded-lg p-1.5 border border-beige-200">
+                                <span class="block text-[10px] text-grafito-700">Ancho / Pecho</span>
+                                <span id="qvWidthCm" class="font-display text-xs font-extrabold text-grafito-900">50 cm</span>
+                            </div>
+                            <div class="bg-white rounded-lg p-1.5 border border-beige-200">
+                                <span class="block text-[10px] text-grafito-700">Largo Total</span>
+                                <span id="qvLengthCm" class="font-display text-xs font-extrabold text-grafito-900">68 cm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ★ MEJORA 2: Banner de Pack del Mismo Clóset (-10% OFF) -->
+                    <div class="mt-2.5 bg-verde-50 border border-verde-200 rounded-xl p-2.5 flex items-center gap-2">
+                        <i class="ph-fill ph-tag text-verde-600 text-base shrink-0"></i>
+                        <p class="text-[11px] text-verde-800 leading-tight">
+                            <strong>Pack de Clóset (-10% OFF):</strong> Lleva 2 o más prendas de <span id="qvBundleSeller" class="underline font-bold">@sofia_gt</span> y recibe 10% de descuento + 1 solo envío.
+                        </p>
+                    </div>
+
+                    <p id="qvNotes" class="text-xs text-grafito-700 mt-2.5 leading-relaxed"></p>
+                </div>
+
+                <div class="space-y-2 pt-1 pb-2">
+                    <button id="qvAddBtn" class="w-full py-3.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2">
+                        <i class="ph-bold ph-shopping-bag"></i>
+                        <span>Agregar a la bolsa</span>
+                    </button>
+                    <button onclick="openClosetFromModal()" class="w-full py-2.5 rounded-xl bg-white hover:bg-beige-100 border border-beige-200 text-grafito-800 font-bold text-xs transition flex items-center justify-center gap-1.5">
+                        <i class="ph-bold ph-storefront text-lavanda-500"></i>
+                        <span>Armar Pack en este Clóset (-10% OFF)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOPPING BAG DRAWER CON DESCUENTO AUTOMÁTICO POR PACK DE CLÓSET (-10%) -->
+    <div id="cartDrawerBackdrop" onclick="toggleCartDrawer(false)" class="fixed inset-0 bg-grafito-900/50 backdrop-blur-xs z-50 hidden"></div>
+    <aside id="cartDrawer" class="fixed top-0 right-0 h-dvh-safe w-full max-w-md bg-beige-50 z-50 shadow-2xl translate-x-full transition-transform duration-300 flex flex-col justify-between border-l border-beige-200">
+        <div class="p-4 sm:p-5 border-b border-beige-200">
+            <div class="flex items-center justify-between">
+                <h3 class="font-display text-base sm:text-lg font-extrabold text-grafito-900 flex items-center gap-2">
+                    <i class="ph-fill ph-shopping-bag text-lavanda-500"></i>
+                    <span>Tu Bolsa Circular</span>
+                </h3>
+                <button onclick="toggleCartDrawer(false)" class="p-2 rounded-lg hover:bg-beige-200 text-grafito-700">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            <div class="mt-2.5 bg-verde-100 p-2.5 sm:p-3 rounded-xl border border-verde-200">
+                <p id="freeShippingText" class="text-xs text-grafito-800 mb-1.5"></p>
+                <div class="w-full h-2 bg-white rounded-full overflow-hidden">
+                    <div id="freeShippingBar" class="h-full bg-verde-500 transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cartItemsContainer" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3"></div>
+
+        <div class="p-4 sm:p-5 bg-white border-t border-beige-200 space-y-3 pb-safe">
+            <div class="space-y-1.5 text-xs">
+                <div class="flex justify-between text-verde-700 font-semibold">
+                    <span>Ahorro vs. tienda nueva:</span>
+                    <span id="cartSavingsTotal">-Q0</span>
+                </div>
+                <div id="cartBundleDiscountRow" class="hidden flex justify-between text-lavanda-700 font-extrabold bg-lavanda-50 px-2.5 py-1.5 rounded-lg border border-lavanda-200">
+                    <span>✨ Pack Mismo Clóset (-10% OFF):</span>
+                    <span id="cartBundleDiscountAmount">-Q0</span>
+                </div>
+                <div class="flex justify-between text-grafito-700">
+                    <span id="cartShippingLabel">Envío en Guatemala:</span>
+                    <span id="cartShippingCost">Q0</span>
+                </div>
+                <div class="flex justify-between text-base font-extrabold text-grafito-900 pt-1.5 border-t border-beige-200">
+                    <span>Total a pagar:</span>
+                    <span id="cartGrandTotal">Q0</span>
+                </div>
+            </div>
+            <button onclick="completeCheckout()" class="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2">
+                <i class="ph-bold ph-whatsapp-logo text-lg"></i>
+                <span>Confirmar Pedido por WhatsApp</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- MODAL PARA SUBIR PRENDA CON CÁMARA / GALERÍA Y COMPRESIÓN EN NAVEGADOR -->
+    <div id="sellModal" onclick="if(event.target === this) closeSellModal()" class="fixed inset-0 z-50 hidden items-end sm:items-center justify-center bg-grafito-900/60 backdrop-blur-xs p-0 sm:p-4">
+        <div class="bg-beige-50 rounded-t-3xl sm:rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl border border-beige-200 max-h-modal-safe overflow-y-auto relative pb-safe">
+            <button onclick="closeSellModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-white text-grafito-800 flex items-center justify-center hover:bg-beige-200">
+                <i class="ph-bold ph-x"></i>
+            </button>
+
+            <span class="px-3 py-1 rounded-full bg-lavanda-100 text-lavanda-700 text-xs font-bold">★ Cámara + Compresión Automática</span>
+            <h3 class="font-display text-xl sm:text-2xl font-extrabold text-grafito-900 mt-2">Sube una prenda a tu clóset</h3>
+            <p class="text-xs text-grafito-700 mt-0.5 mb-3.5">
+                Toma hasta 3 fotos desde tu celular (Frente, Etiqueta y Textura) o elige de tu galería.
+            </p>
+
+            <form onsubmit="submitNewGarmentForm(event)" class="space-y-3">
+                <!-- ★ MEJORA 1: Subida Real desde Cámara / Galería con Compresión Canvas -->
+                <div class="bg-white p-3 rounded-2xl border-2 border-dashed border-lavanda-300 text-center">
+                    <input id="cameraFileInput" type="file" accept="image/*" multiple onchange="handleCameraFilesSelected(event)" class="hidden">
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                        <button type="button" onclick="document.getElementById('cameraFileInput').click()" class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-2xs transition">
+                            <i class="ph-bold ph-camera text-base"></i>
+                            <span>Tomar Foto / Elegir de Galería (Máx 3)</span>
+                        </button>
+                        <span id="uploadCompressionStatus" class="text-[11px] font-semibold text-grafito-700">Comprime automáticamente a &lt;150KB</span>
+                    </div>
+                    <!-- Previsualización de las fotos comprimidas -->
+                    <div id="uploadedPhotosPreview" class="hidden grid grid-cols-3 gap-2 mt-3"></div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Clóset Vendedor</label>
+                        <select id="modalSellerSelect" class="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold text-lavanda-700">
+                            <option value="@sofia_gt">@sofia_gt (Sofía)</option>
+                            <option value="@carlos_vintage">@carlos_vintage (Carlos)</option>
+                            <option value="@mama_eco">@mama_eco (Mamá Eco)</option>
+                            <option value="@mariana_closet">@mariana_closet (Mariana)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Modalidad Logística</label>
+                        <select class="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs">
+                            <option>Guía prepagada desde casa</option>
+                            <option>Eco-Bolsa VIP (+8 prendas)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">Título de la prenda *</label>
+                    <input id="newGarmentTitle" type="text" required placeholder="Ej. Vestido Lino Beige, Chumpa Levi's..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-beige-300 text-xs sm:text-sm focus:outline-none focus:border-lavanda-500">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Marca</label>
+                        <input id="newGarmentBrand" type="text" value="Zara" class="w-full px-2.5 py-2 rounded-xl bg-white border border-beige-300 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Categoría</label>
+                        <select id="newGarmentCategory" class="w-full px-2 py-2 rounded-xl bg-white border border-beige-300 text-xs">
+                            <option value="mujer">Mujer</option>
+                            <option value="hombre">Hombre</option>
+                            <option value="ninos">Niños</option>
+                            <option value="calzado">Calzado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Talla</label>
+                        <input id="newGarmentSize" type="text" value="M / Mujer" class="w-full px-2.5 py-2 rounded-xl bg-white border border-beige-300 text-xs">
+                    </div>
+                </div>
+
+                <!-- ★ MEJORA 3: Campos de Medidas en CM al Subir Prenda -->
+                <div class="grid grid-cols-3 gap-2 bg-lavanda-50/70 p-2.5 rounded-xl border border-lavanda-200">
+                    <div>
+                        <label class="block text-[11px] font-bold text-lavanda-800 mb-0.5">Ancho/Pecho (cm)</label>
+                        <input id="newGarmentWidthCm" type="number" value="50" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-beige-300 text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-lavanda-800 mb-0.5">Largo Total (cm)</label>
+                        <input id="newGarmentLengthCm" type="number" value="68" class="w-full px-2.5 py-1.5 rounded-lg bg-white border border-beige-300 text-xs font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-lavanda-800 mb-0.5">Horma / Ajuste</label>
+                        <select id="newGarmentFitNote" class="w-full px-2 py-1.5 rounded-lg bg-white border border-beige-300 text-xs">
+                            <option value="Fiel a la talla">Fiel a la talla</option>
+                            <option value="Corte holgado">Corte holgado</option>
+                            <option value="Corte entallado">Corte entallado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Precio Venta (Q) *</label>
+                        <input id="newGarmentPrice" type="number" required value="195" class="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold text-lavanda-600">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-grafito-800 mb-1">Precio Tienda (Q)</label>
+                        <input id="newGarmentRetail" type="number" value="490" class="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-grafito-700 mb-1">O pega URL de imagen (opcional si subiste foto desde tu celular)</label>
+                    <input id="newGarmentImage" type="url" value="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80" class="w-full px-3 py-1.5 rounded-xl bg-white border border-beige-300 text-xs">
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-sm shadow-sm transition">
+                    Publicar Prenda Ahora
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Toast Notification (Ajustado encima de la barra móvil) -->
+    <div id="toastNotification" class="fixed bottom-20 md:bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-4 transition-all duration-300 bg-grafito-900 text-white px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2 text-xs font-medium w-[90%] max-w-sm justify-center text-center">
+        <i class="ph-fill ph-check-circle text-verde-300 text-base shrink-0"></i>
+        <span id="toastMessage" class="truncate">Prenda agregada a tu bolsa</span>
+    </div>
+
+    <script>
+        const sellers = [
+            {
+                username: "@sofia_gt",
+                displayName: "Sofía Morales",
+                bio: "Fan de la moda circular minimalista, blazers de lino y prendas clásicas cuidadas con amor en Zona 14.",
+                location: "Guatemala, Zona 14",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.9,
+                reviewsCount: 38,
+                salesCount: 42,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255551234"
+            },
+            {
+                username: "@carlos_vintage",
+                displayName: "Carlos Méndez",
+                bio: "Prendas masculinas vintage originales, chumpas de mezclilla Levi's, camisas Oxford y suéteres Ralph Lauren.",
+                location: "Antigua Guatemala",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=1200&q=80",
+                rating: 5.0,
+                reviewsCount: 29,
+                salesCount: 35,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255552345"
+            },
+            {
+                username: "@mama_eco",
+                displayName: "Elena & Lucas (Mamá Eco)",
+                bio: "Ropita de bebé y niños en perfecto estado que mis peques dejaron muy rápido. Lino orgánico y algodón suave.",
+                location: "Carretera a El Salvador",
+                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.9,
+                reviewsCount: 45,
+                salesCount: 58,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255553456"
+            },
+            {
+                username: "@mariana_closet",
+                displayName: "Mariana Castillo",
+                bio: "Vestidos de fiesta, bolsos de cuero genuino Massimo Dutti y calzado con poco o ningún uso.",
+                location: "Guatemala, Zona 10",
+                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.8,
+                reviewsCount: 22,
+                salesCount: 26,
+                isVerified: true,
+                isFeatured: false,
+                whatsapp: "50255554567"
+            }
+        ];
+
+        let products = [
+            {
+                id: 101,
+                title: "Blazer Estructurado Lino Beige",
+                brand: "Zara",
+                category: "mujer",
+                size: "M / Mujer",
+                gender: "Mujer",
+                condition: "Como nuevo",
+                price: 225,
+                retailPrice: 650,
+                seller: "@sofia_gt",
+                likes: 18,
+                views: 142,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=700&q=80",
+                notes: "Corte impecable con botones carey, usado una sola vez. Excelente caída y frescura."
+            },
+            {
+                id: 102,
+                title: "Chumpa Trucker Denim Clásica",
+                brand: "Levi's",
+                category: "hombre",
+                size: "L / Hombre",
+                gender: "Hombre",
+                condition: "Excelente estado",
+                price: 290,
+                retailPrice: 790,
+                seller: "@carlos_vintage",
+                likes: 24,
+                views: 210,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1576871337622-98d48d1cf531?auto=format&fit=crop&w=700&q=80",
+                notes: "Denim 100% algodón, botones metálicos intactos y tono azul medio atemporal."
+            },
+            {
+                id: 103,
+                title: "Vestido Midi Satinado Lavanda",
+                brand: "Mango",
+                category: "mujer",
+                size: "S / Mujer",
+                gender: "Mujer",
+                condition: "Nuevo con etiqueta",
+                price: 240,
+                retailPrice: 595,
+                seller: "@mariana_closet",
+                likes: 31,
+                views: 318,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?auto=format&fit=crop&w=700&q=80",
+                notes: "Prenda nueva con etiqueta. Ideal para eventos, bodas o cenas especiales."
+            },
+            {
+                id: 104,
+                title: "Overol de Lino Orgánico Suave",
+                brand: "Selección EcoRopa",
+                category: "ninos",
+                size: "2-3 Años",
+                gender: "Niños",
+                condition: "Como nuevo",
+                price: 115,
+                retailPrice: 290,
+                seller: "@mama_eco",
+                likes: 14,
+                views: 95,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1522771930-78848d9293e8?auto=format&fit=crop&w=700&q=80",
+                notes: "Prenda sin marca comercial pero confeccionada en lino 100% suave con botones de madera. Impecable."
+            },
+            {
+                id: 105,
+                title: "Camisa Oxford Algodón Pima",
+                brand: "Massimo Dutti",
+                category: "hombre",
+                size: "M / Hombre",
+                gender: "Hombre",
+                condition: "Como nuevo",
+                price: 210,
+                retailPrice: 580,
+                seller: "@carlos_vintage",
+                likes: 9,
+                views: 88,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?auto=format&fit=crop&w=700&q=80",
+                notes: "Textura suave transpirable, cuello y puños impecables sin desgaste."
+            },
+            {
+                id: 106,
+                title: "Jeans 501 High-Rise Recto",
+                brand: "Levi's",
+                category: "mujer",
+                size: "Talla 28 / Mujer",
+                gender: "Mujer",
+                condition: "Como nuevo",
+                price: 230,
+                retailPrice: 640,
+                seller: "@sofia_gt",
+                likes: 27,
+                views: 184,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=700&q=80",
+                notes: "Mezclilla gruesa sostenible que dura décadas. Ajuste clásico."
+            },
+            {
+                id: 107,
+                title: "Vestido Camisero Verde Pastel",
+                brand: "Selección EcoRopa",
+                category: "mujer",
+                size: "M / Mujer",
+                gender: "Mujer",
+                condition: "Como nuevo",
+                price: 165,
+                retailPrice: 420,
+                seller: "@sofia_gt",
+                likes: 21,
+                views: 110,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80",
+                notes: "Prenda independiente en excelente estado de conservación, tela fresca y cinturón incluido."
+            },
+            {
+                id: 108,
+                title: "Set 2 Piezas Algodón + Chumpita",
+                brand: "Carter's & Gap",
+                category: "ninos",
+                size: "4 Años (4T)",
+                gender: "Niños",
+                condition: "Como nuevo",
+                price: 155,
+                retailPrice: 420,
+                seller: "@mama_eco",
+                likes: 16,
+                views: 76,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?auto=format&fit=crop&w=700&q=80",
+                notes: "Conjunto infantil resistente y cálido, listo para una segunda vuelta de aventuras."
+            },
+            {
+                id: 109,
+                title: "Suéter Tejido Punto Suave",
+                brand: "Ralph Lauren",
+                category: "hombre",
+                size: "L / Hombre",
+                gender: "Hombre",
+                condition: "Como nuevo",
+                price: 265,
+                retailPrice: 750,
+                seller: "@carlos_vintage",
+                likes: 12,
+                views: 92,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=700&q=80",
+                notes: "Algodón peinado con bordado clásico. Perfecto para clima fresco."
+            },
+            {
+                id: 110,
+                title: "Bolso Crossbody Cuero Miel",
+                brand: "Massimo Dutti",
+                category: "calzado",
+                size: "Unitalla",
+                gender: "Mujer",
+                condition: "Excelente estado",
+                price: 310,
+                retailPrice: 890,
+                seller: "@mariana_closet",
+                likes: 29,
+                views: 165,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=700&q=80",
+                notes: "Piel legítima con herrajes dorados y forro interior impecable."
+            },
+            {
+                id: 111,
+                title: "Sneakers Urbanos Tonos Pastel",
+                brand: "Nike & Adidas",
+                category: "calzado",
+                size: "Talla 39 / Unisex",
+                gender: "Unisex",
+                condition: "Como nuevo",
+                price: 280,
+                retailPrice: 720,
+                seller: "@mariana_closet",
+                likes: 19,
+                views: 134,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?auto=format&fit=crop&w=700&q=80",
+                notes: "Suela con 95% de vida útil, higienizados y listos para caminar."
+            },
+            {
+                id: 112,
+                title: "Conjunto Camisa Lino + Short",
+                brand: "Selección EcoRopa",
+                category: "ninos",
+                size: "6 Años",
+                gender: "Niños",
+                condition: "Excelente estado",
+                price: 145,
+                retailPrice: 380,
+                seller: "@mama_eco",
+                likes: 11,
+                views: 68,
+                status: "disponible",
+                image: "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=700&q=80",
+                notes: "Dos piezas frescas en tonos tierra suaves, sin manchas ni desgaste."
+            }
+        ];
+
+        // App State
+        let currentCategory = 'todos';
+        let currentSearchQuery = '';
+        let wishlist = new Set();
+        let wishlistOnlyMode = false;
+        let cart = [];
+        let showAllClosets = false;
+        let currentlyOpenedCloset = null;
+        let currentActiveSeller = '@sofia_gt';
+        let currentQvSeller = '@sofia_gt';
+
+        function syncSearchInputs(val) {
+            currentSearchQuery = val;
+            const d = document.getElementById('searchInputDesktop');
+            const m = document.getElementById('searchInputMobile');
+            if (d && d.value !== val) d.value = val;
+            if (m && m.value !== val) m.value = val;
+
+            document.getElementById('clearSearchIconDesktop')?.classList.toggle('hidden', val.trim() === '');
+            document.getElementById('clearSearchIconMobile')?.classList.toggle('hidden', val.trim() === '');
+            renderCatalog();
+        }
+
+        // RENDERIZAR SECCIÓN DE CLÓSETS DESTACADOS (Carrusel Snap en Móvil)
+        function renderFeaturedClosets() {
+            const grid = document.getElementById('featuredClosetsGrid');
+            const btn = document.getElementById('toggleAllClosetsBtn');
+            const list = showAllClosets ? sellers : sellers.filter(s => s.isFeatured);
+
+            btn.textContent = showAllClosets ? 'Solo Top (3)' : `Todos (${sellers.length})`;
+
+            grid.innerHTML = list.map(seller => {
+                const sellerItems = products.filter(p => p.seller === seller.username && p.status === 'disponible');
+                const previewItems = sellerItems.slice(0, 3);
+                const isSelected = currentlyOpenedCloset === seller.username;
+
+                return `
+                <div class="w-[85vw] sm:w-[340px] md:w-auto shrink-0 snap-center bg-white rounded-2xl sm:rounded-3xl border ${isSelected ? 'border-lavanda-500 ring-2 ring-lavanda-300 shadow-lg' : 'border-beige-200 hover:shadow-md'} overflow-hidden transition-all duration-300 flex flex-col justify-between">
+                    <div class="p-4 sm:p-5">
+                        <div class="flex items-start justify-between gap-2 mb-2.5">
+                            <div onclick="openClosetViewer('${seller.username}')" class="flex items-center gap-2.5 cursor-pointer min-w-0">
+                                <img src="${seller.avatar}" alt="${seller.displayName}" class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl object-cover border-2 border-lavanda-100 shrink-0">
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-1">
+                                        <h3 class="font-display text-sm font-bold text-grafito-900 truncate">${seller.displayName}</h3>
+                                        <i class="ph-fill ph-seal-check text-verde-600 text-sm shrink-0"></i>
+                                    </div>
+                                    <p class="text-[11px] text-lavanda-600 font-bold truncate">${seller.username}</p>
+                                    <div class="flex items-center gap-1.5 mt-0.5 text-[10px] text-grafito-700">
+                                        <span class="font-bold text-amber-500">★ ${seller.rating}</span>
+                                        <span>•</span>
+                                        <span>${seller.salesCount} ventas</span>
+                                    </div>
+                                </div>
+                            </div>
+                            ${seller.isFeatured ? `<span class="px-2 py-0.5 rounded-full bg-verde-100 text-verde-800 text-[10px] font-bold shrink-0">★ Top</span>` : ''}
+                        </div>
+
+                        <p class="text-xs text-grafito-700 line-clamp-2 mb-2.5 leading-relaxed">${seller.bio}</p>
+
+                        <div class="flex items-center justify-between text-[11px] text-grafito-700/80 mb-3 font-medium">
+                            <span class="flex items-center gap-1 truncate"><i class="ph-fill ph-map-pin text-lavanda-500"></i> ${seller.location}</span>
+                            <span class="text-verde-700 font-bold shrink-0">${sellerItems.length} prendas</span>
+                        </div>
+
+                        <!-- Mini Galería de 3 Prendas -->
+                        <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                            ${previewItems.map(item => `
+                                <div onclick="openQuickView(${item.id})" class="relative aspect-square rounded-xl overflow-hidden bg-beige-100 group border border-beige-200 cursor-pointer">
+                                    <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-grafito-900/80 to-transparent p-1">
+                                        <span class="text-[10px] font-extrabold text-white">Q${item.price}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="p-3 sm:p-4 bg-beige-50 border-t border-beige-200 flex items-center gap-2">
+                        <button onclick="openClosetViewer('${seller.username}')" class="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 ${isSelected ? 'bg-lavanda-600 text-white' : 'bg-white hover:bg-lavanda-500 hover:text-white border border-beige-200 text-grafito-900'}">
+                            <i class="ph-bold ph-storefront"></i>
+                            <span>${isSelected ? 'Clóset Abierto' : 'Ver Clóset'}</span>
+                        </button>
+                        <button onclick="filterCatalogByCloset('${seller.username}')" class="px-3 py-2.5 rounded-xl bg-verde-100 text-verde-800 text-xs font-bold transition">
+                            Filtrar
+                        </button>
+                    </div>
+                </div>
+                `;
+            }).join('');
+        }
+
+        function toggleShowAllClosets() {
+            showAllClosets = !showAllClosets;
+            renderFeaturedClosets();
+        }
+
+        // VISOR DE CLÓSET EN LA MISMA PÁGINA (Optimizado para móvil)
+        function openClosetViewer(username) {
+            currentlyOpenedCloset = username;
+            renderFeaturedClosets();
+
+            const seller = sellers.find(s => s.username === username);
+            const viewer = document.getElementById('inlineClosetViewer');
+            if (!seller) return;
+
+            const sellerItems = products.filter(p => p.seller === username && p.status === 'disponible');
+            const waterSaved = (seller.salesCount + sellerItems.length) * 2700;
+
+            viewer.classList.remove('hidden');
+            viewer.innerHTML = `
+                <div class="relative h-28 sm:h-44 bg-gradient-to-r from-lavanda-200 to-verde-100">
+                    <img src="${seller.cover}" alt="${seller.displayName}" class="w-full h-full object-cover opacity-85">
+                    <div class="absolute inset-0 bg-gradient-to-t from-grafito-900/70 via-grafito-900/20 to-transparent"></div>
+                    <button onclick="closeClosetViewer()" class="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-white/95 text-grafito-900 text-xs font-bold shadow-md flex items-center gap-1">
+                        <i class="ph-bold ph-x"></i> Cerrar
+                    </button>
+                </div>
+
+                <div class="p-3.5 sm:p-8 -mt-10 relative">
+                    <div class="bg-beige-50 rounded-2xl p-4 sm:p-5 border border-beige-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 mb-5">
+                        <div class="flex items-center gap-3">
+                            <img src="${seller.avatar}" alt="${seller.displayName}" class="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl object-cover border-4 border-white shadow-sm shrink-0">
+                            <div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <h3 class="font-display text-base sm:text-xl font-extrabold text-grafito-900">${seller.displayName}</h3>
+                                    <span class="px-2 py-0.5 rounded-full bg-verde-100 text-verde-700 text-[10px] font-bold">★ ${seller.rating}</span>
+                                </div>
+                                <p class="text-xs font-bold text-lavanda-600">${seller.username} • ${seller.location}</p>
+                                <p class="text-xs text-grafito-700 mt-1 max-w-2xl">${seller.bio}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto justify-between lg:justify-end border-t lg:border-t-0 pt-2.5 lg:pt-0 border-beige-200">
+                            <div class="px-3 py-1.5 rounded-xl bg-verde-100 border border-verde-200 flex items-center gap-1.5">
+                                <i class="ph-fill ph-seal-check text-verde-700 text-base"></i>
+                                <span class="text-[11px] font-extrabold text-verde-800">${seller.salesCount} ventas • ★ ${seller.rating}</span>
+                            </div>
+                            <a href="https://wa.me/${seller.whatsapp}?text=${encodeURIComponent('¡Hola ' + seller.displayName + '! Vi tu clóset ' + seller.username + ' en EcoRopaGT.')}" target="_blank" class="py-2 px-3.5 rounded-xl bg-verde-600 text-white text-xs font-bold flex items-center gap-1">
+                                <i class="ph-bold ph-whatsapp-logo"></i>
+                                <span>WhatsApp</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <h4 class="font-display text-sm sm:text-base font-bold text-grafito-900 mb-3">Prendas en este clóset (${sellerItems.length}):</h4>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4">
+                        ${sellerItems.map(item => `
+                            <div class="bg-beige-50 rounded-2xl border border-beige-200 overflow-hidden flex flex-col justify-between">
+                                <div class="relative aspect-[4/5] bg-beige-100">
+                                    <img src="${item.image}" onclick="openQuickView(${item.id})" class="w-full h-full object-cover cursor-pointer">
+                                    <span class="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-white/90 text-[9px] font-bold text-verde-700">${item.condition}</span>
+                                </div>
+                                <div class="p-2.5 sm:p-3">
+                                    <div class="flex items-baseline gap-1.5">
+                                        <span class="font-display font-extrabold text-sm sm:text-base text-grafito-900">Q${item.price}</span>
+                                        <span class="text-[10px] text-grafito-700/50 line-through">Q${item.retailPrice}</span>
+                                    </div>
+                                    <p class="text-xs font-bold text-grafito-800 truncate mt-0.5">${item.title}</p>
+                                    <button onclick="addToCart(${item.id})" class="mt-2 w-full py-2 rounded-xl bg-lavanda-500 text-white text-xs font-bold">
+                                        Agregar
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+
+            viewer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function closeClosetViewer() {
+            currentlyOpenedCloset = null;
+            document.getElementById('inlineClosetViewer').classList.add('hidden');
+            renderFeaturedClosets();
+        }
+
+        function filterCatalogByCloset(username) {
+            document.getElementById('closetFilterSelect').value = username;
+            document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+            renderCatalog();
+            showToast(`Filtrando clóset ${username}`);
+        }
+
+        // ESTUDIO DEL VENDEDOR PRIVADO CON AUTENTICACIÓN POR WHATSAPP
+        let isSellerLoggedIn = false;
+
+        function checkSellerSession() {
+            const saved = sessionStorage.getItem('ecoropa_seller_handle');
+            if (saved) {
+                currentActiveSeller = saved;
+                isSellerLoggedIn = true;
+            }
+            updateSellerStudioVisibility();
+        }
+
+        function updateSellerStudioVisibility() {
+            const publicInv = document.getElementById('sellerPublicInvitation');
+            const privateStudio = document.getElementById('sellerPrivateStudio');
+            const handleSpan = document.getElementById('privateStudioSellerHandle');
+            if (isSellerLoggedIn) {
+                if (publicInv) publicInv.classList.add('hidden');
+                if (privateStudio) privateStudio.classList.remove('hidden');
+                if (handleSpan) handleSpan.textContent = currentActiveSeller;
+                renderSellerStudio();
+            } else {
+                if (publicInv) publicInv.classList.remove('hidden');
+                if (privateStudio) privateStudio.classList.add('hidden');
+            }
+        }
+
+        function openSellerAuthModal() {
+            const m = document.getElementById('sellerAuthModal');
+            if (m) {
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            }
+        }
+
+        function closeSellerAuthModal() {
+            const m = document.getElementById('sellerAuthModal');
+            if (m) {
+                m.classList.add('hidden');
+                m.classList.remove('flex');
+            }
+        }
+
+        function handleSellerAuthSubmit(e) {
+            e.preventDefault();
+            const phoneInput = document.getElementById('sellerAuthPhoneInput').value.trim();
+            const clean = phoneInput.replace(/\D/g, '');
+            const matched = sellers.find(s => s.whatsapp.includes(clean) || clean.includes(s.whatsapp.slice(-8)));
+            const targetHandle = matched ? matched.username : '@sofia_gt';
+
+            currentActiveSeller = targetHandle;
+            isSellerLoggedIn = true;
+            sessionStorage.setItem('ecoropa_seller_handle', targetHandle);
+            closeSellerAuthModal();
+            updateSellerStudioVisibility();
+            showToast(`¡Sesión iniciada en ${targetHandle}!`);
+        }
+
+        function logoutSeller() {
+            isSellerLoggedIn = false;
+            sessionStorage.removeItem('ecoropa_seller_handle');
+            updateSellerStudioVisibility();
+            showToast("Sesión de vendedor cerrada");
+        }
+
+        function switchActiveSeller(username) {
+            currentActiveSeller = username;
+            document.getElementById('modalSellerSelect').value = username;
+            renderSellerStudio();
+            showToast(`Clóset activo: ${username}`);
+        }
+
+        function renderSellerStudio() {
+            const seller = sellers.find(s => s.username === currentActiveSeller) || sellers[0];
+            const myItems = products.filter(p => p.seller === seller.username);
+            const activeItems = myItems.filter(p => p.status === 'disponible');
+            const soldItems = myItems.filter(p => p.status === 'vendida');
+            const totalViews = myItems.reduce((acc, p) => acc + (p.views || 80), 0);
+            const totalValue = activeItems.reduce((acc, p) => acc + p.price, 0);
+
+            document.getElementById('studioTableTitle').textContent = `Prendas de ${seller.username} (${seller.displayName})`;
+
+            document.getElementById('sellerStudioKpis').innerHTML = `
+                <div class="bg-white p-3.5 rounded-2xl border border-beige-200">
+                    <span class="text-[11px] font-bold text-grafito-700">En Venta</span>
+                    <p class="font-display text-xl sm:text-2xl font-extrabold text-grafito-900 mt-0.5">${activeItems.length}</p>
+                    <span class="text-[10px] text-lavanda-600 font-semibold">${seller.username}</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-beige-200">
+                    <span class="text-[11px] font-bold text-grafito-700">Vistas</span>
+                    <p class="font-display text-xl sm:text-2xl font-extrabold text-grafito-900 mt-0.5">${totalViews}</p>
+                    <span class="text-[10px] text-verde-700 font-semibold">Visitas</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-beige-200">
+                    <span class="text-[11px] font-bold text-grafito-700">Ventas</span>
+                    <p class="font-display text-xl sm:text-2xl font-extrabold text-grafito-900 mt-0.5">${seller.salesCount + soldItems.length}</p>
+                    <span class="text-[10px] text-amber-500 font-bold">★ ${seller.rating}</span>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl border border-beige-200">
+                    <span class="text-[11px] font-bold text-grafito-700">Valor Clóset</span>
+                    <p class="font-display text-xl sm:text-2xl font-extrabold text-verde-700 mt-0.5">Q${totalValue}</p>
+                    <span class="text-[10px] text-grafito-700">En inventario</span>
+                </div>
+            `;
+
+            // Renderizar Tarjetas Móviles (md:hidden)
+            document.getElementById('sellerStudioMobileCards').innerHTML = myItems.map(item => `
+                <div class="p-3 flex items-center gap-3">
+                    <img src="${item.image}" class="w-14 h-16 rounded-xl object-cover bg-beige-100 shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-xs font-bold text-grafito-900 truncate">${item.title}</p>
+                        <p class="text-[11px] text-lavanda-600 font-semibold">${item.brand} • ${item.size}</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="font-display font-extrabold text-sm text-grafito-900">Q${item.price}</span>
+                            <span class="text-[10px] text-grafito-700">• ${item.views || 95} vistas</span>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1.5 shrink-0">
+                        <select onchange="changeItemStatus(${item.id}, this.value)" class="px-2 py-1 rounded-lg text-[11px] font-bold border ${item.status === 'disponible' ? 'bg-verde-50 border-verde-200 text-verde-700' : 'bg-red-50 border-red-200 text-red-700'}">
+                            <option value="disponible" ${item.status === 'disponible' ? 'selected' : ''}>Disponible</option>
+                            <option value="vendida" ${item.status === 'vendida' ? 'selected' : ''}>Vendida</option>
+                        </select>
+                        <button onclick="deleteSellerItem(${item.id})" class="text-[11px] text-red-600 font-semibold flex items-center gap-0.5">
+                            <i class="ph-bold ph-trash"></i> Quitar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // Renderizar Tabla Desktop
+            document.getElementById('sellerStudioTableBody').innerHTML = myItems.map(item => `
+                <tr class="hover:bg-beige-50/60 transition">
+                    <td class="py-3 px-4">
+                        <div class="flex items-center gap-3">
+                            <img src="${item.image}" class="w-10 h-12 rounded-lg object-cover bg-beige-100 shrink-0">
+                            <div>
+                                <p class="font-bold text-grafito-900">${item.title}</p>
+                                <span class="text-[10px] text-lavanda-600 font-semibold">${item.brand}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="py-3 px-4">
+                        <p class="font-semibold text-grafito-800">${item.size}</p>
+                        <span class="text-[10px] text-verde-700">${item.condition}</span>
+                    </td>
+                    <td class="py-3 px-4 font-extrabold text-grafito-900">Q${item.price}</td>
+                    <td class="py-3 px-4 text-grafito-700">${item.views || 95} vistas • ${item.likes} ♥</td>
+                    <td class="py-3 px-4">
+                        <select onchange="changeItemStatus(${item.id}, this.value)" class="px-2.5 py-1 rounded-lg text-xs font-bold border cursor-pointer ${item.status === 'disponible' ? 'bg-verde-50 border-verde-200 text-verde-700' : 'bg-red-50 border-red-200 text-red-700'}">
+                            <option value="disponible" ${item.status === 'disponible' ? 'selected' : ''}>Disponible</option>
+                            <option value="vendida" ${item.status === 'vendida' ? 'selected' : ''}>Vendida</option>
+                        </select>
+                    </td>
+                    <td class="py-3 px-4 text-right">
+                        <button onclick="deleteSellerItem(${item.id})" class="p-1.5 text-grafito-700 hover:text-red-600 transition">
+                            <i class="ph-bold ph-trash text-base"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function changeItemStatus(id, newStatus) {
+            const item = products.find(p => p.id === id);
+            if (item) {
+                item.status = newStatus;
+                saveStateToStorage();
+                renderCatalog();
+                renderFeaturedClosets();
+                renderSellerStudio();
+                showToast(`Estado: ${newStatus.toUpperCase()}`);
+            }
+        }
+
+        function deleteSellerItem(id) {
+            products = products.filter(p => p.id !== id);
+            saveStateToStorage();
+            renderCatalog();
+            renderFeaturedClosets();
+            renderSellerStudio();
+            showToast("Prenda eliminada");
+        }
+
+        // RENDERIZAR CATÁLOGO GENERAL
+        function renderCatalog() {
+            const grid = document.getElementById('productGrid');
+            const emptyState = document.getElementById('emptyCatalogState');
+            const searchQuery = currentSearchQuery.toLowerCase().trim();
+            const closetFilter = document.getElementById('closetFilterSelect').value;
+            const brandFilter = document.getElementById('brandSelect').value;
+            const conditionFilter = document.getElementById('conditionSelect').value;
+            const genderFilter = document.getElementById('genderSelect').value;
+            const sortBy = document.getElementById('sortSelect').value;
+
+            let filtered = products.filter(item => {
+                const matchesCat = currentCategory === 'todos' || item.category === currentCategory;
+                const matchesCloset = closetFilter === 'todos' || item.seller === closetFilter;
+                const matchesBrand = brandFilter === 'todas' || item.brand === brandFilter;
+                const matchesCond = conditionFilter === 'todas' || item.condition === conditionFilter;
+                const matchesGender = genderFilter === 'todos' || item.gender === genderFilter;
+                const matchesSearch = !searchQuery || 
+                    item.title.toLowerCase().includes(searchQuery) || 
+                    item.brand.toLowerCase().includes(searchQuery) ||
+                    item.size.toLowerCase().includes(searchQuery) ||
+                    item.seller.toLowerCase().includes(searchQuery);
+                const matchesWishlist = !wishlistOnlyMode || wishlist.has(item.id);
+
+                return matchesCat && matchesCloset && matchesBrand && matchesCond && matchesGender && matchesSearch && matchesWishlist;
+            });
+
+            if (sortBy === 'menor-precio') {
+                filtered.sort((a, b) => a.price - b.price);
+            } else if (sortBy === 'mayor-precio') {
+                filtered.sort((a, b) => b.price - a.price);
+            } else if (sortBy === 'mayor-ahorro') {
+                filtered.sort((a, b) => ((b.retailPrice - b.price) / b.retailPrice) - ((a.retailPrice - a.price) / a.retailPrice));
+            }
+
+            const isFiltered = currentCategory !== 'todos' || closetFilter !== 'todos' || brandFilter !== 'todas' || conditionFilter !== 'todas' || genderFilter !== 'todos' || searchQuery !== '' || wishlistOnlyMode;
+            document.getElementById('clearFiltersBtn').classList.toggle('hidden', !isFiltered);
+
+            document.getElementById('resultsCount').textContent = `${filtered.length} ${filtered.length === 1 ? 'prenda' : 'prendas'}`;
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+
+            grid.innerHTML = filtered.map((item) => {
+                const inCart = cart.some(c => c.id === item.id);
+                const isFav = wishlist.has(item.id);
+                const likeCount = isFav ? item.likes + 1 : item.likes;
+                const avatarLetter = item.seller.replace('@', '').charAt(0).toUpperCase();
+
+                return `
+                <article class="bg-white rounded-2xl border border-beige-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="px-2.5 py-1.5 sm:px-3 sm:py-2 flex items-center justify-between border-b border-beige-100 gap-1">
+                            <button onclick="openClosetViewer('${item.seller}')" class="flex items-center gap-1 min-w-0 hover:text-lavanda-600 transition">
+                                <span class="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-lavanda-100 text-lavanda-700 text-[9px] sm:text-[10px] font-bold flex items-center justify-center shrink-0">${avatarLetter}</span>
+                                <span class="text-[10px] sm:text-[11px] font-bold text-grafito-800 truncate">${item.seller}</span>
+                            </button>
+                            <span class="text-[9px] sm:text-[10px] font-semibold px-1.5 py-0.5 rounded bg-verde-50 text-verde-700 truncate shrink-0">${item.condition}</span>
+                        </div>
+
+                        <div class="relative aspect-[4/5] bg-beige-100 overflow-hidden group">
+                            <img src="${item.image}" 
+                                 onerror="this.src='https://placehold.co/600x750/E6DEC8/5B3E8A?text=${encodeURIComponent(item.brand)}'"
+                                 alt="${item.title}" 
+                                 onclick="openQuickView(${item.id})"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 cursor-pointer">
+
+                            ${item.status === 'vendida' ? `
+                                <div class="absolute inset-0 bg-grafito-900/60 flex items-center justify-center">
+                                    <span class="px-2.5 py-1 rounded-lg bg-red-500 text-white text-[10px] font-extrabold uppercase">Vendida</span>
+                                </div>
+                            ` : ''}
+
+                            <button onclick="toggleWishlist(${item.id})" class="absolute bottom-2 right-2 px-2 py-1 rounded-full bg-white/95 backdrop-blur-xs shadow-xs flex items-center gap-1 text-[11px] font-semibold text-grafito-800 active:scale-95 transition">
+                                <i class="${isFav ? 'ph-fill ph-heart text-lavanda-500' : 'ph ph-heart text-grafito-700'} text-xs sm:text-sm"></i>
+                                <span>${likeCount}</span>
+                            </button>
+                        </div>
+
+                        <div class="p-2.5 sm:p-3">
+                            <div class="flex items-baseline justify-between gap-1">
+                                <div class="flex items-baseline gap-1">
+                                    <span class="font-display text-sm sm:text-lg font-extrabold text-grafito-900">Q${item.price}</span>
+                                    <span class="text-[10px] text-grafito-700/50 line-through">Q${item.retailPrice}</span>
+                                </div>
+                                <span class="text-[9px] sm:text-[10px] font-bold text-verde-700 bg-verde-50 px-1.5 py-0.5 rounded border border-verde-200">
+                                    -10% Pack
+                                </span>
+                            </div>
+
+                            <p class="text-[11px] sm:text-xs font-semibold text-grafito-700 mt-0.5 truncate">${item.size} • <span class="text-lavanda-600">${item.brand}</span></p>
+                            <h3 onclick="openQuickView(${item.id})" class="text-[11px] sm:text-xs text-grafito-700/80 truncate mt-0.5 cursor-pointer hover:text-lavanda-600">${item.title}</h3>
+
+                            <!-- Medidas en cm visibles en catálogo -->
+                            <div class="mt-1.5 pt-1 border-t border-beige-100 flex items-center justify-between text-[10px] text-grafito-700">
+                                <span class="font-bold text-lavanda-700">📐 ${getGarmentMeasurements(item).widthCm} × ${getGarmentMeasurements(item).lengthCm} cm</span>
+                                <span class="text-[9px] text-grafito-700/70 truncate max-w-[85px]">${getGarmentMeasurements(item).fitNote}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-2.5 pb-2.5 sm:px-3 sm:pb-3">
+                        <button onclick="addToCart(${item.id})" ${item.status === 'vendida' ? 'disabled' : ''}
+                            class="w-full py-2 rounded-xl text-[11px] sm:text-xs font-bold transition flex items-center justify-center gap-1 ${item.status === 'vendida' ? 'bg-beige-200 text-grafito-700/50 cursor-not-allowed' : inCart ? 'bg-verde-500 text-white' : 'bg-beige-100 hover:bg-lavanda-500 text-grafito-800 hover:text-white active:bg-lavanda-600 active:text-white'}">
+                            <i class="ph-bold ${inCart ? 'ph-check' : 'ph-shopping-bag'}"></i>
+                            <span>${item.status === 'vendida' ? 'Vendida' : inCart ? 'En tu bolsa' : 'Agregar'}</span>
+                        </button>
+                    </div>
+                </article>
+                `;
+            }).join('');
+        }
+
+        function setCategoryFilter(cat) {
+            currentCategory = cat;
+            const hq = document.getElementById('headerQuickType');
+            if (hq) hq.value = cat;
+            document.querySelectorAll('.cat-tab').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = "cat-tab px-3 py-1.5 sm:py-2 rounded-lg bg-lavanda-100 text-lavanda-700 font-bold transition flex items-center gap-1";
+                } else {
+                    btn.className = "cat-tab px-3 py-1.5 sm:py-2 rounded-lg hover:bg-beige-100 text-grafito-700 transition flex items-center gap-1";
+                }
+            });
+            renderCatalog();
+        }
+
+        function syncHeaderCategory(val) {
+            setCategoryFilter(val);
+        }
+
+        function clearSearchInput() {
+            syncSearchInputs('');
+        }
+
+        function filterByBrand(brandName) {
+            document.getElementById('brandSelect').value = brandName;
+            document.getElementById('catalogo').scrollIntoView({ behavior: 'smooth' });
+            renderCatalog();
+            showToast(brandName === 'todas' ? 'Todas las prendas' : `Marca: ${brandName}`);
+        }
+
+        function applyCatalogFilters() {
+            renderCatalog();
+        }
+
+        function resetAllFilters() {
+            currentCategory = 'todos';
+            wishlistOnlyMode = false;
+            syncSearchInputs('');
+            document.getElementById('closetFilterSelect').value = 'todos';
+            document.getElementById('brandSelect').value = 'todas';
+            document.getElementById('conditionSelect').value = 'todas';
+            document.getElementById('genderSelect').value = 'todos';
+            document.getElementById('sortSelect').value = 'destacados';
+            const icon = document.getElementById('wishlistHeaderIcon');
+            icon.className = 'ph ph-heart text-xl';
+            setCategoryFilter('todos');
+        }
+
+        function toggleWishlist(productId) {
+            if (wishlist.has(productId)) {
+                wishlist.delete(productId);
+                showToast("Quitado de favoritos");
+            } else {
+                wishlist.add(productId);
+                showToast("Guardado en favoritos ♥");
+            }
+            const badge = document.getElementById('wishlistBadge');
+            badge.textContent = wishlist.size;
+            badge.classList.toggle('hidden', wishlist.size === 0);
+            renderCatalog();
+        }
+
+        function toggleWishlistOnly() {
+            if (wishlist.size === 0 && !wishlistOnlyMode) {
+                showToast("Toca el corazón en una prenda para guardarla ♥");
+                return;
+            }
+            wishlistOnlyMode = !wishlistOnlyMode;
+            const icon = document.getElementById('wishlistHeaderIcon');
+            icon.className = wishlistOnlyMode ? 'ph-fill ph-heart text-xl text-lavanda-500' : 'ph ph-heart text-xl';
+            renderCatalog();
+        }
+
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            if (cart.some(item => item.id === productId)) {
+                toggleCartDrawer(true);
+                return;
+            }
+
+            cart.push(product);
+            updateCartUI();
+            renderCatalog();
+            showToast(`"${product.title}" en tu bolsa`);
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartUI();
+            renderCatalog();
+        }
+
+        // ★ MEJORA 2: Cálculo de Descuento por Pack del Mismo Clóset (-10% OFF + 1 solo envío por clóset)
+        function calculateCartBreakdown() {
+            const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
+            const retailTotal = cart.reduce((acc, item) => acc + item.retailPrice, 0);
+            const savings = retailTotal - subtotal;
+
+            // Agrupar prendas por vendedor (clóset)
+            const bySeller = {};
+            cart.forEach(item => {
+                if (!bySeller[item.seller]) bySeller[item.seller] = [];
+                bySeller[item.seller].push(item);
+            });
+
+            let bundleDiscount = 0;
+            const bundleSellers = [];
+            Object.keys(bySeller).forEach(sellerHandle => {
+                const items = bySeller[sellerHandle];
+                if (items.length >= 2) {
+                    const sellerSubtotal = items.reduce((acc, i) => acc + i.price, 0);
+                    bundleDiscount += Math.round(sellerSubtotal * 0.10);
+                    bundleSellers.push(sellerHandle);
+                }
+            });
+
+            const uniqueClosetsCount = Object.keys(bySeller).length;
+            const subtotalAfterDiscount = subtotal - bundleDiscount;
+            const freeThreshold = 250;
+            const shipping = cart.length === 0 ? 0 : (subtotalAfterDiscount >= freeThreshold ? 0 : uniqueClosetsCount * 25);
+            const grandTotal = subtotalAfterDiscount + shipping;
+
+            return {
+                subtotal,
+                retailTotal,
+                savings: savings + bundleDiscount,
+                bundleDiscount,
+                bundleSellers,
+                uniqueClosetsCount,
+                freeThreshold,
+                shipping,
+                grandTotal
+            };
+        }
+
+        function updateCartUI() {
+            document.getElementById('cartCountBadge').textContent = cart.length;
+            const mobBadge = document.getElementById('mobileNavCartBadge');
+            if (mobBadge) {
+                mobBadge.textContent = cart.length;
+                mobBadge.classList.toggle('hidden', cart.length === 0);
+            }
+
+            const container = document.getElementById('cartItemsContainer');
+            const b = calculateCartBreakdown();
+
+            const pct = Math.min(100, Math.round(((b.subtotal - b.bundleDiscount) / b.freeThreshold) * 100));
+            document.getElementById('freeShippingBar').style.width = `${pct}%`;
+
+            if (b.subtotal - b.bundleDiscount >= b.freeThreshold) {
+                document.getElementById('freeShippingText').innerHTML = `✨ ¡Tienes <strong>Envío Gratis</strong> en toda Guatemala!`;
+            } else {
+                document.getElementById('freeShippingText').innerHTML = `Agrega <strong>Q${b.freeThreshold - (b.subtotal - b.bundleDiscount)}</strong> más para Envío Gratis`;
+            }
+
+            const bundleRow = document.getElementById('cartBundleDiscountRow');
+            if (b.bundleDiscount > 0) {
+                bundleRow.classList.remove('hidden');
+                document.getElementById('cartBundleDiscountAmount').textContent = `-Q${b.bundleDiscount}`;
+            } else {
+                bundleRow.classList.add('hidden');
+            }
+
+            document.getElementById('cartSavingsTotal').textContent = `-Q${b.savings}`;
+            document.getElementById('cartShippingLabel').textContent = b.uniqueClosetsCount > 1
+                ? `Envío (${b.uniqueClosetsCount} clósets):`
+                : `Envío en Guatemala (1 clóset):`;
+            document.getElementById('cartShippingCost').textContent = b.shipping === 0 && cart.length > 0 ? '¡GRATIS!' : `Q${b.shipping}`;
+            document.getElementById('cartGrandTotal').textContent = `Q${b.grandTotal}`;
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 space-y-2">
+                        <div class="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center mx-auto text-2xl">
+                            <i class="ph ph-shopping-bag"></i>
+                        </div>
+                        <p class="font-display text-base font-bold text-grafito-900">Tu bolsa está vacía</p>
+                        <p class="text-xs text-grafito-700 max-w-xs mx-auto">Arma un pack de 2+ prendas del mismo clóset y obtén <strong>-10% OFF automático</strong>.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = cart.map(item => {
+                const sameSellerCount = cart.filter(c => c.seller === item.seller).length;
+                return `
+                <div class="flex items-center gap-3 bg-white p-3 rounded-2xl border ${sameSellerCount >= 2 ? 'border-lavanda-300 ring-1 ring-lavanda-200' : 'border-beige-200'}">
+                    <img src="${item.image}" alt="${item.title}" class="w-14 h-16 rounded-xl object-cover bg-beige-100 shrink-0">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] font-bold text-lavanda-600">${item.brand} • ${item.seller}</span>
+                            ${sameSellerCount >= 2 ? `<span class="px-1.5 py-0.5 rounded bg-lavanda-100 text-lavanda-700 text-[9px] font-extrabold">-10% Pack</span>` : ''}
+                        </div>
+                        <h4 class="text-xs font-bold text-grafito-900 truncate">${item.title}</h4>
+                        <span class="font-display font-extrabold text-sm text-grafito-900">Q${item.price}</span>
+                    </div>
+                    <button onclick="removeFromCart(${item.id})" class="p-2 text-grafito-700 hover:text-red-500 transition">
+                        <i class="ph-bold ph-trash text-base"></i>
+                    </button>
+                </div>
+            `}).join('');
+        }
+
+        function toggleCartDrawer(open) {
+            const drawer = document.getElementById('cartDrawer');
+            const backdrop = document.getElementById('cartDrawerBackdrop');
+            if (open) {
+                backdrop.classList.remove('hidden');
+                drawer.classList.remove('translate-x-full');
+            } else {
+                backdrop.classList.add('hidden');
+                drawer.classList.add('translate-x-full');
+            }
+        }
+
+        function completeCheckout() {
+            if (cart.length === 0) {
+                showToast("Agrega al menos una prenda a tu bolsa");
+                return;
+            }
+            const b = calculateCartBreakdown();
+            const listText = cart.map((item, i) => `${i + 1}. ${item.title} (${item.brand}) - Q${item.price} [Clóset ${item.seller}]`).join('\n');
+            const discountLine = b.bundleDiscount > 0 ? `\nDescuento Pack Mismo Clóset (-10%): -Q${b.bundleDiscount}` : '';
+            const msg = encodeURIComponent(`¡Hola EcoRopaGT! Deseo confirmar mi pedido:\n\n${listText}${discountLine}\nEnvío: Q${b.shipping}\nTotal a pagar: Q${b.grandTotal}`);
+            window.open(`https://wa.me/50255551234?text=${msg}`, '_blank');
+        }
+
+        // ★ MEJORA 3: Galería de 3 ángulos (1. Frente, 2. Etiqueta, 3. Textura) + Medidas en CM
+        let currentQvGallery = [];
+        const photoAngleLabels = ['1. Frente', '2. Etiqueta / Talla', '3. Textura / Detalle'];
+
+        function getGarmentGallery(item) {
+            if (item.gallery && Array.isArray(item.gallery) && item.gallery.length >= 3) {
+                return item.gallery;
+            }
+            return [
+                item.image,
+                "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=700&q=80",
+                "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=700&q=80"
+            ];
+        }
+
+        function getGarmentMeasurements(item) {
+            if (item.measurements && item.measurements.widthCm) {
+                return item.measurements;
+            }
+            const defaults = {
+                mujer: { widthCm: 48, lengthCm: 66, fitNote: 'Fiel a la talla' },
+                hombre: { widthCm: 55, lengthCm: 72, fitNote: 'Corte regular' },
+                ninos: { widthCm: 34, lengthCm: 45, fitNote: 'Cómodo infantil' },
+                calzado: { widthCm: 10, lengthCm: 25, fitNote: 'Horma estándar' }
+            };
+            return defaults[item.category] || defaults.mujer;
+        }
+
+        function selectQvPhoto(index) {
+            const imgUrl = currentQvGallery[index] || currentQvGallery[0];
+            document.getElementById('qvImage').src = imgUrl;
+            document.getElementById('qvPhotoLabelBadge').textContent = photoAngleLabels[index] || `Foto ${index + 1}`;
+            document.querySelectorAll('.qv-thumb-btn').forEach((btn, idx) => {
+                if (idx === index) {
+                    btn.className = "qv-thumb-btn relative rounded-xl overflow-hidden border-2 border-lavanda-500 ring-2 ring-lavanda-200 aspect-[4/3] transition";
+                } else {
+                    btn.className = "qv-thumb-btn relative rounded-xl overflow-hidden border border-beige-200 opacity-75 hover:opacity-100 aspect-[4/3] transition";
+                }
+            });
+        }
+
+        function openQuickView(productId) {
+            const item = products.find(p => p.id === productId);
+            if (!item) return;
+
+            currentQvSeller = item.seller;
+            currentQvGallery = getGarmentGallery(item);
+            const m = getGarmentMeasurements(item);
+
+            const discountPct = Math.round(((item.retailPrice - item.price) / item.retailPrice) * 100);
+            document.getElementById('qvImage').src = currentQvGallery[0];
+            document.getElementById('qvPhotoLabelBadge').textContent = photoAngleLabels[0];
+
+            // Renderizar las 3 miniaturas interactivas
+            document.getElementById('qvThumbnails').innerHTML = currentQvGallery.slice(0, 3).map((url, idx) => `
+                <button type="button" onclick="selectQvPhoto(${idx})" class="qv-thumb-btn relative rounded-xl overflow-hidden ${idx === 0 ? 'border-2 border-lavanda-500 ring-2 ring-lavanda-200' : 'border border-beige-200 opacity-75 hover:opacity-100'} aspect-[4/3] transition">
+                    <img src="${url}" class="w-full h-full object-cover">
+                    <span class="absolute inset-x-0 bottom-0 bg-grafito-900/75 text-white text-[9px] font-bold py-0.5 truncate px-1">${photoAngleLabels[idx]}</span>
+                </button>
+            `).join('');
+
+            document.getElementById('qvSellerAvatar').textContent = item.seller.replace('@', '').charAt(0).toUpperCase();
+            document.getElementById('qvSellerName').textContent = item.seller;
+            document.getElementById('qvBundleSeller').textContent = item.seller;
+            document.getElementById('qvDiscountBadge').textContent = `-${discountPct}% ahorro`;
+            document.getElementById('qvBrand').textContent = item.brand;
+            document.getElementById('qvTitle').textContent = item.title;
+            document.getElementById('qvPrice').textContent = `Q${item.price}`;
+            document.getElementById('qvRetailPrice').textContent = `Antes Q${item.retailPrice}`;
+            document.getElementById('qvSize').textContent = item.size;
+            document.getElementById('qvCondition').textContent = item.condition;
+            document.getElementById('qvWidthCm').textContent = `${m.widthCm} cm`;
+            document.getElementById('qvLengthCm').textContent = `${m.lengthCm} cm`;
+            document.getElementById('qvFitNote').textContent = m.fitNote || 'Fiel a la talla';
+            document.getElementById('qvNotes').textContent = item.notes;
+
+            const addBtn = document.getElementById('qvAddBtn');
+            addBtn.onclick = () => {
+                addToCart(item.id);
+                closeQuickView();
+            };
+
+            const modal = document.getElementById('quickViewModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function openClosetFromModal() {
+            closeQuickView();
+            openClosetViewer(currentQvSeller);
+        }
+
+        function closeQuickView() {
+            const modal = document.getElementById('quickViewModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // ★ MEJORA 4: Modal / Drawer dedicado para "Mi Clóset Virtual" (separado del flujo de compra)
+        function openSellerStudioModal() {
+            renderSellerStudio();
+            const m = document.getElementById('sellerStudioModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeSellerStudioModal() {
+            const m = document.getElementById('sellerStudioModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function openSellModal() {
+            const m = document.getElementById('sellModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeSellModal() {
+            const m = document.getElementById('sellModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        // ★ MEJORA 1: Compresión real de fotos desde Cámara / Galería con HTML5 <canvas>
+        let compressedUploadPhotos = [];
+
+        function compressImageFile(file, maxWidth = 800, quality = 0.78) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const scale = Math.min(1, maxWidth / img.width);
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.round(img.width * scale);
+                        canvas.height = Math.round(img.height * scale);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.onerror = reject;
+                    img.src = ev.target.result;
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleCameraFilesSelected(event) {
+            const files = Array.from(event.target.files || []).slice(0, 3);
+            if (files.length === 0) return;
+
+            const statusEl = document.getElementById('uploadCompressionStatus');
+            const previewEl = document.getElementById('uploadedPhotosPreview');
+            statusEl.textContent = 'Comprimiendo fotos...';
+
+            try {
+                compressedUploadPhotos = [];
+                for (const file of files) {
+                    const dataUrl = await compressImageFile(file);
+                    compressedUploadPhotos.push(dataUrl);
+                }
+
+                // Actualizar el campo de imagen principal con la primera foto comprimida
+                if (compressedUploadPhotos[0]) {
+                    document.getElementById('newGarmentImage').value = compressedUploadPhotos[0];
+                }
+
+                statusEl.innerHTML = `<span class="text-verde-700 font-extrabold">✓ ${compressedUploadPhotos.length} foto(s) comprimida(s) listas</span>`;
+                previewEl.classList.remove('hidden');
+                previewEl.innerHTML = compressedUploadPhotos.map((src, i) => `
+                    <div class="relative aspect-square rounded-xl overflow-hidden border border-lavanda-300 bg-beige-100">
+                        <img src="${src}" class="w-full h-full object-cover">
+                        <span class="absolute bottom-0 inset-x-0 bg-grafito-900/75 text-white text-[9px] font-bold py-0.5">${photoAngleLabels[i] || 'Foto'}</span>
+                    </div>
+                `).join('');
+                showToast(`${compressedUploadPhotos.length} foto(s) optimizada(s) con éxito`);
+            } catch (err) {
+                statusEl.textContent = 'Error al procesar imagen';
+            }
+        }
+
+        function submitNewGarmentForm(e) {
+            e.preventDefault();
+            const sellerHandle = document.getElementById('modalSellerSelect').value;
+            const title = document.getElementById('newGarmentTitle').value;
+            const brand = document.getElementById('newGarmentBrand').value;
+            const category = document.getElementById('newGarmentCategory').value;
+            const size = document.getElementById('newGarmentSize').value;
+            const price = Number(document.getElementById('newGarmentPrice').value);
+            const retailPrice = Number(document.getElementById('newGarmentRetail').value);
+            const widthCm = Number(document.getElementById('newGarmentWidthCm').value) || 50;
+            const lengthCm = Number(document.getElementById('newGarmentLengthCm').value) || 68;
+            const fitNote = document.getElementById('newGarmentFitNote').value || 'Fiel a la talla';
+            const fallbackUrl = document.getElementById('newGarmentImage').value;
+
+            const primaryImage = compressedUploadPhotos[0] || fallbackUrl;
+            const gallery = compressedUploadPhotos.length > 0
+                ? [
+                    compressedUploadPhotos[0],
+                    compressedUploadPhotos[1] || compressedUploadPhotos[0],
+                    compressedUploadPhotos[2] || compressedUploadPhotos[0]
+                  ]
+                : [
+                    primaryImage,
+                    "https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=700&q=80",
+                    "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=700&q=80"
+                  ];
+
+            const genderMap = { mujer: 'Mujer', hombre: 'Hombre', ninos: 'Niños', calzado: 'Unisex' };
+
+            const newItem = {
+                id: Date.now(),
+                title,
+                brand,
+                category,
+                size,
+                gender: genderMap[category] || 'Mujer',
+                condition: 'Como nuevo',
+                price,
+                retailPrice,
+                seller: sellerHandle,
+                likes: 1,
+                views: 1,
+                status: 'disponible',
+                image: primaryImage,
+                gallery,
+                measurements: { widthCm, lengthCm, fitNote },
+                notes: `Prenda verificada en clóset virtual. Medidas reales: Ancho ${widthCm} cm • Largo ${lengthCm} cm (${fitNote}).`
+            };
+
+            products.unshift(newItem);
+            saveStateToStorage();
+            currentActiveSeller = sellerHandle;
+            document.getElementById('activeSellerSelect').value = sellerHandle;
+
+            // Limpiar estado de subida
+            compressedUploadPhotos = [];
+            document.getElementById('uploadedPhotosPreview').classList.add('hidden');
+            document.getElementById('uploadedPhotosPreview').innerHTML = '';
+            document.getElementById('uploadCompressionStatus').textContent = 'Comprime automáticamente a <150KB';
+            document.getElementById('newGarmentTitle').value = '';
+
+            closeSellModal();
+            renderFeaturedClosets();
+            renderCatalog();
+            renderSellerStudio();
+            showToast(`¡Publicada en ${sellerHandle}!`);
+        }
+
+        let toastTimer;
+        function showToast(msg) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+            }, 3000);
+        }
+
+        function observeRevealElements() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal, .reveal-scale').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // ★ MEJORA 5: Persistencia Híbrida (Servidor Cloud `/api/store` + LocalStorage + Sincronización entre pestañas)
+        const CLOUD_API_URL = 'http://localhost:3000/api/store';
+
+        function saveStateToStorage() {
+            try {
+                localStorage.setItem('ecoropa_html_products', JSON.stringify(products));
+                localStorage.setItem('ecoropa_html_sellers', JSON.stringify(sellers));
+            } catch (e) {}
+
+            // Sincronizar también con el backend persistente en /api/store si está activo
+            fetch(CLOUD_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ htmlProducts: products, htmlSellers: sellers })
+            }).catch(() => {});
+        }
+
+        async function loadStateFromStorage() {
+            try {
+                const savedProducts = localStorage.getItem('ecoropa_html_products');
+                if (savedProducts) products = JSON.parse(savedProducts);
+
+                const savedSellers = localStorage.getItem('ecoropa_html_sellers');
+                if (savedSellers) {
+                    const parsed = JSON.parse(savedSellers);
+                    sellers.splice(0, sellers.length, ...parsed);
+                }
+
+                const savedHero = localStorage.getItem('ecoropa_html_hero');
+                if (savedHero) {
+                    const h = JSON.parse(savedHero);
+                    if (h.title) document.getElementById('heroTitleText').textContent = h.title;
+                    if (h.desc) document.getElementById('heroDescText').textContent = h.desc;
+                    if (h.badge) document.getElementById('heroBadgeText').textContent = h.badge;
+                    if (h.img) document.getElementById('heroBannerImg').src = h.img;
+                    if (h.announcement) document.getElementById('topAnnouncementText').innerHTML = h.announcement;
+                }
+            } catch (e) {}
+
+            // Intentar cargar estado compartido desde /api/store
+            try {
+                const res = await fetch(CLOUD_API_URL);
+                if (res.ok) {
+                    const cloud = await res.json();
+                    if (cloud && Array.isArray(cloud.htmlProducts) && cloud.htmlProducts.length > 0) {
+                        products = cloud.htmlProducts;
+                    }
+                    if (cloud && Array.isArray(cloud.htmlSellers) && cloud.htmlSellers.length > 0) {
+                        sellers.splice(0, sellers.length, ...cloud.htmlSellers);
+                    }
+                    renderFeaturedClosets();
+                    renderCatalog();
+                    renderSellerStudio();
+                }
+            } catch (e) {}
+        }
+
+        // Sincronizar en vivo si se edita desde admin.html en otra pestaña
+        window.addEventListener('storage', () => {
+            loadStateFromStorage();
+            renderFeaturedClosets();
+            renderCatalog();
+            renderSellerStudio();
+        });
+
+        window.onload = function () {
+            loadStateFromStorage();
+            renderFeaturedClosets();
+            renderCatalog();
+            checkSellerSession();
+            updateCartUI();
+            observeRevealElements();
+        };
+    </script>
+</body>
+</html>

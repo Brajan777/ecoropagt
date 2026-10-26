@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin | EcoRopaGT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        beige: { 50: '#FAF7F2', 100: '#F3EDE2', 200: '#E6DEC8', 300: '#D5C7A9' },
+                        lavanda: { 50: '#F5F2FA', 100: '#EBE4F5', 200: '#D8C9EC', 400: '#A58AD1', 500: '#8B6BBF', 600: '#7251A8', 700: '#5B3E8A' },
+                        verde: { 50: '#F1F8F4', 100: '#DEF0E6', 200: '#BFE2CF', 300: '#98CFB2', 500: '#5DA683', 600: '#458968', 700: '#356C52' },
+                        grafito: { 700: '#4A4552', 800: '#322E38', 900: '#1F1C24' }
+                    },
+                    fontFamily: {
+                        sans: ['"Inter"', 'sans-serif'],
+                        display: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-beige-50 text-grafito-900 font-sans min-h-screen">
+    <!-- Top Admin Header -->
+    <header class="bg-white border-b border-beige-200 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bg-lavanda-500 text-white flex items-center justify-center">
+                    <i class="ph-bold ph-shield-check text-xl"></i>
+                </div>
+                <div>
+                    <span class="font-display text-lg font-extrabold">Panel Administrador • EcoRopaGT</span>
+                    <span class="block text-[11px] text-grafito-700">Modifica textos, imágenes y promueve los mejores clósets</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="resetFactoryDefaults()" class="px-3.5 py-2 rounded-xl bg-beige-100 hover:bg-beige-200 text-xs font-bold text-grafito-800 transition">
+                    Restaurar valores originales
+                </button>
+                <a href="index.html" class="px-4 py-2 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1.5">
+                    <i class="ph-bold ph-arrow-left"></i>
+                    <span>Volver a la Web Principal</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <!-- Sección 1: Editor de Imágenes y Textos de la Portada -->
+        <section class="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs">
+            <div class="flex items-center justify-between border-b border-beige-200 pb-4 mb-6">
+                <div>
+                    <h2 class="font-display text-xl font-extrabold text-grafito-900">1. Modificar Imágenes y Textos de la Web</h2>
+                    <p class="text-xs text-grafito-700">Cambia la foto de portada, el título principal o el anuncio superior. Al guardar, se actualiza en <code class="font-bold">index.html</code>.</p>
+                </div>
+                <span id="saveBadge" class="hidden px-3 py-1.5 rounded-xl bg-verde-100 text-verde-700 text-xs font-bold">
+                    ✓ Guardado en la web
+                </span>
+            </div>
+
+            <form onsubmit="saveHeroChanges(event)" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">URL de la Imagen del Hero (Portada Principal)</label>
+                    <input id="admImg" type="url" required class="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs">
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        <button type="button" onclick="setPresetImg('https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80')" class="px-2.5 py-1 rounded-lg bg-beige-100 hover:bg-lavanda-100 text-[11px] font-semibold">Preset 1: Clóset Organizado</button>
+                        <button type="button" onclick="setPresetImg('https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1600&q=80')" class="px-2.5 py-1 rounded-lg bg-beige-100 hover:bg-lavanda-100 text-[11px] font-semibold">Preset 2: Boutique Minimalista</button>
+                        <button type="button" onclick="setPresetImg('https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=1600&q=80')" class="px-2.5 py-1 rounded-lg bg-beige-100 hover:bg-lavanda-100 text-[11px] font-semibold">Preset 3: Percheros Familiares</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">Insignia / Etiqueta Superior del Hero</label>
+                    <input id="admBadge" type="text" required class="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">Texto de la Franja Verde de Anuncio</label>
+                    <input id="admAnnounce" type="text" required class="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">Título Principal (H1)</label>
+                    <input id="admTitle" type="text" required class="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-sm font-bold">
+                </div>
+
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-grafito-800 mb-1">Descripción del Hero</label>
+                    <textarea id="admDesc" rows="2" required class="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs"></textarea>
+                </div>
+
+                <div class="md:col-span-2">
+                    <button type="submit" class="px-6 py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-sm transition flex items-center gap-2">
+                        <i class="ph-bold ph-floppy-disk"></i>
+                        <span>Guardar Textos e Imágenes</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Sección 2: Promover los Mejores Clósets en la Web -->
+        <section class="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs">
+            <div class="border-b border-beige-200 pb-4 mb-6">
+                <h2 class="font-display text-xl font-extrabold text-grafito-900">2. Curador de "Clósets Destacados"</h2>
+                <p class="text-xs text-grafito-700">Elige qué clósets aparecen promovidos en la sección principal de Clósets Destacados de la web.</p>
+            </div>
+
+            <div id="adminClosetsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+        </section>
+    </main>
+
+    <script>
+        const defaultSellers = [
+            {
+                username: "@sofia_gt",
+                displayName: "Sofía Morales",
+                bio: "Fan de la moda circular minimalista, blazers de lino y prendas clásicas cuidadas con amor en Zona 14.",
+                location: "Guatemala, Zona 14",
+                avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.9,
+                reviewsCount: 38,
+                salesCount: 42,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255551234"
+            },
+            {
+                username: "@carlos_vintage",
+                displayName: "Carlos Méndez",
+                bio: "Prendas masculinas vintage originales, chumpas de mezclilla Levi's, camisas Oxford y suéteres Ralph Lauren.",
+                location: "Antigua Guatemala",
+                avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=1200&q=80",
+                rating: 5.0,
+                reviewsCount: 29,
+                salesCount: 35,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255552345"
+            },
+            {
+                username: "@mama_eco",
+                displayName: "Elena & Lucas (Mamá Eco)",
+                bio: "Ropita de bebé y niños en perfecto estado que mis peques dejaron muy rápido. Lino orgánico y algodón suave.",
+                location: "Carretera a El Salvador",
+                avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.9,
+                reviewsCount: 45,
+                salesCount: 58,
+                isVerified: true,
+                isFeatured: true,
+                whatsapp: "50255553456"
+            },
+            {
+                username: "@mariana_closet",
+                displayName: "Mariana Castillo",
+                bio: "Vestidos de fiesta, bolsos de cuero genuino Massimo Dutti y calzado con poco o ningún uso.",
+                location: "Guatemala, Zona 10",
+                avatar: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=80",
+                cover: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=80",
+                rating: 4.8,
+                reviewsCount: 22,
+                salesCount: 26,
+                isVerified: true,
+                isFeatured: false,
+                whatsapp: "50255554567"
+            }
+        ];
+
+        let sellers = JSON.parse(localStorage.getItem('ecoropa_html_sellers')) || defaultSellers;
+
+        const defaultHero = {
+            img: "https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80",
+            badge: "Clósets virtuales verificados para toda la familia",
+            title: "¿Listo para darle una segunda oportunidad a tu clóset familiar?",
+            desc: "Explora los mejores clósets virtuales de Guatemala o crea el tuyo para vender prendas impecables de Mujer, Hombre y Niños. Sé ecológico y genera ingresos extra.",
+            announcement: "Dale una segunda oportunidad a las buenas prendas de toda la familia • Envío gratis en compras mayores a <strong>Q250</strong>"
+        };
+
+        const CLOUD_API_URL = 'http://localhost:3000/api/store';
+
+        async function loadAdminData() {
+            // Intentar leer de /api/store primero
+            try {
+                const res = await fetch(CLOUD_API_URL);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.siteConfig) {
+                        localStorage.setItem('ecoropa_html_hero', JSON.stringify({
+                            img: data.siteConfig.heroImageUrl,
+                            badge: data.siteConfig.heroBadge,
+                            title: data.siteConfig.heroTitle,
+                            desc: data.siteConfig.heroDescription,
+                            announcement: data.siteConfig.announcementText
+                        }));
+                    }
+                    if (data && Array.isArray(data.sellers) && data.sellers.length > 0) {
+                        sellers = data.sellers;
+                        localStorage.setItem('ecoropa_html_sellers', JSON.stringify(sellers));
+                    }
+                }
+            } catch (err) {}
+
+            const hero = JSON.parse(localStorage.getItem('ecoropa_html_hero')) || defaultHero;
+            document.getElementById('admImg').value = hero.img;
+            document.getElementById('admBadge').value = hero.badge;
+            document.getElementById('admTitle').value = hero.title;
+            document.getElementById('admDesc').value = hero.desc;
+            document.getElementById('admAnnounce').value = hero.announcement;
+            renderClosetsAdmin();
+        }
+
+        function setPresetImg(url) {
+            document.getElementById('admImg').value = url;
+        }
+
+        async function saveHeroChanges(e) {
+            e.preventDefault();
+            const hero = {
+                img: document.getElementById('admImg').value,
+                badge: document.getElementById('admBadge').value,
+                title: document.getElementById('admTitle').value,
+                desc: document.getElementById('admDesc').value,
+                announcement: document.getElementById('admAnnounce').value
+            };
+            localStorage.setItem('ecoropa_html_hero', JSON.stringify(hero));
+
+            // Sincronizar en /api/store
+            fetch(CLOUD_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    siteConfig: {
+                        heroImageUrl: hero.img,
+                        heroBadge: hero.badge,
+                        heroTitle: hero.title,
+                        heroDescription: hero.desc,
+                        announcementText: hero.announcement
+                    }
+                })
+            }).catch(() => {});
+
+            const b = document.getElementById('saveBadge');
+            b.classList.remove('hidden');
+            setTimeout(() => b.classList.add('hidden'), 3000);
+        }
+
+        function toggleFeatured(username) {
+            sellers = sellers.map(s => s.username === username ? { ...s, isFeatured: !s.isFeatured } : s);
+            localStorage.setItem('ecoropa_html_sellers', JSON.stringify(sellers));
+
+            // Sincronizar en /api/store
+            fetch(CLOUD_API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sellers })
+            }).catch(() => {});
+
+            renderClosetsAdmin();
+        }
+
+        function renderClosetsAdmin() {
+            document.getElementById('adminClosetsGrid').innerHTML = sellers.map(s => `
+                <div class="p-4 rounded-2xl border ${s.isFeatured ? 'bg-lavanda-50 border-lavanda-300' : 'bg-white border-beige-200'} flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <img src="${s.avatar}" class="w-12 h-12 rounded-xl object-cover">
+                        <div>
+                            <h4 class="font-bold text-sm text-grafito-900">${s.displayName}</h4>
+                            <p class="text-xs text-lavanda-600 font-bold">${s.username} • ★ ${s.rating} (${s.salesCount} ventas)</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleFeatured('${s.username}')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition ${s.isFeatured ? 'bg-verde-600 text-white' : 'bg-beige-100 text-grafito-800 hover:bg-lavanda-100'}">
+                        ${s.isFeatured ? '★ Destacado en Portada' : 'Promover en Portada'}
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function resetFactoryDefaults() {
+            localStorage.removeItem('ecoropa_html_hero');
+            localStorage.removeItem('ecoropa_html_sellers');
+            localStorage.removeItem('ecoropa_html_products');
+            sellers = defaultSellers;
+            loadAdminData();
+            alert("Se restauraron los datos originales de fábrica.");
+        }
+
+        function checkAdminAccess() {
+            if (sessionStorage.getItem('ecoropa_admin_auth') === 'true') {
+                loadAdminData();
+                return;
+            }
+            const pin = prompt("🔒 Acceso Restringido - Ingrese PIN de Administrador EcoRopaGT:");
+            if (pin === "2026") {
+                sessionStorage.setItem('ecoropa_admin_auth', 'true');
+                loadAdminData();
+            } else {
+                alert("PIN incorrecto. Acceso denegado.");
+                window.location.href = "index.html";
+            }
+        }
+
+        window.onload = checkAdminAccess;
+    </script>
+</body>
+</html>
