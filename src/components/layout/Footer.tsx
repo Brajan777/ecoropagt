@@ -10,7 +10,8 @@ import { RotateCcw, ShieldCheck, Sparkles, Lock } from 'lucide-react';
 export function Footer() {
   const pathname = usePathname();
   const router = useRouter();
-  const { setSelectedCategory, triggerSellerStudio } = useApp();
+  const { setSelectedCategory, triggerSellerStudio, setIsRulesModalOpen, setIsBuyerAuthOpen } =
+    useApp();
 
   const handleCategoryLink = (cat: 'todos' | GarmentCategory) => {
     setSelectedCategory(cat);
@@ -151,8 +152,26 @@ export function Footer() {
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                 <span>Prendas pre-filtradas</span>
               </li>
-              <li>Envíos a todo el país vía Cargo Expreso / Forza.</li>
-              <li>Pago resguardado hasta que recibes tu pedido conforme.</li>
+              <li>Envíos a todo el país vía Cargo Expreso / Forza (Q25 por clóset).</li>
+              <li>Pago resguardado hasta que recibes tu pedido conforme (Garantía 24h).</li>
+              <li className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsRulesModalOpen(true)}
+                  className="text-lavanda-600 hover:underline font-bold cursor-pointer text-left"
+                >
+                  Ver Reglas y Garantía 24h →
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => setIsBuyerAuthOpen(true)}
+                  className="text-verde-700 hover:underline font-bold cursor-pointer text-left"
+                >
+                  Rastrear Mis Pedidos / Mi Cuenta →
+                </button>
+              </li>
             </ul>
           </div>
         </div>

@@ -35,6 +35,10 @@ interface AppContextType {
     bio: string;
     location: string;
     pickupAddress?: string;
+    bankName?: string;
+    bankAccountType?: 'Monetaria' | 'Ahorro';
+    bankAccountNumber?: string;
+    bankAccountHolder?: string;
     whatsapp: string;
     avatar?: string;
     coverImage?: string;
@@ -51,11 +55,19 @@ interface AppContextType {
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
-  // Pedidos / Órdenes para el Admin
+  // Pedidos / Órdenes para el Admin y Comprador
   orders: Order[];
   createOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  updateOrderTracking: (
+    orderId: string,
+    courierName: 'Forza Delivery' | 'Cargo Expreso',
+    trackingNumber: string
+  ) => void;
   deleteOrder: (orderId: string) => void;
+  // Modal de Reglas y Garantía 24h
+  isRulesModalOpen: boolean;
+  setIsRulesModalOpen: (open: boolean) => void;
   // Compradores Registrados y Verificados
   buyers: BuyerProfile[];
   currentBuyer: BuyerProfile | null;
@@ -139,6 +151,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [buyers, setBuyers] = useState<BuyerProfile[]>(initialBuyers);
   const [currentBuyer, setCurrentBuyer] = useState<BuyerProfile | null>(null);
   const [isBuyerAuthOpen, setIsBuyerAuthOpen] = useState(false);
+  const [isRulesModalOpen, setIsRulesModalOpen] = useState(false);
   const [currentSellerUsername, setCurrentSellerUsername] = useState<string>(
     initialSellers[0].username
   );
@@ -198,6 +211,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
         } catch {}
       }
+      const savedOrders = localStorage.getItem('ecoropa_orders');
+      if (savedOrders) {
+        try {
+          const parsedOrders = JSON.parse(savedOrders);
+          if (Array.isArray(parsedOrders) && parsedOrders.length > 0) {
+            setOrders(parsedOrders);
+          }
+        } catch {}
+      }
       const savedMessages = localStorage.getItem('ecoropa_messages');
       if (savedMessages) {
         try {
@@ -211,7 +233,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         const adminToken =
           typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_admin_token') || '' : '';
-        const res = await fetch('/api/store', {
+        let buyerQuery = '';
+        if (typeof window !== 'undefined') {
+          try {
+            const rawB = localStorage.getItem('ecoropa_current_buyer');
+            if (rawB) {
+              const pB = JSON.parse(rawB);
+              if (pB?.username) {
+                buyerQuery = `?buyerUsername=${encodeURIComponent(pB.username)}`;
+              }
+            }
+          } catch {}
+        }
+        const res = await fetch(`/api/store${buyerQuery}`, {
           cache: 'no-store',
           headers: adminToken ? { 'x-admin-token': adminToken } : {},
         });
@@ -464,6 +498,23 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const updateOrderTracking = (
+    orderId: string,
+    courierName: 'Forza Delivery' | 'Cargo Expreso',
+    trackingNumber: string
+  ) => {
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
+        o.id === orderId ? { ...o, courierName, trackingNumber } : o
+      );
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ orders: updated });
+      return updated;
+    });
+  };
+
   const deleteOrder = (orderId: string) => {
     setOrders((prev) => {
       const updated = prev.filter((o) => o.id !== orderId);
@@ -630,6 +681,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     bio: string;
     location: string;
     pickupAddress?: string;
+    bankName?: string;
+    bankAccountType?: 'Monetaria' | 'Ahorro';
+    bankAccountNumber?: string;
+    bankAccountHolder?: string;
     whatsapp: string;
     avatar?: string;
     coverImage?: string;
@@ -666,6 +721,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       location: data.location.trim() || 'Ciudad de Guatemala',
       pickupAddress:
         data.pickupAddress?.trim() || data.location.trim() || 'Ciudad de Guatemala',
+      bankName: data.bankName?.trim() || 'Banco Industrial',
+      bankAccountType: data.bankAccountType || 'Monetaria',
+      bankAccountNumber: data.bankAccountNumber?.trim() || '',
+      bankAccountHolder: data.bankAccountHolder?.trim() || data.displayName.trim(),
       rating: 5.0,
       reviewsCount: 1,
       salesCount: 0,
@@ -786,7 +845,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         orders,
         createOrder,
         updateOrderStatus,
+        updateOrderTracking,
         deleteOrder,
+        isRulesModalOpen,
+        setIsRulesModalOpen,
         buyers,
         currentBuyer,
         isBuyerAuthOpen,

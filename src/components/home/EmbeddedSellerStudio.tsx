@@ -76,6 +76,10 @@ export function EmbeddedSellerStudio() {
   const [newPickupAddress, setNewPickupAddress] = useState('');
   const [newWhatsapp, setNewWhatsapp] = useState('');
   const [newBio, setNewBio] = useState('');
+  const [newBankName, setNewBankName] = useState('Banco Industrial');
+  const [newBankAccountType, setNewBankAccountType] = useState<'Monetaria' | 'Ahorro'>('Monetaria');
+  const [newBankAccountNumber, setNewBankAccountNumber] = useState('');
+  const [newBankAccountHolder, setNewBankAccountHolder] = useState('');
 
   // Reaccionar cuando el usuario presiona "Vender" o "Mi Clóset" en Navbar / Footer
   useEffect(() => {
@@ -149,6 +153,10 @@ export function EmbeddedSellerStudio() {
       pickupAddress: newPickupAddress.trim() || newLocation,
       whatsapp: newWhatsapp || '50255550000',
       bio: newBio,
+      bankName: newBankName,
+      bankAccountType: newBankAccountType,
+      bankAccountNumber: newBankAccountNumber.trim(),
+      bankAccountHolder: newBankAccountHolder.trim() || newDisplayName,
     });
     setShowLoginModal(false);
     setStudioTab('subir');
@@ -170,6 +178,16 @@ export function EmbeddedSellerStudio() {
   const [location, setLocation] = useState(currentSeller.location);
   const [pickupAddress, setPickupAddress] = useState(currentSeller.pickupAddress || '');
   const [whatsapp, setWhatsapp] = useState(currentSeller.whatsapp);
+  const [bankName, setBankName] = useState(currentSeller.bankName || 'Banco Industrial');
+  const [bankAccountType, setBankAccountType] = useState<'Monetaria' | 'Ahorro'>(
+    currentSeller.bankAccountType || 'Monetaria'
+  );
+  const [bankAccountNumber, setBankAccountNumber] = useState(
+    currentSeller.bankAccountNumber || ''
+  );
+  const [bankAccountHolder, setBankAccountHolder] = useState(
+    currentSeller.bankAccountHolder || currentSeller.displayName
+  );
 
   useEffect(() => {
     setDisplayName(currentSeller.displayName);
@@ -177,6 +195,10 @@ export function EmbeddedSellerStudio() {
     setLocation(currentSeller.location);
     setPickupAddress(currentSeller.pickupAddress || '');
     setWhatsapp(currentSeller.whatsapp);
+    setBankName(currentSeller.bankName || 'Banco Industrial');
+    setBankAccountType(currentSeller.bankAccountType || 'Monetaria');
+    setBankAccountNumber(currentSeller.bankAccountNumber || '');
+    setBankAccountHolder(currentSeller.bankAccountHolder || currentSeller.displayName);
   }, [currentSeller]);
 
   // Nueva Prenda Form con Galería de 3 Fotos + Medidas en cm
@@ -281,8 +303,12 @@ export function EmbeddedSellerStudio() {
       location,
       pickupAddress,
       whatsapp,
+      bankName,
+      bankAccountType,
+      bankAccountNumber,
+      bankAccountHolder,
     });
-    showNotice('¡Datos y dirección privada de recolección actualizados!');
+    showNotice('¡Datos, dirección de recolección y cuenta bancaria de liquidación actualizados!');
   };
 
   if (!isSellerLoggedIn) {
@@ -526,6 +552,53 @@ export function EmbeddedSellerStudio() {
                         placeholder="Calle/Av, # casa o edificio, colonia y referencia"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-verde-300 text-xs bg-verde-50/50 focus:border-verde-600 focus:outline-none"
                       />
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-lavanda-50/70 border border-lavanda-200 space-y-2">
+                      <p className="text-[11px] font-extrabold text-lavanda-900">
+                        🏦 Cuenta Bancaria para Liquidarte tus Ventas (Privada solo para EcoRopaGT) *
+                      </p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <select
+                          value={newBankName}
+                          onChange={(e) => setNewBankName(e.target.value)}
+                          className="w-full px-2.5 py-2 rounded-xl border border-beige-300 text-xs bg-white font-semibold"
+                        >
+                          <option value="Banco Industrial">Banco Industrial</option>
+                          <option value="Banrural">Banrural</option>
+                          <option value="BAC Credomatic">BAC Credomatic</option>
+                          <option value="G&T Continental">G&T Continental</option>
+                          <option value="Promerica">Banco Promerica</option>
+                        </select>
+                        <select
+                          value={newBankAccountType}
+                          onChange={(e) =>
+                            setNewBankAccountType(e.target.value as 'Monetaria' | 'Ahorro')
+                          }
+                          className="w-full px-2.5 py-2 rounded-xl border border-beige-300 text-xs bg-white font-semibold"
+                        >
+                          <option value="Monetaria">Cuenta Monetaria</option>
+                          <option value="Ahorro">Cuenta de Ahorro</option>
+                        </select>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <input
+                          type="text"
+                          required
+                          value={newBankAccountNumber}
+                          onChange={(e) => setNewBankAccountNumber(e.target.value)}
+                          placeholder="Número de cuenta *"
+                          className="w-full px-3 py-2 rounded-xl border border-beige-300 text-xs bg-white"
+                        />
+                        <input
+                          type="text"
+                          required
+                          value={newBankAccountHolder}
+                          onChange={(e) => setNewBankAccountHolder(e.target.value)}
+                          placeholder="Nombre exacto del titular *"
+                          className="w-full px-3 py-2 rounded-xl border border-beige-300 text-xs bg-white"
+                        />
+                      </div>
                     </div>
 
                     <div>
@@ -1064,6 +1137,66 @@ export function EmbeddedSellerStudio() {
                 />
               </div>
             </div>
+
+            <div className="p-3.5 rounded-2xl bg-lavanda-50/80 border border-lavanda-200 space-y-2.5">
+              <p className="text-xs font-extrabold text-lavanda-900">
+                🏦 Cuenta Bancaria para Liquidación de tus Ventas (85% Neto • Privada solo para EcoRopaGT)
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-700 mb-1">Banco</label>
+                  <select
+                    value={bankName}
+                    onChange={(e) => setBankName(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                  >
+                    <option value="Banco Industrial">Banco Industrial</option>
+                    <option value="Banrural">Banrural</option>
+                    <option value="BAC Credomatic">BAC Credomatic</option>
+                    <option value="G&T Continental">G&T Continental</option>
+                    <option value="Promerica">Banco Promerica</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-700 mb-1">
+                    Tipo de Cuenta
+                  </label>
+                  <select
+                    value={bankAccountType}
+                    onChange={(e) => setBankAccountType(e.target.value as 'Monetaria' | 'Ahorro')}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                  >
+                    <option value="Monetaria">Monetaria</option>
+                    <option value="Ahorro">Ahorro</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-700 mb-1">
+                    Número de Cuenta
+                  </label>
+                  <input
+                    type="text"
+                    value={bankAccountNumber}
+                    onChange={(e) => setBankAccountNumber(e.target.value)}
+                    placeholder="Ej. 014-009281-5"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-700 mb-1">
+                    Titular de la Cuenta
+                  </label>
+                  <input
+                    type="text"
+                    value={bankAccountHolder}
+                    onChange={(e) => setBankAccountHolder(e.target.value)}
+                    placeholder="Nombre completo"
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
             <button
               type="submit"
               className="px-5 py-2.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer"

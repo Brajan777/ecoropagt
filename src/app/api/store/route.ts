@@ -35,9 +35,11 @@ function getInitialData() {
 function maskSellersForPublic(sellers: typeof initialSellers) {
   return sellers.map((s) => ({
     ...s,
-    // Ocultar WhatsApp y Dirección exacta de recolección en la respuesta pública
+    // Ocultar WhatsApp, Dirección exacta de recolección y Cuenta Bancaria en la respuesta pública
     whatsapp: 'privado',
     pickupAddress: 'privado',
+    bankAccountNumber: 'privado',
+    bankAccountHolder: 'privado',
   }));
 }
 
@@ -99,6 +101,10 @@ async function getStoreData() {
                 ...fallback,
                 ...s,
                 pickupAddress: s.pickupAddress || fallback?.pickupAddress || s.location,
+                bankName: s.bankName || fallback?.bankName || 'Banco Industrial',
+                bankAccountType: s.bankAccountType || fallback?.bankAccountType || 'Monetaria',
+                bankAccountNumber: s.bankAccountNumber || fallback?.bankAccountNumber || '',
+                bankAccountHolder: s.bankAccountHolder || fallback?.bankAccountHolder || s.displayName,
               };
             })
           : initialSellers;
@@ -220,14 +226,23 @@ export async function OPTIONS() {
 export async function GET(request: Request) {
   const adminToken = request.headers.get('x-admin-token');
   const isAdmin = isValidAdminToken(adminToken);
+  const { searchParams } = new URL(request.url);
+  const buyerUsernameParam = searchParams.get('buyerUsername')?.trim().toLowerCase();
   const data = await getStoreData();
+
+  const filteredBuyerOrders = buyerUsernameParam
+    ? (data.orders || []).filter(
+        (o: any) =>
+          o.buyerUsername && o.buyerUsername.toLowerCase() === buyerUsernameParam
+      )
+    : [];
 
   return NextResponse.json(
     {
       ...data,
       // Si NO es el administrador autenticado, enmascarar los teléfonos y ocultar los datos privados de pedidos y compradores
       sellers: isAdmin ? data.sellers : maskSellersForPublic(data.sellers),
-      orders: isAdmin ? data.orders : [],
+      orders: isAdmin ? data.orders : filteredBuyerOrders,
       buyers: isAdmin ? data.buyers : [],
     },
     { headers: securityHeaders }
@@ -277,6 +292,14 @@ export async function POST(request: Request) {
           incoming.pickupAddress && incoming.pickupAddress !== 'privado'
             ? sanitizeString(incoming.pickupAddress, 200)
             : existing?.pickupAddress || incoming.location || 'Ciudad de Guatemala';
+        const realBankAccountNumber =
+          incoming.bankAccountNumber && incoming.bankAccountNumber !== 'privado'
+            ? sanitizeString(incoming.bankAccountNumber, 50)
+            : existing?.bankAccountNumber || '';
+        const realBankAccountHolder =
+          incoming.bankAccountHolder && incoming.bankAccountHolder !== 'privado'
+            ? sanitizeString(incoming.bankAccountHolder, 100)
+            : existing?.bankAccountHolder || incoming.displayName || '';
 
         return {
           ...existing,
@@ -286,6 +309,14 @@ export async function POST(request: Request) {
           location: sanitizeString(incoming.location, 80),
           whatsapp: realWhatsapp,
           pickupAddress: realPickupAddress,
+          bankName: sanitizeString(
+            incoming.bankName || existing?.bankName || 'Banco Industrial',
+            60
+          ),
+          bankAccountType:
+            incoming.bankAccountType === 'Ahorro' ? 'Ahorro' : 'Monetaria',
+          bankAccountNumber: realBankAccountNumber,
+          bankAccountHolder: realBankAccountHolder,
           isFeatured: isAdmin
             ? Boolean(incoming.isFeatured)
             : existing
@@ -342,6 +373,10 @@ export async function POST(request: Request) {
         )
           ? rawOrder.paymentMethod
           : 'contra_entrega') as 'contra_entrega' | 'transferencia' | 'tarjeta',
+        transferReference: sanitizeString(rawOrder.transferReference || '', 80),
+        trackingNumber: sanitizeString(rawOrder.trackingNumber || '', 80),
+        courierName:
+          rawOrder.courierName === 'Cargo Expreso' ? 'Cargo Expreso' : 'Forza Delivery',
         items: Array.isArray(rawOrder.items)
           ? rawOrder.items.slice(0, 30).map((it: any) => ({
               garmentId: Number(it.garmentId) || 0,

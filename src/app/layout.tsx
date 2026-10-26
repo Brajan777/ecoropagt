@@ -8,6 +8,7 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 import { QuickViewModal } from '@/components/catalog/QuickViewModal';
 import { InternalChatDrawer } from '@/components/chat/InternalChatDrawer';
 import { BuyerAuthModal } from '@/components/buyer/BuyerAuthModal';
+import { GuaranteeRulesModal } from '@/components/layout/GuaranteeRulesModal';
 
 export const metadata: Metadata = {
   title: 'EcoRopaGT | Clósets Virtuales y Moda Circular en Guatemala',
@@ -71,6 +72,7 @@ export default function RootLayout({
           <CartDrawer />
           <InternalChatDrawer />
           <BuyerAuthModal />
+          <GuaranteeRulesModal />
           <QuickViewModal />
         </AppProvider>
       </body>

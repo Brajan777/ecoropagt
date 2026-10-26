@@ -32,11 +32,13 @@ export function CartDrawer() {
     createOrder,
     currentBuyer,
     setIsBuyerAuthOpen,
+    setIsRulesModalOpen,
   } = useApp();
 
   const [paymentMethod, setPaymentMethod] = useState<'contra_entrega' | 'transferencia' | 'tarjeta'>(
     'contra_entrega'
   );
+  const [transferReference, setTransferReference] = useState('');
   const [orderConfirmedId, setOrderConfirmedId] = useState<string | null>(null);
   const [lastOrderSeller, setLastOrderSeller] = useState<string | null>(null);
 
@@ -96,6 +98,10 @@ export function CartDrawer() {
       address: currentBuyer.shippingAddress,
       shippingReferences: currentBuyer.shippingReferences,
       paymentMethod,
+      transferReference:
+        paymentMethod === 'transferencia' || paymentMethod === 'tarjeta'
+          ? transferReference.trim()
+          : undefined,
       items: cart.map((item) => ({
         garmentId: item.id,
         title: item.title,
@@ -128,6 +134,7 @@ export function CartDrawer() {
 
     setLastOrderSeller(firstSeller);
     setOrderConfirmedId(orderCode);
+    setTransferReference('');
     clearCart();
   };
 
@@ -223,6 +230,18 @@ export function CartDrawer() {
                 >
                   <MessageSquare className="w-4 h-4" />
                   <span>Ir al Chat Interno con el Vendedor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderConfirmedId(null);
+                    setIsCartOpen(false);
+                    setIsBuyerAuthOpen(true);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>Rastrear Estado y Guía de mi Pedido</span>
                 </button>
                 <button
                   type="button"
@@ -425,6 +444,30 @@ export function CartDrawer() {
                       <option value="tarjeta">💳 Tarjeta o Visacuotas</option>
                     </select>
                   </div>
+
+                  {(paymentMethod === 'transferencia' || paymentMethod === 'tarjeta') && (
+                    <div className="p-3 rounded-xl bg-lavanda-50 border border-lavanda-200 space-y-2">
+                      <p className="text-[11px] font-extrabold text-lavanda-900">
+                        🏦 Cuenta Oficial de Resguardo EcoRopaGT:
+                      </p>
+                      <p className="text-[11px] text-grafito-800 font-semibold leading-relaxed">
+                        {siteConfig.ecoBankDetails}
+                      </p>
+                      <div>
+                        <label className="block text-[10px] font-bold text-grafito-800 mb-1">
+                          Número de Boleta / Autorización Bancaria *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={transferReference}
+                          onChange={(e) => setTransferReference(e.target.value)}
+                          placeholder="Ej. BI-9482014 o Ref. ACH #44192"
+                          className="w-full px-3 py-2 rounded-xl bg-white border border-lavanda-300 text-xs font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </form>
               )}
             </>
@@ -484,6 +527,14 @@ export function CartDrawer() {
                 <ArrowRight className="w-4 h-4" />
               </button>
             )}
+
+            <button
+              type="button"
+              onClick={() => setIsRulesModalOpen(true)}
+              className="w-full text-center text-[11px] font-bold text-grafito-700 hover:text-lavanda-600 underline cursor-pointer pt-0.5"
+            >
+              🛡️ Garantía 24h de Medidas y Reglas de Pago Protegido
+            </button>
           </div>
         )}
       </aside>

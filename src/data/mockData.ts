@@ -13,6 +13,8 @@ export const initialSiteConfig: SiteContentConfig = {
   freeShippingThreshold: 0,
   commissionPercent: 15,
   colorTheme: 'oceano',
+  ecoBankDetails:
+    'Banco Industrial Monetaria #045-019283-4 • Banrural Monetaria #3045-88210-9 • BAC Monetaria #9034-11204-2 (A nombre de: EcoRopaGT Moda Circular)',
 };
 
 export const initialSellers: SellerProfile[] = [
@@ -34,6 +36,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Octubre 2024',
     whatsapp: '50255551234',
     pickupAddress: '5a Avenida 14-22 Zona 14, Edificio Las Conchas Apto 5B, Ciudad de Guatemala',
+    bankName: 'Banco Industrial',
+    bankAccountType: 'Monetaria',
+    bankAccountNumber: '028-049182-7',
+    bankAccountHolder: 'Sofía Alejandra Morales',
   },
   {
     id: 's2',
@@ -53,6 +59,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Enero 2025',
     whatsapp: '50255552345',
     pickupAddress: '4a Calle Oriente #18, a dos cuadras del Parque Central, Antigua Guatemala',
+    bankName: 'BAC Credomatic',
+    bankAccountType: 'Ahorro',
+    bankAccountNumber: '9012-44891-3',
+    bankAccountHolder: 'Carlos Roberto Méndez',
   },
   {
     id: 's3',
@@ -72,6 +82,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Agosto 2024',
     whatsapp: '50255553456',
     pickupAddress: 'Km 16.5 Carretera a El Salvador, Condominio Bosques de las Luces Casa #24',
+    bankName: 'Banco Industrial',
+    bankAccountType: 'Ahorro',
+    bankAccountNumber: '114-092831-5',
+    bankAccountHolder: 'Elena María Valladares',
   },
   {
     id: 's4',
@@ -91,6 +105,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Noviembre 2024',
     whatsapp: '50255554567',
     pickupAddress: '12 Calle 2-25 Zona 10, Torre Aviateca Nivel 6 Oficina 602, Ciudad de Guatemala',
+    bankName: 'G&T Continental',
+    bankAccountType: 'Monetaria',
+    bankAccountNumber: '067-001829-1',
+    bankAccountHolder: 'Mariana Isabel Castillo',
   },
   {
     id: 's5',
@@ -110,6 +128,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Diciembre 2024',
     whatsapp: '50255556789',
     pickupAddress: '14 Avenida 3-40 Zona 3, cerca de Pradera Xela, Quetzaltenango',
+    bankName: 'Banrural',
+    bankAccountType: 'Monetaria',
+    bankAccountNumber: '3410-99281-4',
+    bankAccountHolder: 'Luis Fernando Alvarado',
   },
   {
     id: 's6',
@@ -129,6 +151,10 @@ export const initialSellers: SellerProfile[] = [
     joinedDate: 'Febrero 2025',
     whatsapp: '50255557890',
     pickupAddress: 'Boulevard Austriaco 16-08 Zona 16, Residenciales Lomas de Cayalá Casa 11',
+    bankName: 'Banco Industrial',
+    bankAccountType: 'Monetaria',
+    bankAccountNumber: '091-442810-2',
+    bankAccountHolder: 'Andrea Paola Santizo',
   },
 ];
 

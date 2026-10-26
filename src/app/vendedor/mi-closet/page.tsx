@@ -242,6 +242,18 @@ export default function SellerDashboardPage() {
     currentSeller.pickupAddress || ''
   );
   const [profileWhatsapp, setProfileWhatsapp] = useState(currentSeller.whatsapp);
+  const [profileBankName, setProfileBankName] = useState(
+    currentSeller.bankName || 'Banco Industrial'
+  );
+  const [profileBankAccountType, setProfileBankAccountType] = useState<'Monetaria' | 'Ahorro'>(
+    currentSeller.bankAccountType || 'Monetaria'
+  );
+  const [profileBankAccountNumber, setProfileBankAccountNumber] = useState(
+    currentSeller.bankAccountNumber || ''
+  );
+  const [profileBankAccountHolder, setProfileBankAccountHolder] = useState(
+    currentSeller.bankAccountHolder || currentSeller.displayName
+  );
   const [profileAvatar, setProfileAvatar] = useState(currentSeller.avatar);
   const [profileCover, setProfileCover] = useState(
     currentSeller.coverImage ||
@@ -255,6 +267,10 @@ export default function SellerDashboardPage() {
     setProfileLocation(currentSeller.location);
     setProfilePickupAddress(currentSeller.pickupAddress || '');
     setProfileWhatsapp(currentSeller.whatsapp);
+    setProfileBankName(currentSeller.bankName || 'Banco Industrial');
+    setProfileBankAccountType(currentSeller.bankAccountType || 'Monetaria');
+    setProfileBankAccountNumber(currentSeller.bankAccountNumber || '');
+    setProfileBankAccountHolder(currentSeller.bankAccountHolder || currentSeller.displayName);
     setProfileAvatar(currentSeller.avatar);
     setProfileCover(
       currentSeller.coverImage ||
@@ -347,10 +363,16 @@ export default function SellerDashboardPage() {
       location: profileLocation.trim(),
       pickupAddress: profilePickupAddress.trim() || profileLocation.trim(),
       whatsapp: profileWhatsapp.trim(),
+      bankName: profileBankName,
+      bankAccountType: profileBankAccountType,
+      bankAccountNumber: profileBankAccountNumber.trim(),
+      bankAccountHolder: profileBankAccountHolder.trim() || profileDisplayName.trim(),
       avatar: profileAvatar.trim() || currentSeller.avatar,
       coverImage: profileCover.trim(),
     });
-    showToast(`¡Perfil y dirección de recolección de @${currentSeller.username} actualizados!`);
+    showToast(
+      `¡Perfil, dirección de recolección y cuenta bancaria de @${currentSeller.username} actualizados!`
+    );
   };
 
   const commissionPct = siteConfig.commissionPercent ?? 15;
@@ -904,6 +926,76 @@ export default function SellerDashboardPage() {
                 <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
                   <Lock className="w-3 h-3" /> Esta dirección es 100% confidencial y solo la ve el equipo de EcoRopaGT para enviar al mensajero por tus prendas vendidas.
                 </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-lavanda-50/80 border border-lavanda-200 space-y-3">
+                <div>
+                  <p className="text-xs font-extrabold text-lavanda-900">
+                    🏦 Cuenta Bancaria para Liquidación de tus Ventas (85% Neto • Privada solo para EcoRopaGT)
+                  </p>
+                  <p className="text-[11px] text-grafito-700">
+                    Aquí depositaremos tu ganancia neta en 24–48 horas tras confirmarse la entrega de tus prendas.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                      Banco en Guatemala *
+                    </label>
+                    <select
+                      value={profileBankName}
+                      onChange={(e) => setProfileBankName(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                    >
+                      <option value="Banco Industrial">Banco Industrial</option>
+                      <option value="Banrural">Banrural</option>
+                      <option value="BAC Credomatic">BAC Credomatic</option>
+                      <option value="G&T Continental">G&T Continental</option>
+                      <option value="Promerica">Banco Promerica</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                      Tipo de Cuenta *
+                    </label>
+                    <select
+                      value={profileBankAccountType}
+                      onChange={(e) =>
+                        setProfileBankAccountType(e.target.value as 'Monetaria' | 'Ahorro')
+                      }
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                    >
+                      <option value="Monetaria">Cuenta Monetaria</option>
+                      <option value="Ahorro">Cuenta de Ahorro</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                      Número de Cuenta Bancaria *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileBankAccountNumber}
+                      onChange={(e) => setProfileBankAccountNumber(e.target.value)}
+                      placeholder="Ej. 014-009281-5"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                      Nombre Exacto del Titular *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={profileBankAccountHolder}
+                      onChange={(e) => setProfileBankAccountHolder(e.target.value)}
+                      placeholder="Ej. Sofía Morales"
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs font-bold"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div>

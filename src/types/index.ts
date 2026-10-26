@@ -46,6 +46,10 @@ export interface SellerProfile {
   joinedDate: string;
   whatsapp: string; // Privado: exclusivo para EcoRopaGT (verificación y logística), nunca público
   pickupAddress?: string; // Privado: dirección exacta donde Forza / Cargo Expreso recoge las prendas del vendedor
+  bankName?: string; // Privado: Banco en Guatemala para depositar el pago neto al vendedor (BI, Banrural, BAC, G&T)
+  bankAccountType?: 'Monetaria' | 'Ahorro';
+  bankAccountNumber?: string; // Privado: Número de cuenta bancaria del vendedor
+  bankAccountHolder?: string; // Privado: Nombre exacto del titular de la cuenta
 }
 
 export interface InternalMessage {
@@ -74,6 +78,7 @@ export interface SiteContentConfig {
   freeShippingThreshold: number;
   commissionPercent?: number;
   colorTheme?: 'oceano' | 'terracota' | 'espresso';
+  ecoBankDetails?: string; // Cuentas oficiales de EcoRopaGT para transferencias de compradores
 }
 
 export type OrderStatus = 'pendiente' | 'en_camino' | 'entregado' | 'cancelado';
@@ -110,6 +115,9 @@ export interface Order {
   address: string;
   shippingReferences?: string;
   paymentMethod: 'contra_entrega' | 'transferencia' | 'tarjeta';
+  transferReference?: string; // Número de boleta o referencia cuando el comprador paga por transferencia/tarjeta
+  trackingNumber?: string; // Número de guía de Forza Delivery o Cargo Expreso
+  courierName?: 'Forza Delivery' | 'Cargo Expreso';
   items: OrderItemSummary[];
   subtotal: number;
   bundleDiscount: number;

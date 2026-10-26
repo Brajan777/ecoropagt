@@ -44,6 +44,7 @@ export default function PrivateAdminControlPage() {
     messages,
     orders,
     updateOrderStatus,
+    updateOrderTracking,
     deleteOrder,
     buyers,
     toggleBuyerVerified,
@@ -151,6 +152,7 @@ export default function PrivateAdminControlPage() {
   const [colorTheme, setColorTheme] = useState<'oceano' | 'terracota' | 'espresso'>(
     siteConfig.colorTheme || 'oceano'
   );
+  const [ecoBankDetails, setEcoBankDetails] = useState(siteConfig.ecoBankDetails || '');
 
   useEffect(() => {
     setHeroTitle(siteConfig.heroTitle);
@@ -162,6 +164,7 @@ export default function PrivateAdminControlPage() {
     setFreeShippingThreshold(siteConfig.freeShippingThreshold);
     setCommissionPercent(siteConfig.commissionPercent ?? 15);
     setColorTheme(siteConfig.colorTheme || 'oceano');
+    setEcoBankDetails(siteConfig.ecoBankDetails || '');
   }, [siteConfig]);
 
   // Filtros de Moderación de Prendas
@@ -212,6 +215,7 @@ export default function PrivateAdminControlPage() {
       freeShippingThreshold: Number(freeShippingThreshold),
       commissionPercent: Number(commissionPercent) || 15,
       colorTheme,
+      ecoBankDetails,
     });
 
     setSavedAlert(true);
@@ -552,6 +556,11 @@ export default function PrivateAdminControlPage() {
                             ? '🏦 Transferencia'
                             : '💳 Tarjeta'}
                         </span>
+                        {order.transferReference && (
+                          <span className="px-2.5 py-1 rounded-lg bg-verde-100 text-verde-900 border border-verde-300 text-[11px] font-extrabold">
+                            🧾 Boleta: {order.transferReference}
+                          </span>
+                        )}
                         <select
                           value={order.status}
                           onChange={(e) => {
@@ -635,6 +644,27 @@ export default function PrivateAdminControlPage() {
                                       'Dirección pendiente de confirmar con el vendedor'}
                                 </span>
                               </p>
+                              <div className="pt-1.5 mt-1 border-t border-lavanda-100 text-[11px] text-grafito-800 flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-bold text-lavanda-900">
+                                  🏦 Liquidar 85% en:{' '}
+                                  <strong>
+                                    {sInfo?.bankName || 'Banco Industrial'} (
+                                    {sInfo?.bankAccountType || 'Monetaria'})
+                                  </strong>
+                                </span>
+                                <span className="px-2 py-0.5 rounded bg-lavanda-50 border border-lavanda-200 font-extrabold text-grafito-900">
+                                  Cta:{' '}
+                                  {sInfo?.bankAccountNumber &&
+                                  sInfo.bankAccountNumber !== 'privado'
+                                    ? sInfo.bankAccountNumber
+                                    : 'Pendiente'}{' '}
+                                  • Titular:{' '}
+                                  {sInfo?.bankAccountHolder &&
+                                  sInfo.bankAccountHolder !== 'privado'
+                                    ? sInfo.bankAccountHolder
+                                    : sInfo?.displayName || sellerUser}
+                                </span>
+                              </div>
                             </div>
                           );
                         })}
@@ -672,6 +702,55 @@ export default function PrivateAdminControlPage() {
                               <strong>Referencia Mensajero:</strong> {order.shippingReferences}
                             </p>
                           )}
+
+                          {/* Asignación de Número de Guía de Envío para que el Comprador lo rastree */}
+                          <div className="pt-2 mt-1.5 border-t border-verde-100 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            <select
+                              value={order.courierName || 'Forza Delivery'}
+                              onChange={(e) => {
+                                const newCourier = e.target.value as
+                                  | 'Forza Delivery'
+                                  | 'Cargo Expreso';
+                                updateOrderTracking(
+                                  order.id,
+                                  newCourier,
+                                  order.trackingNumber || ''
+                                );
+                                setAdminOrders((prev) =>
+                                  prev.map((o) =>
+                                    o.id === order.id
+                                      ? { ...o, courierName: newCourier }
+                                      : o
+                                  )
+                                );
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-beige-50 border border-beige-300 text-[11px] font-bold text-grafito-900"
+                            >
+                              <option value="Forza Delivery">🚚 Forza Delivery</option>
+                              <option value="Cargo Expreso">📦 Cargo Expreso</option>
+                            </select>
+                            <input
+                              type="text"
+                              value={order.trackingNumber || ''}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                updateOrderTracking(
+                                  order.id,
+                                  order.courierName || 'Forza Delivery',
+                                  val
+                                );
+                                setAdminOrders((prev) =>
+                                  prev.map((o) =>
+                                    o.id === order.id
+                                      ? { ...o, trackingNumber: val }
+                                      : o
+                                  )
+                                );
+                              }}
+                              placeholder="Escribe # de Guía (ej. FZ-884920) — el comprador lo ve al instante"
+                              className="flex-1 px-2.5 py-1.5 rounded-lg bg-white border border-verde-300 text-[11px] font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -952,6 +1031,19 @@ export default function PrivateAdminControlPage() {
                     />
                   </div>
                 </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    🏦 Datos Bancarios Oficiales de EcoRopaGT (Mostrados al comprador en Transferencia / Depósito)
+                  </label>
+                  <input
+                    type="text"
+                    value={ecoBankDetails}
+                    onChange={(e) => setEcoBankDetails(e.target.value)}
+                    placeholder="Banco Industrial — Cuenta Monetaria # 104-008942-1 a nombre de EcoRopaGT..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-semibold focus:outline-none focus:border-lavanda-500"
+                  />
+                </div>
               </div>
 
               <div className="pt-4 flex flex-wrap items-center justify-between gap-3 border-t border-beige-200">
@@ -1114,6 +1206,25 @@ export default function PrivateAdminControlPage() {
                               : seller.location}
                           </span>
                         </div>
+                      </div>
+
+                      <div className="mt-2 p-2.5 rounded-xl bg-lavanda-50/70 border border-lavanda-200 text-xs text-grafito-800 space-y-0.5">
+                        <p className="font-extrabold text-lavanda-900">
+                          🏦 Cuenta Bancaria para Liquidación (Privada):
+                        </p>
+                        <p className="font-semibold text-[11px]">
+                          {seller.bankName || 'Banco Industrial'} •{' '}
+                          {seller.bankAccountType || 'Monetaria'} • Cta:{' '}
+                          <strong>
+                            {seller.bankAccountNumber &&
+                            seller.bankAccountNumber !== 'privado'
+                              ? seller.bankAccountNumber
+                              : 'Pendiente'}
+                          </strong>{' '}
+                          ({seller.bankAccountHolder && seller.bankAccountHolder !== 'privado'
+                            ? seller.bankAccountHolder
+                            : seller.displayName})
+                        </p>
                       </div>
                     </div>
                   </div>

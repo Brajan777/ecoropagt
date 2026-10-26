@@ -14,6 +14,8 @@ import {
   LogOut,
   Edit3,
   AlertCircle,
+  Package,
+  Clock,
 } from 'lucide-react';
 
 const GUATEMALA_ZONES = [
@@ -44,9 +46,11 @@ export function BuyerAuthModal() {
     registerOrUpdateBuyer,
     loginBuyer,
     logoutBuyer,
+    orders,
   } = useApp();
 
   const [mode, setMode] = useState<'register' | 'login' | 'profile'>('register');
+  const [profileTab, setProfileTab] = useState<'orders' | 'address'>('orders');
   const [step, setStep] = useState<'form' | 'verify'>('form');
 
   // Campos de Registro / Edición
@@ -85,6 +89,14 @@ export function BuyerAuthModal() {
   }, [currentBuyer, isBuyerAuthOpen]);
 
   if (!isBuyerAuthOpen) return null;
+
+  const buyerOrders = currentBuyer
+    ? orders.filter(
+        (o) =>
+          o.buyerUsername?.toLowerCase() === currentBuyer.username.toLowerCase() ||
+          o.buyerPhone === currentBuyer.whatsapp
+      )
+    : [];
 
   const handleStartVerification = (e: React.FormEvent) => {
     e.preventDefault();
@@ -251,6 +263,36 @@ export function BuyerAuthModal() {
           </div>
         )}
 
+        {/* Selector de Pestañas cuando SÍ ha iniciado sesión */}
+        {currentBuyer && (
+          <div className="px-6 pt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setProfileTab('orders')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                profileTab === 'orders'
+                  ? 'bg-lavanda-500 text-white shadow-2xs'
+                  : 'bg-beige-100 text-grafito-700 hover:bg-beige-200'
+              }`}
+            >
+              <Package className="w-4 h-4" />
+              <span>Mis Pedidos y Rastreo ({buyerOrders.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setProfileTab('address')}
+              className={`flex-1 py-2.5 rounded-xl text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                profileTab === 'address'
+                  ? 'bg-lavanda-500 text-white shadow-2xs'
+                  : 'bg-beige-100 text-grafito-700 hover:bg-beige-200'
+              }`}
+            >
+              <MapPin className="w-4 h-4" />
+              <span>Mi Dirección y Datos</span>
+            </button>
+          </div>
+        )}
+
         <div className="p-5 sm:p-6 space-y-4">
           {/* Aviso de Privacidad */}
           <div className="p-3.5 rounded-2xl bg-verde-50 border border-verde-200 flex items-start gap-2.5 text-xs text-verde-900">
@@ -372,8 +414,137 @@ export function BuyerAuthModal() {
             </form>
           )}
 
+          {/* VISTA DE MIS PEDIDOS Y RASTREO DE GUÍA (COMPRADOR VERIFICADO) */}
+          {currentBuyer && mode === 'profile' && profileTab === 'orders' && (
+            <div className="space-y-3">
+              <div className="p-3 rounded-2xl bg-lavanda-50 border border-lavanda-200 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-verde-600" />
+                  <div>
+                    <p className="text-xs font-extrabold text-grafito-900">
+                      @{currentBuyer.username} • Comprador Verificado
+                    </p>
+                    <p className="text-[11px] text-grafito-600">
+                      {currentBuyer.department} • +{currentBuyer.whatsapp}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    logoutBuyer();
+                    setIsBuyerAuthOpen(false);
+                  }}
+                  className="px-2.5 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-[11px] font-bold flex items-center gap-1 transition cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Salir</span>
+                </button>
+              </div>
+
+              {buyerOrders.length === 0 ? (
+                <div className="p-8 rounded-2xl bg-beige-50 border border-beige-200 text-center space-y-2">
+                  <Package className="w-8 h-8 text-lavanda-500 mx-auto" />
+                  <p className="font-display text-sm font-extrabold text-grafito-900">
+                    Aún no tienes pedidos registrados
+                  </p>
+                  <p className="text-xs text-grafito-700">
+                    Cuando confirmes tu bolsa circular, aquí verás el estado de recolección y tu número de guía de Forza / Cargo Expreso.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {buyerOrders.map((order) => (
+                    <div
+                      key={order.id}
+                      className="p-4 rounded-2xl bg-beige-50 border border-beige-200 space-y-2.5"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-grafito-900 text-white text-xs font-extrabold">
+                            #{order.id}
+                          </span>
+                          <span className="text-[11px] text-grafito-600 font-semibold flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {order.createdAt}
+                          </span>
+                        </div>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
+                            order.status === 'entregado'
+                              ? 'bg-verde-100 text-verde-800'
+                              : order.status === 'en_camino'
+                                ? 'bg-lavanda-100 text-lavanda-800'
+                                : 'bg-amber-100 text-amber-800'
+                          }`}
+                        >
+                          {order.status === 'entregado'
+                            ? '✅ Entregado'
+                            : order.status === 'en_camino'
+                              ? '🚚 En Camino'
+                              : '⏳ Pendiente de Recolección'}
+                        </span>
+                      </div>
+
+                      {/* Guía de rastreo */}
+                      <div className="p-2.5 rounded-xl bg-white border border-beige-200 flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center gap-2">
+                          <Truck className="w-4 h-4 text-lavanda-600 shrink-0" />
+                          <div>
+                            <p className="font-extrabold text-grafito-900">
+                              {order.courierName || 'Forza / Cargo Expreso'}
+                            </p>
+                            <p className="text-[11px] text-grafito-700 font-semibold">
+                              Guía:{' '}
+                              <strong className="text-lavanda-700">
+                                {order.trackingNumber || 'En proceso de recolección y emisión'}
+                              </strong>
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-display text-sm font-extrabold text-grafito-900">
+                            Q{order.total}
+                          </p>
+                          {order.transferReference && (
+                            <p className="text-[10px] font-bold text-verde-800">
+                              Boleta: {order.transferReference}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        {order.items.map((item, idx) => (
+                          <div
+                            key={`${order.id}-${item.garmentId}-${idx}`}
+                            className="flex items-center gap-2.5 text-xs bg-white/80 p-2 rounded-xl border border-beige-200/80"
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-9 h-10 rounded-lg object-cover shrink-0"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-bold text-grafito-900 truncate">{item.title}</p>
+                              <p className="text-[10px] text-grafito-600 font-semibold">
+                                Talla {item.size} • Clóset @{item.sellerUsername}
+                              </p>
+                            </div>
+                            <span className="font-extrabold text-grafito-900">Q{item.price}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* MODO REGISTRO PASO 1 O EDICIÓN DE PERFIL */}
-          {(mode === 'profile' || (mode === 'register' && step === 'form')) && (
+          {((mode === 'profile' && profileTab === 'address') ||
+            (mode === 'register' && step === 'form')) && (
             <form onSubmit={handleStartVerification} className="space-y-3.5">
               {currentBuyer && (
                 <div className="p-3 rounded-2xl bg-lavanda-50 border border-lavanda-200 flex items-center justify-between">
