@@ -886,18 +886,6 @@ export default function PrivateAdminControlPage() {
 
                   <div>
                     <label className="block text-xs font-bold text-grafito-800 mb-1">
-                      Meta para Envío Gratis (Q)
-                    </label>
-                    <input
-                      type="number"
-                      value={freeShippingThreshold}
-                      onChange={(e) => setFreeShippingThreshold(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-grafito-800 mb-1">
                       Comisión EcoRopaGT (%)
                     </label>
                     <input
@@ -999,7 +987,7 @@ export default function PrivateAdminControlPage() {
               <div className="flex items-center justify-between text-[10px] text-grafito-700">
                 <span className="truncate">{announcementSubtext || 'Sin subtexto'}</span>
                 <span className="font-bold text-verde-800 shrink-0 flex items-center gap-1">
-                  <Truck className="w-3 h-3" /> Gratis &gt; Q{freeShippingThreshold || 0}
+                  <Truck className="w-3 h-3" /> Envío Q25 • 10% OFF en 3+ prendas
                 </span>
               </div>
             </div>

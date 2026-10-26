@@ -170,12 +170,12 @@ export function QuickViewModal() {
               </span>
             </div>
 
-            {/* Banner de Paquete del Mismo Clóset (-10% Bundle) */}
+            {/* Banner de Paquete del Mismo Clóset (-10% Bundle en 3+ prendas) */}
             <div className="mt-2.5 px-3 py-2 rounded-xl bg-lavanda-50 border border-lavanda-200 flex items-center gap-2 text-[11px] text-lavanda-700 font-semibold">
               <Sparkles className="w-4 h-4 text-lavanda-500 shrink-0" />
               <span>
-                ¡Lleva 2+ prendas de <strong>@{item.sellerUsername}</strong> y obtén{' '}
-                <strong>10% OFF extra</strong> + 1 solo envío!
+                ¡Lleva 3+ prendas de <strong>@{item.sellerUsername}</strong> y obtén{' '}
+                <strong>10% OFF extra</strong> + 1 solo envío (Q25)!
               </span>
             </div>
 

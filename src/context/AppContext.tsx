@@ -103,6 +103,21 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+function normalizeSiteConfig(cfg: SiteContentConfig): SiteContentConfig {
+  const updated = { ...cfg };
+  if (updated.announcementText?.includes('2+ prendas')) {
+    updated.announcementText = initialSiteConfig.announcementText;
+  }
+  if (
+    updated.announcementSubtext?.toLowerCase().includes('envío gratis') ||
+    updated.announcementSubtext?.toLowerCase().includes('envio gratis')
+  ) {
+    updated.announcementSubtext = initialSiteConfig.announcementSubtext;
+  }
+  updated.freeShippingThreshold = 0;
+  return updated;
+}
+
 function mergeMissingInitialGarments(loaded: Garment[]): Garment[] {
   const existingIds = new Set(loaded.map((g) => g.id));
   const missing = initialGarments.filter((g) => !existingIds.has(g.id));
@@ -202,7 +217,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         });
         if (res.ok) {
           const data = await res.json();
-          if (data.siteConfig) setSiteConfig(data.siteConfig);
+          if (data.siteConfig) setSiteConfig(normalizeSiteConfig(data.siteConfig));
           if (Array.isArray(data.garments) && data.garments.length > 0) {
             setGarments(mergeMissingInitialGarments(data.garments));
           }
@@ -224,7 +239,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const savedConfig = localStorage.getItem('ecoropa_config');
-        if (savedConfig) setSiteConfig(JSON.parse(savedConfig));
+        if (savedConfig) setSiteConfig(normalizeSiteConfig(JSON.parse(savedConfig)));
 
         const savedGarments = localStorage.getItem('ecoropa_garments');
         if (savedGarments) {

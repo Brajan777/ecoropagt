@@ -354,7 +354,7 @@ export default function ClosetProfilePage({ params }: Props) {
             </p>
             <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-lavanda-50 border border-lavanda-200 text-lavanda-700 text-xs font-bold shrink-0">
               <Sparkles className="w-4 h-4 text-lavanda-600 shrink-0" />
-              <span>Lleva 2+ prendas de @{seller.username} y obtén 10% OFF + 1 solo envío</span>
+              <span>Lleva 3+ prendas de @{seller.username} y obtén 10% OFF + 1 solo envío (Q25)</span>
             </div>
           </div>
 

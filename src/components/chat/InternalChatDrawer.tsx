@@ -272,7 +272,7 @@ export function InternalChatDrawer() {
                 Inicia una conversación segura con @{selectedSeller.username}
               </p>
               <p className="text-xs text-grafito-700 max-w-xs mx-auto">
-                Pregunta por medidas adicionales, estado de la tela o paquetes de 2+ prendas con 10% de descuento.
+                Pregunta por medidas adicionales, estado de la tela o paquetes de 3+ prendas del mismo clóset con 10% de descuento.
               </p>
             </div>
           ) : (

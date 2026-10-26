@@ -42,7 +42,7 @@ export function CartDrawer() {
 
   if (!isCartOpen) return null;
 
-  // Agrupar prendas por vendedor para calcular descuento Bundle (-10% con 2+ prendas del mismo clóset)
+  // Agrupar prendas por vendedor para calcular descuento Bundle (-10% con 3+ prendas del mismo clóset)
   const sellerCounts: Record<string, number> = {};
   cart.forEach((item) => {
     sellerCounts[item.sellerUsername] = (sellerCounts[item.sellerUsername] || 0) + 1;
@@ -51,9 +51,9 @@ export function CartDrawer() {
   const subtotal = cart.reduce((acc, item) => acc + item.price, 0);
   const retailTotal = cart.reduce((acc, item) => acc + item.retailPrice, 0);
 
-  // Descuento Bundle: 10% en prendas de clósets donde lleva 2 o más artículos
+  // Descuento Bundle: 10% en prendas de clósets donde lleva 3 o más artículos
   const bundleDiscount = cart.reduce((acc, item) => {
-    if (sellerCounts[item.sellerUsername] >= 2) {
+    if (sellerCounts[item.sellerUsername] >= 3) {
       return acc + Math.round(item.price * 0.1);
     }
     return acc;
@@ -62,14 +62,16 @@ export function CartDrawer() {
   const subtotalAfterBundle = subtotal - bundleDiscount;
   const savings = retailTotal - subtotalAfterBundle;
 
-  const freeThreshold = siteConfig.freeShippingThreshold || 250;
-  const isFreeShipping = subtotalAfterBundle >= freeThreshold;
-  const pct = Math.min(100, Math.round((subtotalAfterBundle / freeThreshold) * 100));
-
   const uniqueClosets = Object.keys(sellerCounts);
   const uniqueClosetsCount = uniqueClosets.length;
-  const shipping = cart.length === 0 ? 0 : isFreeShipping ? 0 : uniqueClosetsCount * 25;
+  // Tarifa fija de Q25 por recolección de clóset (sin envío gratis para proteger sostenibilidad operativa)
+  const shipping = cart.length === 0 ? 0 : uniqueClosetsCount * 25;
   const grandTotal = subtotalAfterBundle + shipping;
+
+  // Progreso hacia el descuento del 10% (3 prendas del mismo clóset)
+  const maxSameClosetCount =
+    uniqueClosets.length > 0 ? Math.max(...Object.values(sellerCounts)) : 0;
+  const bundleProgressPct = Math.min(100, Math.round((maxSameClosetCount / 3) * 100));
 
   const handleConfirmInternalOrder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,21 +176,21 @@ export function CartDrawer() {
 
           <div className="mt-3 bg-verde-100 p-3 rounded-xl border border-verde-200">
             <p className="text-xs text-grafito-800 mb-1.5">
-              {isFreeShipping ? (
+              {maxSameClosetCount >= 3 ? (
                 <>
-                  ✨ ¡Felicidades! Tienes <strong>Envío Gratis</strong> en toda Guatemala
+                  ✨ ¡Felicidades! Activaste <strong>10% de Descuento</strong> por paquete (3+ prendas del mismo clóset)
                 </>
               ) : (
                 <>
-                  Agrega <strong>Q{freeThreshold - subtotalAfterBundle}</strong> más para tener Envío
-                  Gratis
+                  Lleva <strong>3 o más prendas del mismo clóset</strong> para activar{' '}
+                  <strong>10% OFF</strong> y pagar 1 solo envío (Q25)
                 </>
               )}
             </p>
             <div className="w-full h-2 bg-white rounded-full overflow-hidden">
               <div
                 className="h-full bg-verde-500 transition-all duration-300"
-                style={{ width: `${pct}%` }}
+                style={{ width: `${bundleProgressPct}%` }}
               />
             </div>
           </div>
@@ -241,7 +243,8 @@ export function CartDrawer() {
               </div>
               <p className="font-display text-base font-bold text-grafito-900">Tu bolsa está vacía</p>
               <p className="text-xs text-grafito-700 max-w-xs mx-auto">
-                Lleva 2 o más prendas del mismo clóset para activar un <strong>10% de descuento</strong> automático y pagar 1 solo envío.
+                Lleva <strong>3 o más prendas del mismo clóset</strong> para activar un{' '}
+                <strong>10% de descuento</strong> automático y pagar 1 solo envío de Q25.
               </p>
               <button
                 type="button"
@@ -257,7 +260,7 @@ export function CartDrawer() {
                 <div className="p-3 rounded-xl bg-lavanda-100 border border-lavanda-300 text-xs text-lavanda-800 flex items-center gap-2 font-bold">
                   <Sparkles className="w-4 h-4 text-lavanda-600 shrink-0" />
                   <span>
-                    ¡Paquete del mismo clóset activo! Ahorras -Q{bundleDiscount} extra (10% OFF).
+                    ¡Paquete de 3+ prendas del mismo clóset activo! Ahorras -Q{bundleDiscount} extra (10% OFF).
                   </span>
                 </div>
               ) : (
@@ -265,8 +268,14 @@ export function CartDrawer() {
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4 text-lavanda-500 shrink-0" />
                     <span>
-                      Agrega otra prenda de <strong>@{cart[0].sellerUsername}</strong> para{' '}
-                      <strong>10% OFF</strong>.
+                      Agrega{' '}
+                      <strong>
+                        {Math.max(1, 3 - (sellerCounts[cart[0].sellerUsername] || 1))}{' '}
+                        {3 - (sellerCounts[cart[0].sellerUsername] || 1) === 1
+                          ? 'prenda más'
+                          : 'prendas más'}
+                      </strong>{' '}
+                      de <strong>@{cart[0].sellerUsername}</strong> para <strong>10% OFF</strong> (3+ prendas).
                     </span>
                   </div>
                   <Link
@@ -280,7 +289,7 @@ export function CartDrawer() {
               )}
 
               {cart.map((item) => {
-                const hasBundle = sellerCounts[item.sellerUsername] >= 2;
+                const hasBundle = sellerCounts[item.sellerUsername] >= 3;
                 return (
                   <div
                     key={item.id}
@@ -443,11 +452,12 @@ export function CartDrawer() {
               <div className="flex justify-between text-grafito-700">
                 <span>
                   Envío ({uniqueClosetsCount}{' '}
-                  {uniqueClosetsCount === 1 ? 'recolección' : 'recolecciones'}):
+                  {uniqueClosetsCount === 1
+                    ? 'recolección de clóset'
+                    : 'recolecciones de clóset'}{' '}
+                  × Q25):
                 </span>
-                <span className={shipping === 0 ? 'text-verde-700 font-bold' : ''}>
-                  {shipping === 0 ? '¡GRATIS!' : `Q${shipping}`}
-                </span>
+                <span className="font-bold text-grafito-900">Q{shipping}</span>
               </div>
               <div className="flex justify-between text-base font-extrabold text-grafito-900 pt-1 border-t border-beige-200">
                 <span>Total a pagar:</span>

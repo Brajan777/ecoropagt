@@ -1,16 +1,16 @@
 import { BuyerProfile, Garment, InternalMessage, Order, SellerProfile, SiteContentConfig } from '@/types';
 
 export const initialSiteConfig: SiteContentConfig = {
-  announcementText: '10% OFF automático al llevar 2+ prendas del mismo clóset',
-  announcementSubtext: 'Envío gratis en compras mayores a Q250 en toda Guatemala',
+  announcementText: '10% OFF automático al llevar 3 o más prendas del mismo clóset',
+  announcementSubtext: 'Paga 1 solo envío (Q25) al armar paquete del mismo clóset en toda Guatemala',
   heroBadge: 'Clósets familiares verificados en Guatemala',
   heroTitle: '¿Listo para darle una segunda oportunidad a tu clóset familiar?',
   heroDescription:
-    'Compra y vende prendas impecables de Mujer, Hombre y Niños con medidas verificadas en cm y descuento por paquete del mismo clóset.',
+    'Compra y vende prendas impecables de Mujer, Hombre y Niños con medidas verificadas en cm y 10% de descuento a partir de 3 prendas del mismo clóset.',
   heroImageUrl:
     'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80',
   ecoWaterStat: 'Ahorra 2,700 L de agua por prenda',
-  freeShippingThreshold: 250,
+  freeShippingThreshold: 0,
   commissionPercent: 15,
   colorTheme: 'oceano',
 };

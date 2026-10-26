@@ -62,10 +62,10 @@ export function HeroBanner() {
             </div>
             <div>
               <p className="text-xs font-bold text-grafito-900">
-                -10% OFF en paquetes del mismo clóset
+                -10% OFF en paquetes de 3+ prendas del mismo clóset
               </p>
               <p className="text-[11px] text-grafito-700">
-                Prendas verificadas con medidas reales en cm
+                Prendas verificadas con medidas reales en cm y 1 solo envío (Q25)
               </p>
             </div>
           </div>
