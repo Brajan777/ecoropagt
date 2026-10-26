@@ -541,15 +541,28 @@ export function EmbeddedSellerStudio() {
                     </div>
 
                     <div>
-                      <label className="block text-xs font-bold text-verde-800 mb-1">
-                        📍 Dirección exacta de recolección (Privada • Solo para Forza / Cargo Expreso) *
-                      </label>
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <label className="block text-xs font-bold text-verde-800">
+                          📍 Punto de Recolección o Entrega en Agencia (Privado • Guía Ciega) *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setNewPickupAddress(
+                              '🏢 [ENTREGA EN AGENCIA] Agencia Forza / Cargo Expreso más cercana (Sin dirección de casa)'
+                            )
+                          }
+                          className="text-[10px] font-extrabold text-lavanda-700 hover:underline cursor-pointer"
+                        >
+                          🏢 Prefiero dejar en Agencia (Sin dar casa)
+                        </button>
+                      </div>
                       <input
                         type="text"
                         required
                         value={newPickupAddress}
                         onChange={(e) => setNewPickupAddress(e.target.value)}
-                        placeholder="Calle/Av, # casa o edificio, colonia y referencia"
+                        placeholder="Calle/Av, # casa o escribe: Entrego en Agencia Forza Zona 10..."
                         className="w-full px-3.5 py-2.5 rounded-xl border border-verde-300 text-xs bg-verde-50/50 focus:border-verde-600 focus:outline-none"
                       />
                     </div>
@@ -1116,16 +1129,32 @@ export function EmbeddedSellerStudio() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-verde-800 mb-1">
-                  📍 Dirección Exacta de Recolección para Forza / Cargo Expreso (Privada • Nunca pública)
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <label className="block text-xs font-bold text-verde-800">
+                    📍 Dirección de Recolección o Agencia (Privada • Guía Ciega)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setPickupAddress(
+                        '🏢 [ENTREGA EN AGENCIA] Entrego personalmente en Agencia Forza / Cargo Expreso'
+                      )
+                    }
+                    className="text-[10px] font-extrabold text-lavanda-700 hover:underline cursor-pointer"
+                  >
+                    🏢 Usar Agencia Oficial (Cero dirección de casa)
+                  </button>
+                </div>
                 <input
                   type="text"
                   value={pickupAddress}
                   onChange={(e) => setPickupAddress(e.target.value)}
-                  placeholder="Ej. 5a Av 14-22 Zona 14, Edificio Las Conchas Apto 5B"
+                  placeholder="Ej. 5a Av 14-22 Zona 14 o Agencia Forza Zona 10"
                   className="w-full px-3 py-2 rounded-xl bg-verde-50/60 border border-verde-300 text-xs"
                 />
+                <p className="text-[10px] text-verde-800 mt-1 font-semibold">
+                  🛡️ Guía Ciega Activa: El comprador jamás ve tu dirección ni teléfono en la etiqueta del paquete.
+                </p>
               </div>
               <div>
                 <label className="block text-xs font-bold text-grafito-800 mb-1">Biografía</label>

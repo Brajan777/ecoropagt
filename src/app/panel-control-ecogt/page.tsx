@@ -755,6 +755,68 @@ export default function PrivateAdminControlPage() {
                       </div>
                     </div>
 
+                    {/* Generador de Guía Ciega (Doble Escudo de Privacidad Vendedor <-> Comprador) */}
+                    <div className="p-3.5 rounded-2xl bg-grafito-900 text-white space-y-2.5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-4 h-4 text-verde-300 shrink-0" />
+                          <span className="text-xs font-extrabold">
+                            🛡️ Protocolo de Guía Ciega (#{order.id}) — Cero Cruce de Direcciones o Teléfonos
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-verde-500/20 text-verde-200 border border-verde-400/30">
+                          Remitente Neutro EcoRopaGT
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-[11px]">
+                        <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 flex flex-col justify-between gap-2">
+                          <div>
+                            <p className="font-extrabold text-verde-300">
+                              1. Boleta Ciega para enviar al Vendedor (Sin datos del Comprador):
+                            </p>
+                            <p className="text-beige-100/90 mt-1">
+                              Rotular bolsa cerrada únicamente con: <strong>#{order.id}</strong> • Destino Protegido EcoRopaGT ({order.department || 'Guatemala'}) • Paquetería: {order.courierName || 'Forza Delivery'} {order.trackingNumber ? `• Guía: ${order.trackingNumber}` : ''}.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const blindSellerText = `📦 BOLETA DE RECOLECCIÓN CIEGA ECOROPAGT\n• Código Único de Paquete: #${order.id}\n• Instrucción: Introduce la prenda en una bolsa sellada y escribe afuera únicamente #${order.id}\n• Destinatario en Guía: Centro Logístico EcoRopaGT — Destino Protegido #${order.id} (${order.department || 'Guatemala'})\n• Paquetería: ${order.courierName || 'Forza Delivery'} ${order.trackingNumber ? `| Guía: ${order.trackingNumber}` : ''}`;
+                              navigator.clipboard?.writeText(blindSellerText);
+                              alert(`Instrucción de Guía Ciega para el vendedor copiada al portapapeles (#${order.id}).`);
+                            }}
+                            className="self-start px-2.5 py-1 rounded-lg bg-white text-grafito-900 font-extrabold text-[10px] hover:bg-beige-100 transition cursor-pointer"
+                          >
+                            📋 Copiar Boleta Ciega para Vendedor
+                          </button>
+                        </div>
+
+                        <div className="p-2.5 rounded-xl bg-white/10 border border-white/15 flex flex-col justify-between gap-2">
+                          <div>
+                            <p className="font-extrabold text-verde-300">
+                              2. Etiqueta Ciega para Forza / Cargo Expreso (Sin datos del Vendedor):
+                            </p>
+                            <p className="text-beige-100/90 mt-1">
+                              <strong>Remitente Impreso:</strong> EcoRopaGT Moda Circular (Clóset @{order.items[0]?.sellerUsername || 'verificado'}) — Cero dirección/teléfono del vendedor.{' '}
+                              <strong>Destinatario:</strong> {order.buyerName} • {order.address}.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const blindCourierText = `🚚 DATOS PARA ETIQUETA CIEGA (${order.courierName || 'FORZA / CARGO EXPRESO'})\n• REMITENTE IMPRESO (NEUTRO): EcoRopaGT Moda Circular — Orden #${order.id} (Clóset @${order.items[0]?.sellerUsername || 'verificado'})\n• DESTINATARIO: ${order.buyerName} (DPI/NIT: ${order.buyerDpi || 'Verificado'})\n• TELÉFONO DESTINATARIO (USO EXCLUSIVO MENSAJERO): +${order.buyerPhone.replace(/^\+/, '')}\n• DIRECCIÓN / AGENCIA DE ENTREGA: ${order.department ? order.department + ' — ' : ''}${order.address}\n• REFERENCIAS: ${order.shippingReferences || 'N/A'}\n• MONTO A COBRAR: ${order.paymentMethod === 'contra_entrega' ? `Q${order.total} (Contra Entrega)` : 'Q0.00 (Ya pagado por transferencia/tarjeta)'}`;
+                              navigator.clipboard?.writeText(blindCourierText);
+                              alert(`Datos de Etiqueta Ciega con Remitente Neutro copiados al portapapeles (#${order.id}).`);
+                            }}
+                            className="self-start px-2.5 py-1 rounded-lg bg-verde-500 text-white font-extrabold text-[10px] hover:bg-verde-600 transition cursor-pointer"
+                          >
+                            📋 Copiar Etiqueta con Remitente Neutro
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Prendas incluidas en el pedido */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                       {order.items.map((it, idx) => {

@@ -46,21 +46,51 @@ export function InternalChatDrawer() {
     (m) => m.sellerUsername === selectedSeller.username
   );
 
-  // Filtro anti-fuga para impedir compartir teléfonos o enlaces externos en el chat público/interno
-  const containsRestrictedContact = (text: string) => {
+  // Filtro anti-fuga para impedir compartir teléfonos, direcciones físicas, bancos o redes externas en el chat
+  const containsRestrictedContact = (text: string): string | null => {
     const digitsOnly = text.replace(/\D/g, '');
-    if (digitsOnly.length >= 8) return true;
-    const lower = text.toLowerCase();
-    if (
-      lower.includes('whatsapp') ||
-      lower.includes('wa.me') ||
-      lower.includes('telegram') ||
-      lower.includes('@gmail') ||
-      lower.includes('@hotmail')
-    ) {
-      return true;
+    if (digitsOnly.length >= 7) {
+      return 'No está permitido escribir números de teléfono, cuentas bancarias ni secuencias numéricas de contacto.';
     }
-    return false;
+    const lower = text.toLowerCase();
+    const blockedContactWords = [
+      'whatsapp',
+      'wa.me',
+      'telegram',
+      '@gmail',
+      '@hotmail',
+      '@outlook',
+      '@yahoo',
+      'instagram',
+      'facebook',
+      'tiktok',
+      'llamame',
+      'llámame',
+      'escribeme al',
+      'escríbeme al',
+      'mi numero',
+      'mi número',
+      'mi cel',
+      'http://',
+      'https://',
+    ];
+    if (blockedContactWords.some((w) => lower.includes(w))) {
+      return 'Por tu seguridad, no está permitido compartir WhatsApp, redes sociales, enlaces ni teléfonos en el chat.';
+    }
+
+    const blockedAddressPatterns = [
+      /\bzona\s*\d+/i,
+      /\b\d+\s*(calle|avenida|av\b)/i,
+      /\b(colonia|residenciales|condominio)\b/i,
+      /\bnos vemos en\b/i,
+      /\bentrega en persona\b/i,
+      /\bpunto de encuentro\b/i,
+    ];
+    if (blockedAddressPatterns.some((regex) => regex.test(text))) {
+      return 'Por seguridad física, nunca compartas direcciones ni puntos de encuentro en el chat. Todo envío viaja con Guía Ciega o Retiro en Agencia Forza / Cargo Expreso.';
+    }
+
+    return null;
   };
 
   const handleSend = (e: React.FormEvent) => {
@@ -72,10 +102,9 @@ export function InternalChatDrawer() {
       return;
     }
 
-    if (containsRestrictedContact(inputText)) {
-      setSecurityWarning(
-        'Por políticas de seguridad de EcoRopaGT, no está permitido compartir números de teléfono, WhatsApp ni correos en el chat. Toda coordinación y pago está protegido dentro de la plataforma.'
-      );
+    const restrictionReason = containsRestrictedContact(inputText);
+    if (restrictionReason) {
+      setSecurityWarning(restrictionReason);
       return;
     }
 

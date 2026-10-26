@@ -345,12 +345,14 @@ export async function POST(request: Request) {
       }));
     }
 
-    // Protección 4: Sanitizar mensajes internos y bloquear teléfonos en servidor
+    // Protección 4: Sanitizar mensajes internos y bloquear teléfonos, correos y direcciones en servidor
     let mergedMessages = current.messages ?? initialMessages;
     if (Array.isArray(body.messages)) {
       mergedMessages = body.messages.slice(-200).map((m: any) => ({
         ...m,
-        text: sanitizeString(m.text, 400).replace(/\b\d{8,15}\b/g, '[teléfono oculto]'),
+        text: sanitizeString(m.text, 400)
+          .replace(/(\+?\d[\d\s-]{6,16}\d)/g, '[🔒 teléfono oculto]')
+          .replace(/\S+@\S+\.\S+/g, '[🔒 correo oculto]'),
       }));
     }
 

@@ -38,6 +38,21 @@ const GUATEMALA_ZONES = [
   'Petén / Izabal / Norte',
 ];
 
+const OFFICIAL_COURIER_AGENCIES = [
+  'Agencia Forza Delivery — Zona 10 (Plaza Géminis / Zona Viva)',
+  'Agencia Cargo Expreso — Zona 10 (Boul. Los Próceres)',
+  'Agencia Cargo Expreso — Zona 14 (Av. Las Américas)',
+  'Agencia Forza Delivery — Zona 15 (Vista Hermosa)',
+  'Agencia Cargo Expreso — Zona 16 (Boul. Austriaco / Cayalá)',
+  'Agencia Forza Delivery — Zona 11 (Miraflores / Aguilar Batres)',
+  'Agencia Cargo Expreso — Carretera a El Salvador (Km 14.5 Condado Concepción)',
+  'Agencia Forza Delivery — Mixco (San Cristóbal / Bulevar Principal)',
+  'Agencia Cargo Expreso — Zona 1 / Centro Histórico',
+  'Agencia Cargo Expreso — Antigua Guatemala (Sacatepéquez)',
+  'Agencia Forza Delivery — Quetzaltenango (Xela Zona 3)',
+  'Agencia Cargo Expreso — Cobán / Escuintla / Interior del País',
+];
+
 export function BuyerAuthModal() {
   const {
     isBuyerAuthOpen,
@@ -59,6 +74,8 @@ export function BuyerAuthModal() {
   const [dpiOrNit, setDpiOrNit] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [department, setDepartment] = useState(GUATEMALA_ZONES[1]);
+  const [deliveryMode, setDeliveryMode] = useState<'domicilio' | 'agencia'>('domicilio');
+  const [selectedAgency, setSelectedAgency] = useState(OFFICIAL_COURIER_AGENCIES[0]);
   const [shippingAddress, setShippingAddress] = useState('');
   const [shippingReferences, setShippingReferences] = useState('');
 
@@ -82,6 +99,11 @@ export function BuyerAuthModal() {
       setDepartment(currentBuyer.department || GUATEMALA_ZONES[1]);
       setShippingAddress(currentBuyer.shippingAddress);
       setShippingReferences(currentBuyer.shippingReferences);
+      if (currentBuyer.shippingAddress?.includes('[RETIRO EN AGENCIA]')) {
+        setDeliveryMode('agencia');
+      } else {
+        setDeliveryMode('domicilio');
+      }
     } else {
       setMode('register');
       setStep('form');
@@ -514,6 +536,13 @@ export function BuyerAuthModal() {
                         </div>
                       </div>
 
+                      <div className="px-3 py-1.5 rounded-xl bg-verde-50 border border-verde-200 text-[10px] font-bold text-verde-900 flex items-center gap-1.5">
+                        <Lock className="w-3.5 h-3.5 text-verde-700 shrink-0" />
+                        <span>
+                          🛡️ Envío con Guía Ciega: El vendedor entrega su paquete cerrado con el código #{order.id} y jamás conoce tu dirección ni tu teléfono.
+                        </span>
+                      </div>
+
                       <div className="space-y-1.5">
                         {order.items.map((item, idx) => (
                           <div
@@ -636,8 +665,53 @@ export function BuyerAuthModal() {
               <div className="pt-2 border-t border-beige-200">
                 <p className="text-xs font-extrabold text-lavanda-700 flex items-center gap-1.5 mb-2.5">
                   <Truck className="w-4 h-4" />
-                  <span>Dirección Obligatoria para Coordinar Envío (Forza / Cargo Expreso)</span>
+                  <span>Modalidad de Entrega Protegida (Forza / Cargo Expreso)</span>
                 </p>
+
+                {/* Selector Domicilio vs Retiro en Agencia Oficial (Cero dirección de casa) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeliveryMode('domicilio');
+                      if (shippingAddress.startsWith('🏢 [RETIRO EN AGENCIA]')) {
+                        setShippingAddress('');
+                        setShippingReferences('');
+                      }
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition cursor-pointer ${
+                      deliveryMode === 'domicilio'
+                        ? 'bg-lavanda-50 border-lavanda-500 text-lavanda-900 ring-2 ring-lavanda-500/20'
+                        : 'bg-beige-50 border-beige-300 text-grafito-700 hover:bg-beige-100'
+                    }`}
+                  >
+                    <p className="font-extrabold">🏠 En mi Domicilio / Oficina</p>
+                    <p className="text-[10px] opacity-80 mt-0.5">
+                      Guía Ciega (El vendedor nunca ve tu dirección)
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDeliveryMode('agencia');
+                      const agencyAddr = `🏢 [RETIRO EN AGENCIA] ${selectedAgency}`;
+                      setShippingAddress(agencyAddr);
+                      setShippingReferences(
+                        'Retiro personal en ventanilla oficial presentando DPI y # de Guía'
+                      );
+                    }}
+                    className={`p-2.5 rounded-xl border text-left text-xs font-bold transition cursor-pointer ${
+                      deliveryMode === 'agencia'
+                        ? 'bg-verde-50 border-verde-600 text-verde-900 ring-2 ring-verde-500/20'
+                        : 'bg-beige-50 border-beige-300 text-grafito-700 hover:bg-beige-100'
+                    }`}
+                  >
+                    <p className="font-extrabold">🏢 Retirar en Agencia Oficial</p>
+                    <p className="text-[10px] opacity-80 mt-0.5">
+                      Sin dar dirección de tu casa (Forza / Cargo Expreso)
+                    </p>
+                  </button>
+                </div>
 
                 <div className="space-y-3">
                   <div>
@@ -657,33 +731,63 @@ export function BuyerAuthModal() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-grafito-800 mb-1">
-                      Dirección Exacta de Entrega (Calle, Avenida, # Casa/Apto, Colonia) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={shippingAddress}
-                      onChange={(e) => setShippingAddress(e.target.value)}
-                      placeholder="Ej. 10a Avenida 14-32 Zona 14, Edificio Las Conchas, Apto 5B"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-semibold focus:outline-none focus:border-lavanda-500"
-                    />
-                  </div>
+                  {deliveryMode === 'agencia' ? (
+                    <div className="p-3 rounded-xl bg-verde-50/70 border border-verde-300 space-y-2">
+                      <label className="block text-xs font-extrabold text-verde-900">
+                        🏢 Selecciona la Agencia Forza / Cargo Expreso donde recogerás tu paquete *
+                      </label>
+                      <select
+                        value={selectedAgency}
+                        onChange={(e) => {
+                          setSelectedAgency(e.target.value);
+                          setShippingAddress(`🏢 [RETIRO EN AGENCIA] ${e.target.value}`);
+                          setShippingReferences(
+                            'Retiro personal en ventanilla oficial presentando DPI y # de Guía'
+                          );
+                        }}
+                        className="w-full px-3 py-2.5 rounded-xl bg-white border border-verde-300 text-xs font-bold text-grafito-900 cursor-pointer"
+                      >
+                        {OFFICIAL_COURIER_AGENCIES.map((ag) => (
+                          <option key={ag} value={ag}>
+                            {ag}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-verde-800 font-semibold">
+                        ✓ Máxima privacidad: No necesitas escribir la dirección de tu residencia. Pasarás a recoger tu bolsa con tu DPI cuando te notifiquemos tu guía.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <label className="block text-xs font-bold text-grafito-800 mb-1">
+                          Dirección Exacta de Entrega (Calle, Avenida, # Casa/Apto, Colonia) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={shippingAddress}
+                          onChange={(e) => setShippingAddress(e.target.value)}
+                          placeholder="Ej. 10a Avenida 14-32 Zona 14, Edificio Las Conchas, Apto 5B"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-semibold focus:outline-none focus:border-lavanda-500"
+                        />
+                      </div>
 
-                  <div>
-                    <label className="block text-xs font-bold text-grafito-800 mb-1">
-                      Referencias para el Mensajero (Garita, color de portón, horario) *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={shippingReferences}
-                      onChange={(e) => setShippingReferences(e.target.value)}
-                      placeholder="Ej. Garita blanca, dejar en recepción o llamar al llegar"
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-semibold focus:outline-none focus:border-lavanda-500"
-                    />
-                  </div>
+                      <div>
+                        <label className="block text-xs font-bold text-grafito-800 mb-1">
+                          Referencias para el Mensajero (Garita, color de portón, horario) *
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={shippingReferences}
+                          onChange={(e) => setShippingReferences(e.target.value)}
+                          placeholder="Ej. Garita blanca, dejar en recepción o llamar al llegar"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-semibold focus:outline-none focus:border-lavanda-500"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
 

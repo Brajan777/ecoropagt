@@ -912,19 +912,32 @@ export default function SellerDashboardPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-verde-800 mb-1">
-                  📍 Dirección Exacta de Recolección para Forza / Cargo Expreso (Privada • Nunca pública) *
-                </label>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                  <label className="block text-xs font-bold text-verde-800">
+                    📍 Dirección de Recolección o Agencia Forza / Cargo Expreso (Privada • Nunca pública) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setProfilePickupAddress(
+                        '🏢 [ENTREGA EN AGENCIA] Entrego personalmente en Agencia Oficial Forza / Cargo Expreso (Sin dirección de casa)'
+                      )
+                    }
+                    className="text-[11px] font-extrabold text-lavanda-700 hover:underline cursor-pointer"
+                  >
+                    🏢 Prefiero entregar en Agencia Oficial (Sin dar dirección de casa)
+                  </button>
+                </div>
                 <input
                   type="text"
                   required
                   value={profilePickupAddress}
                   onChange={(e) => setProfilePickupAddress(e.target.value)}
-                  placeholder="Ej. 5a Avenida 14-22 Zona 14, Edificio Las Conchas Apto 5B, Ciudad de Guatemala"
+                  placeholder="Ej. 5a Avenida 14-22 Zona 14 o Agencia Forza Zona 10"
                   className="w-full px-3.5 py-2.5 rounded-xl bg-verde-50/60 border border-verde-300 text-xs sm:text-sm focus:outline-none focus:border-verde-600"
                 />
                 <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
-                  <Lock className="w-3 h-3" /> Esta dirección es 100% confidencial y solo la ve el equipo de EcoRopaGT para enviar al mensajero por tus prendas vendidas.
+                  <Lock className="w-3 h-3" /> 🛡️ Protocolo de Guía Ciega: En la etiqueta del comprador el remitente impreso es EcoRopaGT Moda Circular (nunca aparece tu dirección ni tu teléfono).
                 </p>
               </div>
 
