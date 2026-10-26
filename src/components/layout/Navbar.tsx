@@ -302,19 +302,8 @@ export function Navbar() {
                 onClick={() => handleOpenStudio('inventario')}
                 className="px-3 py-1.5 sm:py-2 rounded-lg text-lavanda-700 hover:bg-lavanda-50 font-bold transition flex items-center gap-1 cursor-pointer"
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" /> Mi Clóset
+                <SlidersHorizontal className="w-3.5 h-3.5" /> Acceso Vendedores
               </button>
-
-              <Link
-                href="/vendedor/mi-closet"
-                className={`px-3 py-1.5 sm:py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
-                  pathname === '/vendedor/mi-closet'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
-                    : 'text-grafito-700 hover:bg-beige-100'
-                }`}
-              >
-                <span>Estudio Completo</span>
-              </Link>
             </nav>
           </div>
         </div>

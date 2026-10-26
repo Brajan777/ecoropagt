@@ -12,6 +12,7 @@ export const initialSiteConfig: SiteContentConfig = {
   ecoWaterStat: 'Ahorra 2,700 L de agua por prenda',
   freeShippingThreshold: 250,
   commissionPercent: 15,
+  colorTheme: 'oceano',
 };
 
 export const initialSellers: SellerProfile[] = [
@@ -32,6 +33,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: true,
     joinedDate: 'Octubre 2024',
     whatsapp: '50255551234',
+    pickupAddress: '5a Avenida 14-22 Zona 14, Edificio Las Conchas Apto 5B, Ciudad de Guatemala',
   },
   {
     id: 's2',
@@ -50,6 +52,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: true,
     joinedDate: 'Enero 2025',
     whatsapp: '50255552345',
+    pickupAddress: '4a Calle Oriente #18, a dos cuadras del Parque Central, Antigua Guatemala',
   },
   {
     id: 's3',
@@ -68,6 +71,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: true,
     joinedDate: 'Agosto 2024',
     whatsapp: '50255553456',
+    pickupAddress: 'Km 16.5 Carretera a El Salvador, Condominio Bosques de las Luces Casa #24',
   },
   {
     id: 's4',
@@ -86,6 +90,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: false,
     joinedDate: 'Noviembre 2024',
     whatsapp: '50255554567',
+    pickupAddress: '12 Calle 2-25 Zona 10, Torre Aviateca Nivel 6 Oficina 602, Ciudad de Guatemala',
   },
   {
     id: 's5',
@@ -104,6 +109,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: false,
     joinedDate: 'Diciembre 2024',
     whatsapp: '50255556789',
+    pickupAddress: '14 Avenida 3-40 Zona 3, cerca de Pradera Xela, Quetzaltenango',
   },
   {
     id: 's6',
@@ -122,6 +128,7 @@ export const initialSellers: SellerProfile[] = [
     isFeatured: false,
     joinedDate: 'Febrero 2025',
     whatsapp: '50255557890',
+    pickupAddress: 'Boulevard Austriaco 16-08 Zona 16, Residenciales Lomas de Cayalá Casa 11',
   },
 ];
 

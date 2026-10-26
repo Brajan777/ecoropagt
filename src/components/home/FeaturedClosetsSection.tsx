@@ -372,15 +372,6 @@ export function FeaturedClosetsSection() {
                   >
                     <MessageCircle className="w-4 h-4" />
                   </button>
-
-                  <button
-                    type="button"
-                    onClick={() => goToManageCloset(seller.username)}
-                    className="p-2.5 rounded-xl bg-white hover:bg-beige-200 border border-beige-200 text-grafito-700 transition cursor-pointer"
-                    title="Gestionar este clóset"
-                  >
-                    <SlidersHorizontal className="w-4 h-4" />
-                  </button>
                 </div>
               </div>
             );

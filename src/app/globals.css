@@ -2,11 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+:root,
+[data-theme='oceano'] {
+  /* Paleta 1 (Por defecto): Azul Petróleo / Océano Elegante + Verde Esmeralda Menta Fresco */
+  --accent-50: 240 249 251;
+  --accent-100: 220 241 246;
+  --accent-200: 184 226 236;
+  --accent-300: 128 202 220;
+  --accent-400: 56 158 184;
+  --accent-500: 15 108 136;
+  --accent-600: 12 88 112;
+  --accent-700: 10 69 89;
+  --accent-800: 8 52 68;
+
+  --fresh-50: 238 251 245;
+  --fresh-100: 209 244 228;
+  --fresh-200: 166 232 203;
+  --fresh-300: 107 211 168;
+  --fresh-500: 22 148 102;
+  --fresh-600: 16 122 83;
+  --fresh-700: 13 97 66;
+  --fresh-800: 11 77 53;
+  --fresh-900: 9 61 42;
+}
+
+[data-theme='terracota'] {
+  /* Paleta 2: Terracota Coral Editorial + Verde Salvia Bosque */
+  --accent-50: 253 245 242;
+  --accent-100: 250 231 223;
+  --accent-200: 243 205 190;
+  --accent-300: 232 168 144;
+  --accent-400: 214 122 92;
+  --accent-500: 194 90 58;
+  --accent-600: 168 72 43;
+  --accent-700: 138 57 34;
+  --accent-800: 112 46 28;
+
+  --fresh-50: 241 248 244;
+  --fresh-100: 218 237 226;
+  --fresh-200: 184 219 199;
+  --fresh-300: 138 194 163;
+  --fresh-500: 54 128 92;
+  --fresh-600: 42 105 74;
+  --fresh-700: 33 84 59;
+  --fresh-800: 26 66 47;
+  --fresh-900: 20 52 37;
+}
+
+[data-theme='espresso'] {
+  /* Paleta 3: Bronce / Camel Dorado (Estilo Massimo Dutti) + Verde Bosque */
+  --accent-50: 251 248 243;
+  --accent-100: 244 236 223;
+  --accent-200: 231 214 188;
+  --accent-300: 212 184 144;
+  --accent-400: 186 146 96;
+  --accent-500: 154 111 62;
+  --accent-600: 130 91 48;
+  --accent-700: 105 72 38;
+  --accent-800: 84 58 31;
+
+  --fresh-50: 240 249 244;
+  --fresh-100: 214 239 226;
+  --fresh-200: 175 222 199;
+  --fresh-300: 122 197 161;
+  --fresh-500: 29 122 82;
+  --fresh-600: 22 99 66;
+  --fresh-700: 18 79 53;
+  --fresh-800: 14 62 42;
+  --fresh-900: 11 49 33;
+}
+
 @layer base {
   html,
   body {
-    background-color: #FAF7F2;
-    color: #1F1C24;
+    background-color: #F9FAF8;
+    color: #0F172A;
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
@@ -43,10 +113,10 @@
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #F3EDE2;
+  background: #F1F4F0;
 }
 ::-webkit-scrollbar-thumb {
-  background: #A58AD1;
+  background: rgb(var(--accent-400));
   border-radius: 9999px;
 }
 

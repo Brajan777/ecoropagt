@@ -139,6 +139,9 @@ export default function PrivateAdminControlPage() {
   const [commissionPercent, setCommissionPercent] = useState(
     siteConfig.commissionPercent ?? 15
   );
+  const [colorTheme, setColorTheme] = useState<'oceano' | 'terracota' | 'espresso'>(
+    siteConfig.colorTheme || 'oceano'
+  );
 
   useEffect(() => {
     setHeroTitle(siteConfig.heroTitle);
@@ -149,6 +152,7 @@ export default function PrivateAdminControlPage() {
     setAnnouncementSubtext(siteConfig.announcementSubtext);
     setFreeShippingThreshold(siteConfig.freeShippingThreshold);
     setCommissionPercent(siteConfig.commissionPercent ?? 15);
+    setColorTheme(siteConfig.colorTheme || 'oceano');
   }, [siteConfig]);
 
   // Filtros de Moderación de Prendas
@@ -198,6 +202,7 @@ export default function PrivateAdminControlPage() {
       announcementSubtext,
       freeShippingThreshold: Number(freeShippingThreshold),
       commissionPercent: Number(commissionPercent) || 15,
+      colorTheme,
     });
 
     setSavedAlert(true);
@@ -570,6 +575,72 @@ export default function PrivateAdminControlPage() {
                       </div>
                     </div>
 
+                    {/* Guías Logísticas: Recolección (Vendedor) -> Entrega (Comprador) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-2xl bg-lavanda-50/70 border border-lavanda-200 space-y-2">
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-lavanda-700 flex items-center gap-1.5">
+                          <Store className="w-3.5 h-3.5" />
+                          <span>📤 1. Dirección de Recolección (Vendedor)</span>
+                        </p>
+                        {Array.from(
+                          new Set(order.items.map((it) => it.sellerUsername))
+                        ).map((sellerUser) => {
+                          const sInfo = adminSellers.find(
+                            (s) => s.username === sellerUser
+                          );
+                          return (
+                            <div
+                              key={sellerUser}
+                              className="text-xs bg-white p-2.5 rounded-xl border border-lavanda-100 space-y-1"
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-extrabold text-grafito-900">
+                                  @{sellerUser}{' '}
+                                  {sInfo ? `(${sInfo.displayName})` : ''}
+                                </span>
+                                {sInfo?.whatsapp && (
+                                  <span className="px-2 py-0.5 rounded-md bg-verde-100 text-verde-800 font-bold text-[11px]">
+                                    🔒 WhatsApp: +{sInfo.whatsapp}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-grafito-800 font-semibold flex items-start gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-lavanda-600 shrink-0 mt-0.5" />
+                                <span>
+                                  {sInfo?.pickupAddress &&
+                                  sInfo.pickupAddress !== 'privado'
+                                    ? sInfo.pickupAddress
+                                    : sInfo?.location ||
+                                      'Dirección pendiente de confirmar con el vendedor'}
+                                </span>
+                              </p>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-verde-50/70 border border-verde-200 space-y-2">
+                        <p className="text-[11px] font-extrabold uppercase tracking-wider text-verde-800 flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5" />
+                          <span>📥 2. Dirección de Entrega (Comprador)</span>
+                        </p>
+                        <div className="text-xs bg-white p-2.5 rounded-xl border border-verde-100 space-y-1">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-extrabold text-grafito-900">
+                              {order.buyerName}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-verde-100 text-verde-800 font-bold text-[11px]">
+                              🔒 WhatsApp: {order.buyerPhone}
+                            </span>
+                          </div>
+                          <p className="text-grafito-800 font-semibold flex items-start gap-1.5">
+                            <MapPin className="w-3.5 h-3.5 text-verde-700 shrink-0 mt-0.5" />
+                            <span>{order.address}</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Prendas incluidas en el pedido */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                       {order.items.map((it, idx) => {
@@ -648,6 +719,99 @@ export default function PrivateAdminControlPage() {
             </div>
 
             <form onSubmit={handleSaveContent} className="space-y-6">
+              {/* Selector de Paleta de Colores Elegante & Fresca */}
+              <div className="p-4 rounded-2xl bg-beige-50 border border-beige-200 space-y-3">
+                <div>
+                  <h3 className="text-xs font-extrabold uppercase tracking-wider text-lavanda-700 flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4" /> Paleta de Colores del Sitio (Elegante & Fresca)
+                  </h3>
+                  <p className="text-[11px] text-grafito-700 mt-0.5">
+                    Haz clic en una combinación para previsualizarla al instante en toda la web y presiona &ldquo;Guardar Cambios&rdquo;.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {[
+                    {
+                      id: 'oceano' as const,
+                      title: '1. Océano & Esmeralda',
+                      subtitle: 'Fresco, nórdico y sofisticado (Recomendado)',
+                      primaryHex: '#0F6C88',
+                      secondaryHex: '#169466',
+                      bgHex: '#F9FAF8',
+                    },
+                    {
+                      id: 'terracota' as const,
+                      title: '2. Terracota & Salvia',
+                      subtitle: 'Editorial, orgánico y cálido de boutique',
+                      primaryHex: '#C25A3A',
+                      secondaryHex: '#36805C',
+                      bgHex: '#FAF7F2',
+                    },
+                    {
+                      id: 'espresso' as const,
+                      title: '3. Bronce & Bosque',
+                      subtitle: 'Lujo silencioso, sobrio y alta costura',
+                      primaryHex: '#9A6F3E',
+                      secondaryHex: '#1D7A52',
+                      bgHex: '#FAF8F5',
+                    },
+                  ].map((palette) => {
+                    const isSelected = colorTheme === palette.id;
+                    return (
+                      <button
+                        key={palette.id}
+                        type="button"
+                        onClick={() => {
+                          setColorTheme(palette.id);
+                          if (typeof document !== 'undefined') {
+                            document.documentElement.setAttribute(
+                              'data-theme',
+                              palette.id
+                            );
+                          }
+                        }}
+                        className={`p-3 rounded-2xl border text-left transition cursor-pointer flex flex-col justify-between gap-2 ${
+                          isSelected
+                            ? 'bg-white border-lavanda-500 ring-2 ring-lavanda-500/20 shadow-xs'
+                            : 'bg-white/70 hover:bg-white border-beige-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className="w-5 h-5 rounded-full border border-black/10 shadow-2xs"
+                              style={{ backgroundColor: palette.primaryHex }}
+                            />
+                            <span
+                              className="w-5 h-5 rounded-full border border-black/10 shadow-2xs"
+                              style={{ backgroundColor: palette.secondaryHex }}
+                            />
+                            <span
+                              className="w-5 h-5 rounded-full border border-black/15 shadow-2xs"
+                              style={{ backgroundColor: palette.bgHex }}
+                            />
+                          </div>
+                          {isSelected && (
+                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-verde-100 text-verde-800">
+                              Activo
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-xs font-extrabold text-grafito-900">
+                            {palette.title}
+                          </p>
+                          <p className="text-[10px] text-grafito-600 leading-tight mt-0.5">
+                            {palette.subtitle}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-lavanda-600 flex items-center gap-1.5">
                   <ImageIcon className="w-4 h-4" /> Imagen y Textos del Hero Principal
@@ -913,6 +1077,20 @@ export default function PrivateAdminControlPage() {
                         <span className="font-bold text-grafito-900 bg-verde-100 px-2 py-0.5 rounded-md border border-verde-300">
                           🔒 WhatsApp Verificación: +{seller.whatsapp}
                         </span>
+                      </div>
+
+                      <div className="mt-2 p-2.5 rounded-xl bg-beige-50 border border-beige-200 text-xs text-grafito-800 flex items-start gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-lavanda-600 shrink-0 mt-0.5" />
+                        <div>
+                          <span className="font-extrabold text-grafito-900">
+                            Dirección de Recolección (Privada):{' '}
+                          </span>
+                          <span className="font-semibold">
+                            {seller.pickupAddress && seller.pickupAddress !== 'privado'
+                              ? seller.pickupAddress
+                              : seller.location}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>

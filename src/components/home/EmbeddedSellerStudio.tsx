@@ -73,6 +73,7 @@ export function EmbeddedSellerStudio() {
   const [newDisplayName, setNewDisplayName] = useState('');
   const [newUsername, setNewUsername] = useState('');
   const [newLocation, setNewLocation] = useState('Guatemala, Zona 10');
+  const [newPickupAddress, setNewPickupAddress] = useState('');
   const [newWhatsapp, setNewWhatsapp] = useState('');
   const [newBio, setNewBio] = useState('');
 
@@ -96,7 +97,8 @@ export function EmbeddedSellerStudio() {
     setShowLoginModal(false);
     setLoginError('');
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('ecoropa_logged_seller', username);
+      sessionStorage.setItem('ecoropa_seller_verified_v2', username);
+      sessionStorage.removeItem('ecoropa_logged_seller');
     }
     showNotice(`¡Bienvenida/o a tu Clóset Virtual @${username}!`);
   };
@@ -144,6 +146,7 @@ export function EmbeddedSellerStudio() {
       displayName: newDisplayName,
       username: newUsername,
       location: newLocation,
+      pickupAddress: newPickupAddress.trim() || newLocation,
       whatsapp: newWhatsapp || '50255550000',
       bio: newBio,
     });
@@ -155,6 +158,7 @@ export function EmbeddedSellerStudio() {
   const handleSellerLogout = () => {
     setIsSellerLoggedIn(false);
     if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('ecoropa_seller_verified_v2');
       sessionStorage.removeItem('ecoropa_logged_seller');
     }
     showNotice('Has cerrado tu sesión de vendedor.');
@@ -164,12 +168,14 @@ export function EmbeddedSellerStudio() {
   const [displayName, setDisplayName] = useState(currentSeller.displayName);
   const [bio, setBio] = useState(currentSeller.bio);
   const [location, setLocation] = useState(currentSeller.location);
+  const [pickupAddress, setPickupAddress] = useState(currentSeller.pickupAddress || '');
   const [whatsapp, setWhatsapp] = useState(currentSeller.whatsapp);
 
   useEffect(() => {
     setDisplayName(currentSeller.displayName);
     setBio(currentSeller.bio);
     setLocation(currentSeller.location);
+    setPickupAddress(currentSeller.pickupAddress || '');
     setWhatsapp(currentSeller.whatsapp);
   }, [currentSeller]);
 
@@ -273,9 +279,10 @@ export function EmbeddedSellerStudio() {
       displayName,
       bio,
       location,
+      pickupAddress,
       whatsapp,
     });
-    showNotice('¡Datos de tu Clóset Virtual actualizados!');
+    showNotice('¡Datos y dirección privada de recolección actualizados!');
   };
 
   if (!isSellerLoggedIn) {
@@ -326,15 +333,9 @@ export function EmbeddedSellerStudio() {
                 }}
                 className="py-3.5 px-6 rounded-2xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Store className="w-4 h-4" />
+                <Lock className="w-4 h-4" />
                 <span>Ingresar a Mi Clóset (Vendedores)</span>
               </button>
-              <Link
-                href="/vendedor/mi-closet"
-                className="py-2.5 px-6 rounded-2xl bg-white hover:bg-beige-100 border border-beige-300 text-grafito-800 font-bold text-xs text-center transition"
-              >
-                Ir al Estudio Completo de Vendedor →
-              </Link>
             </div>
           </div>
 
@@ -502,7 +503,7 @@ export function EmbeddedSellerStudio() {
 
                     <div>
                       <label className="block text-xs font-bold text-grafito-800 mb-1">
-                        Zona / Municipio en Guatemala
+                        Zona / Municipio (Visible en tu perfil)
                       </label>
                       <input
                         type="text"
@@ -510,6 +511,20 @@ export function EmbeddedSellerStudio() {
                         onChange={(e) => setNewLocation(e.target.value)}
                         placeholder="Ej. Ciudad de Guatemala, Zona 15"
                         className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-verde-800 mb-1">
+                        📍 Dirección exacta de recolección (Privada • Solo para Forza / Cargo Expreso) *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newPickupAddress}
+                        onChange={(e) => setNewPickupAddress(e.target.value)}
+                        placeholder="Calle/Av, # casa o edificio, colonia y referencia"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-verde-300 text-xs bg-verde-50/50 focus:border-verde-600 focus:outline-none"
                       />
                     </div>
 
@@ -1026,14 +1041,28 @@ export function EmbeddedSellerStudio() {
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-grafito-800 mb-1">Biografía</label>
-              <textarea
-                rows={2}
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-bold text-verde-800 mb-1">
+                  📍 Dirección Exacta de Recolección para Forza / Cargo Expreso (Privada • Nunca pública)
+                </label>
+                <input
+                  type="text"
+                  value={pickupAddress}
+                  onChange={(e) => setPickupAddress(e.target.value)}
+                  placeholder="Ej. 5a Av 14-22 Zona 14, Edificio Las Conchas Apto 5B"
+                  className="w-full px-3 py-2 rounded-xl bg-verde-50/60 border border-verde-300 text-xs"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-grafito-800 mb-1">Biografía</label>
+                <textarea
+                  rows={2}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs"
+                />
+              </div>
             </div>
             <button
               type="submit"

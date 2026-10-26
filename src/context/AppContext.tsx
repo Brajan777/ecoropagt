@@ -32,6 +32,7 @@ interface AppContextType {
     displayName: string;
     bio: string;
     location: string;
+    pickupAddress?: string;
     whatsapp: string;
     avatar?: string;
     coverImage?: string;
@@ -132,13 +133,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [selectedCategory, setSelectedCategory] = useState<'todos' | GarmentCategory>('todos');
   const [wishlistOnly, setWishlistOnly] = useState(false);
 
+  // Sincronización del Tema de Color Elegante & Fresco (Océano, Terracota o Espresso)
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', siteConfig.colorTheme || 'oceano');
+    }
+  }, [siteConfig.colorTheme]);
+
   // Sincronización con API Cloud Store (/api/store) y localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedSeller = sessionStorage.getItem('ecoropa_logged_seller');
-      if (savedSeller) {
+      // Limpiar cualquier sesión antigua sin contraseña para que el estudio privado nunca quede abierto por error
+      sessionStorage.removeItem('ecoropa_logged_seller');
+      const verifiedSeller = sessionStorage.getItem('ecoropa_seller_verified_v2');
+      if (verifiedSeller) {
         setIsSellerLoggedIn(true);
-        setCurrentSellerUsername(savedSeller);
+        setCurrentSellerUsername(verifiedSeller);
       }
       const savedMessages = localStorage.getItem('ecoropa_messages');
       if (savedMessages) {
@@ -233,7 +243,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const setCurrentSellerByUsername = (username: string) => {
     setCurrentSellerUsername(username);
     if (typeof window !== 'undefined' && isSellerLoggedIn) {
-      sessionStorage.setItem('ecoropa_logged_seller', username);
+      sessionStorage.setItem('ecoropa_seller_verified_v2', username);
     }
   };
 
@@ -341,7 +351,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const isAdmin =
       typeof window !== 'undefined' && Boolean(sessionStorage.getItem('ecoropa_admin_token'));
     const loggedSeller =
-      typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_logged_seller') : null;
+      typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_seller_verified_v2') : null;
 
     if (sellerUsername) {
       setCurrentSellerUsername(sellerUsername);
@@ -440,6 +450,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     displayName: string;
     bio: string;
     location: string;
+    pickupAddress?: string;
     whatsapp: string;
     avatar?: string;
     coverImage?: string;
@@ -455,7 +466,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setCurrentSellerUsername(existing.username);
       setIsSellerLoggedIn(true);
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('ecoropa_logged_seller', existing.username);
+        sessionStorage.setItem('ecoropa_seller_verified_v2', existing.username);
       }
       return existing;
     }
@@ -474,6 +485,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         data.coverImage?.trim() ||
         'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80',
       location: data.location.trim() || 'Ciudad de Guatemala',
+      pickupAddress:
+        data.pickupAddress?.trim() || data.location.trim() || 'Ciudad de Guatemala',
       rating: 5.0,
       reviewsCount: 1,
       salesCount: 0,
@@ -497,7 +510,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setCurrentSellerUsername(newSeller.username);
     setIsSellerLoggedIn(true);
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('ecoropa_logged_seller', newSeller.username);
+      sessionStorage.setItem('ecoropa_seller_verified_v2', newSeller.username);
     }
 
     return newSeller;

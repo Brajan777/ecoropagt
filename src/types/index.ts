@@ -45,6 +45,7 @@ export interface SellerProfile {
   isFeatured: boolean;
   joinedDate: string;
   whatsapp: string; // Privado: exclusivo para EcoRopaGT (verificación y logística), nunca público
+  pickupAddress?: string; // Privado: dirección exacta donde Forza / Cargo Expreso recoge las prendas del vendedor
 }
 
 export interface InternalMessage {
@@ -72,6 +73,7 @@ export interface SiteContentConfig {
   ecoWaterStat: string;
   freeShippingThreshold: number;
   commissionPercent?: number;
+  colorTheme?: 'oceano' | 'terracota' | 'espresso';
 }
 
 export type OrderStatus = 'pendiente' | 'en_camino' | 'entregado' | 'cancelado';

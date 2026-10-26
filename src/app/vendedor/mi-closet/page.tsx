@@ -173,7 +173,8 @@ export default function SellerDashboardPage() {
       setCurrentSellerByUsername(data.username);
       setIsSellerLoggedIn(true);
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('ecoropa_logged_seller', data.username);
+        sessionStorage.setItem('ecoropa_seller_verified_v2', data.username);
+        sessionStorage.removeItem('ecoropa_logged_seller');
       }
       setLoginWhatsapp('');
       setIsVerifying(false);
@@ -237,6 +238,9 @@ export default function SellerDashboardPage() {
   const [profileDisplayName, setProfileDisplayName] = useState(currentSeller.displayName);
   const [profileBio, setProfileBio] = useState(currentSeller.bio);
   const [profileLocation, setProfileLocation] = useState(currentSeller.location);
+  const [profilePickupAddress, setProfilePickupAddress] = useState(
+    currentSeller.pickupAddress || ''
+  );
   const [profileWhatsapp, setProfileWhatsapp] = useState(currentSeller.whatsapp);
   const [profileAvatar, setProfileAvatar] = useState(currentSeller.avatar);
   const [profileCover, setProfileCover] = useState(
@@ -249,6 +253,7 @@ export default function SellerDashboardPage() {
     setProfileDisplayName(currentSeller.displayName);
     setProfileBio(currentSeller.bio);
     setProfileLocation(currentSeller.location);
+    setProfilePickupAddress(currentSeller.pickupAddress || '');
     setProfileWhatsapp(currentSeller.whatsapp);
     setProfileAvatar(currentSeller.avatar);
     setProfileCover(
@@ -340,11 +345,12 @@ export default function SellerDashboardPage() {
       displayName: profileDisplayName.trim() || currentSeller.displayName,
       bio: profileBio.trim(),
       location: profileLocation.trim(),
+      pickupAddress: profilePickupAddress.trim() || profileLocation.trim(),
       whatsapp: profileWhatsapp.trim(),
       avatar: profileAvatar.trim() || currentSeller.avatar,
       coverImage: profileCover.trim(),
     });
-    showToast(`¡Perfil de @${currentSeller.username} actualizado en tiempo real!`);
+    showToast(`¡Perfil y dirección de recolección de @${currentSeller.username} actualizados!`);
   };
 
   const commissionPct = siteConfig.commissionPercent ?? 15;
@@ -510,6 +516,7 @@ export default function SellerDashboardPage() {
               onClick={() => {
                 setIsSellerLoggedIn(false);
                 if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('ecoropa_seller_verified_v2');
                   sessionStorage.removeItem('ecoropa_logged_seller');
                 }
               }}
@@ -880,6 +887,23 @@ export default function SellerDashboardPage() {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-verde-800 mb-1">
+                  📍 Dirección Exacta de Recolección para Forza / Cargo Expreso (Privada • Nunca pública) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={profilePickupAddress}
+                  onChange={(e) => setProfilePickupAddress(e.target.value)}
+                  placeholder="Ej. 5a Avenida 14-22 Zona 14, Edificio Las Conchas Apto 5B, Ciudad de Guatemala"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-verde-50/60 border border-verde-300 text-xs sm:text-sm focus:outline-none focus:border-verde-600"
+                />
+                <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
+                  <Lock className="w-3 h-3" /> Esta dirección es 100% confidencial y solo la ve el equipo de EcoRopaGT para enviar al mensajero por tus prendas vendidas.
+                </p>
               </div>
 
               <div>

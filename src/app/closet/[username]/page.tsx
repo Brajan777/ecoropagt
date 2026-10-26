@@ -235,7 +235,7 @@ export default function ClosetProfilePage({ params }: Props) {
 
   return (
     <div className="pb-16">
-      {/* Barra Superior de Navegación y Acceso Rápido de Gestión */}
+      {/* Barra Superior de Navegación */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 flex flex-wrap items-center justify-between gap-3">
         <Link
           href="/"
@@ -243,15 +243,6 @@ export default function ClosetProfilePage({ params }: Props) {
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Volver al Catálogo Principal</span>
-        </Link>
-
-        <Link
-          href="/vendedor/mi-closet"
-          onClick={() => setCurrentSellerByUsername(seller.username)}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-lavanda-50 hover:bg-lavanda-100 text-lavanda-700 border border-lavanda-200 text-xs font-bold transition shadow-2xs"
-        >
-          <Settings className="w-3.5 h-3.5" />
-          <span>Ir a gestionar este clóset</span>
         </Link>
       </div>
 
@@ -337,15 +328,6 @@ export default function ClosetProfilePage({ params }: Props) {
                 <Share2 className="w-4 h-4" />
                 <span className="sm:hidden">Compartir</span>
               </button>
-
-              <Link
-                href="/vendedor/mi-closet"
-                onClick={() => setCurrentSellerByUsername(seller.username)}
-                className="py-3 px-4 rounded-xl border border-lavanda-200 bg-lavanda-50 hover:bg-lavanda-100 text-lavanda-700 font-bold text-xs transition flex items-center justify-center gap-1.5"
-              >
-                <Settings className="w-4 h-4" />
-                <span>Ir a gestionar este clóset</span>
-              </Link>
 
               <button
                 type="button"

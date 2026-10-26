@@ -33,8 +33,9 @@ function getInitialData() {
 function maskSellersForPublic(sellers: typeof initialSellers) {
   return sellers.map((s) => ({
     ...s,
-    // Ocultar WhatsApp en la respuesta pública de la API para que nadie pueda extraerlo desde DevTools
+    // Ocultar WhatsApp y Dirección exacta de recolección en la respuesta pública
     whatsapp: 'privado',
+    pickupAddress: 'privado',
   }));
 }
 
@@ -89,12 +90,23 @@ async function getStoreData() {
       if (!error && data) {
         const rawConfig = data.site_config || initialSiteConfig;
         const { _internalMessages, _orders, ...cleanConfig } = rawConfig as any;
+        const loadedSellers = Array.isArray(data.sellers)
+          ? data.sellers.map((s: any) => {
+              const fallback = initialSellers.find((init) => init.username === s.username);
+              return {
+                ...fallback,
+                ...s,
+                pickupAddress: s.pickupAddress || fallback?.pickupAddress || s.location,
+              };
+            })
+          : initialSellers;
+
         return {
           siteConfig: cleanConfig,
-          sellers: data.sellers || initialSellers,
+          sellers: loadedSellers,
           garments: data.garments || initialGarments,
           messages: Array.isArray(_internalMessages) ? _internalMessages : initialMessages,
-          orders: Array.isArray(_orders) ? _orders : initialOrders,
+          orders: Array.isArray(_orders) && _orders.length > 0 ? _orders : initialOrders,
           updatedAt: data.updated_at || new Date().toISOString(),
           source: 'supabase',
         };
@@ -255,6 +267,10 @@ export async function POST(request: Request) {
           incoming.whatsapp && incoming.whatsapp !== 'privado'
             ? sanitizeString(incoming.whatsapp, 25)
             : existing?.whatsapp || '50200000000';
+        const realPickupAddress =
+          incoming.pickupAddress && incoming.pickupAddress !== 'privado'
+            ? sanitizeString(incoming.pickupAddress, 200)
+            : existing?.pickupAddress || incoming.location || 'Ciudad de Guatemala';
 
         return {
           ...existing,
@@ -263,6 +279,7 @@ export async function POST(request: Request) {
           bio: sanitizeString(incoming.bio, 350),
           location: sanitizeString(incoming.location, 80),
           whatsapp: realWhatsapp,
+          pickupAddress: realPickupAddress,
           isFeatured: isAdmin
             ? Boolean(incoming.isFeatured)
             : existing

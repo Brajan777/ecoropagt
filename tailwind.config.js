@@ -9,40 +9,48 @@ module.exports = {
     extend: {
       colors: {
         beige: {
-          50: '#FAF7F2',
-          100: '#F3EDE2',
-          200: '#E6DEC8',
-          300: '#D5C7A9'
+          50: '#F9FAF8',
+          100: '#F1F4F0',
+          200: '#E2E7E0',
+          300: '#CBD4C8',
         },
+        // Ahora "lavanda" usa variables dinámicas con la nueva paleta Elegante & Fresca (Azul Océano / Petróleo Editorial por defecto)
         lavanda: {
-          50: '#F5F2FA',
-          100: '#EBE4F5',
-          200: '#D8C9EC',
-          400: '#A58AD1',
-          500: '#8B6BBF',
-          600: '#7251A8',
-          700: '#5B3E8A'
+          50: 'rgb(var(--accent-50) / <alpha-value>)',
+          100: 'rgb(var(--accent-100) / <alpha-value>)',
+          200: 'rgb(var(--accent-200) / <alpha-value>)',
+          300: 'rgb(var(--accent-300) / <alpha-value>)',
+          400: 'rgb(var(--accent-400) / <alpha-value>)',
+          500: 'rgb(var(--accent-500) / <alpha-value>)',
+          600: 'rgb(var(--accent-600) / <alpha-value>)',
+          700: 'rgb(var(--accent-700) / <alpha-value>)',
+          800: 'rgb(var(--accent-800) / <alpha-value>)',
         },
+        // Verde Esmeralda / Eucalipto Fresco de alto contraste
         verde: {
-          50: '#F1F8F4',
-          100: '#DEF0E6',
-          200: '#BFE2CF',
-          300: '#98CFB2',
-          500: '#5DA683',
-          600: '#458968',
-          700: '#356C52'
+          50: 'rgb(var(--fresh-50) / <alpha-value>)',
+          100: 'rgb(var(--fresh-100) / <alpha-value>)',
+          200: 'rgb(var(--fresh-200) / <alpha-value>)',
+          300: 'rgb(var(--fresh-300) / <alpha-value>)',
+          500: 'rgb(var(--fresh-500) / <alpha-value>)',
+          600: 'rgb(var(--fresh-600) / <alpha-value>)',
+          700: 'rgb(var(--fresh-700) / <alpha-value>)',
+          800: 'rgb(var(--fresh-800) / <alpha-value>)',
+          900: 'rgb(var(--fresh-900) / <alpha-value>)',
         },
         grafito: {
-          700: '#4A4552',
-          800: '#322E38',
-          900: '#1F1C24'
-        }
+          500: '#64748B',
+          600: '#475569',
+          700: '#334155',
+          800: '#1E293B',
+          900: '#0F172A',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
         display: ['Plus Jakarta Sans', 'sans-serif'],
-      }
+      },
     },
   },
   plugins: [],
-}
+};
