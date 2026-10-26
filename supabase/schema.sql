@@ -1,12 +1,4 @@
--- ============================================================================
--- ESQUEMA SQL PARA SUPABASE - EcoRopaGT
--- Instrucciones:
--- 1. Entra a tu proyecto en https://supabase.com/dashboard
--- 2. Ve a "SQL Editor" en el menú lateral izquierdo y haz clic en "New query"
--- 3. Pega todo este código y haz clic en "Run"
--- ============================================================================
-
--- 1. Tabla de estado global y respaldo JSON (sincronización instantánea con /api/store)
+-- 1. Tabla principal de sincronización de EcoRopaGT
 CREATE TABLE IF NOT EXISTS public.app_store (
   id TEXT PRIMARY KEY DEFAULT 'main',
   site_config JSONB NOT NULL DEFAULT '{}'::jsonb,
@@ -15,21 +7,7 @@ CREATE TABLE IF NOT EXISTS public.app_store (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Habilitar Row Level Security (RLS) y permitir lectura/escritura desde la API
-ALTER TABLE public.app_store ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Permitir lectura publica de app_store" ON public.app_store;
-CREATE POLICY "Permitir lectura publica de app_store"
-  ON public.app_store FOR SELECT
-  USING (true);
-
-DROP POLICY IF EXISTS "Permitir escritura publica de app_store" ON public.app_store;
-CREATE POLICY "Permitir escritura publica de app_store"
-  ON public.app_store FOR ALL
-  USING (true)
-  WITH CHECK (true);
-
--- 2. Tablas relacionales opcionales para escalabilidad futura (vendedores y prendas)
+-- 2. Tabla de vendedores
 CREATE TABLE IF NOT EXISTS public.sellers (
   id TEXT PRIMARY KEY,
   username TEXT UNIQUE NOT NULL,
@@ -48,6 +26,7 @@ CREATE TABLE IF NOT EXISTS public.sellers (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 3. Tabla de prendas
 CREATE TABLE IF NOT EXISTS public.garments (
   id BIGINT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -71,8 +50,16 @@ CREATE TABLE IF NOT EXISTS public.garments (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 4. Habilitar seguridad RLS y políticas de lectura/escritura
+ALTER TABLE public.app_store ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sellers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.garments ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Permitir lectura publica de app_store" ON public.app_store;
+CREATE POLICY "Permitir lectura publica de app_store" ON public.app_store FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Permitir escritura publica de app_store" ON public.app_store;
+CREATE POLICY "Permitir escritura publica de app_store" ON public.app_store FOR ALL USING (true) WITH CHECK (true);
 
 DROP POLICY IF EXISTS "Lectura publica sellers" ON public.sellers;
 CREATE POLICY "Lectura publica sellers" ON public.sellers FOR SELECT USING (true);
