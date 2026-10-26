@@ -44,7 +44,22 @@ export interface SellerProfile {
   isVerified: boolean;
   isFeatured: boolean;
   joinedDate: string;
-  whatsapp: string;
+  whatsapp: string; // Privado: exclusivo para EcoRopaGT (verificación y logística), nunca público
+}
+
+export interface InternalMessage {
+  id: string;
+  sellerUsername: string;
+  sellerName: string;
+  buyerName: string;
+  senderRole: 'comprador' | 'vendedor' | 'ecoropa';
+  text: string;
+  garmentId?: number;
+  garmentTitle?: string;
+  garmentPrice?: number;
+  garmentImage?: string;
+  createdAt: string;
+  read?: boolean;
 }
 
 export interface SiteContentConfig {

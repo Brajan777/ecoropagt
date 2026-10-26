@@ -18,6 +18,8 @@ import {
   Truck,
   ExternalLink,
   UserPlus,
+  MessageSquare,
+  Lock,
 } from 'lucide-react';
 
 export function EmbeddedSellerStudio() {
@@ -35,6 +37,8 @@ export function EmbeddedSellerStudio() {
     setIsSellerLoggedIn,
     studioActionCounter,
     studioRequestedTab,
+    openChatWithSeller,
+    messages,
   } = useApp();
 
   const [studioTab, setStudioTab] = useState<'inventario' | 'subir' | 'perfil'>('inventario');
@@ -61,7 +65,11 @@ export function EmbeddedSellerStudio() {
   // Reaccionar cuando el usuario presiona "Vender" o "Mi Clóset" en Navbar / Footer
   useEffect(() => {
     if (studioActionCounter > 0) {
-      setStudioTab(studioRequestedTab);
+      if (studioRequestedTab === 'mensajes') {
+        openChatWithSeller(currentSeller.username);
+      } else {
+        setStudioTab(studioRequestedTab);
+      }
       if (!isSellerLoggedIn) {
         setShowLoginModal(true);
       }
@@ -402,7 +410,7 @@ export function EmbeddedSellerStudio() {
                     <form onSubmit={handleSellerLogin} className="space-y-3 pt-3 border-t border-beige-200">
                       <div>
                         <label className="block text-xs font-bold text-grafito-800 mb-1">
-                          O ingresa por WhatsApp registrado
+                          O ingresa con tu WhatsApp de verificación (Privado EcoRopaGT)
                         </label>
                         <input
                           type="tel"
@@ -411,9 +419,12 @@ export function EmbeddedSellerStudio() {
                             setLoginWhatsapp(e.target.value);
                             setLoginError('');
                           }}
-                          placeholder="Ej. 55551234"
+                          placeholder="Ej. 55551234 (Nunca visible al público)"
                           className="w-full px-4 py-2.5 rounded-xl border border-beige-300 text-xs sm:text-sm font-bold bg-beige-50 focus:border-lavanda-500 focus:outline-none"
                         />
+                        <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Tu número es privado y solo lo usa EcoRopaGT para validación.
+                        </p>
                         {loginError && (
                           <p className="text-xs text-red-600 mt-1.5 font-semibold">{loginError}</p>
                         )}
@@ -619,6 +630,16 @@ export function EmbeddedSellerStudio() {
             >
               <Camera className="w-3.5 h-3.5" />
               <span>+ Subir Foto / Prenda</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => openChatWithSeller(currentSeller.username)}
+              className="px-3 py-2 rounded-xl text-xs font-bold transition bg-verde-50 hover:bg-verde-100 text-verde-800 border border-verde-200 flex items-center gap-1.5 cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-verde-700" />
+              <span>
+                Mensajes ({messages.filter((m) => m.sellerUsername === currentSeller.username).length})
+              </span>
             </button>
             <button
               type="button"
@@ -957,7 +978,9 @@ export function EmbeddedSellerStudio() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-grafito-800 mb-1">WhatsApp</label>
+                <label className="block text-xs font-bold text-grafito-800 mb-1">
+                  🔒 WhatsApp (Solo EcoRopaGT • Privado)
+                </label>
                 <input
                   type="text"
                   value={whatsapp}

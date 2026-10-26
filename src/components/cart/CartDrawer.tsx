@@ -3,7 +3,16 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { ShoppingBag, X, Trash2, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import {
+  ShoppingBag,
+  X,
+  Trash2,
+  ArrowRight,
+  Sparkles,
+  CheckCircle2,
+  Lock,
+  MessageSquare,
+} from 'lucide-react';
 
 export function CartDrawer() {
   const {
@@ -13,10 +22,16 @@ export function CartDrawer() {
     isCartOpen,
     setIsCartOpen,
     siteConfig,
-    sellers,
     updateGarmentStatus,
+    sendMessage,
+    openChatWithSeller,
   } = useApp();
-  const [orderSent, setOrderSent] = useState(false);
+
+  const [buyerName, setBuyerName] = useState('');
+  const [buyerPhone, setBuyerPhone] = useState('');
+  const [buyerAddress, setBuyerAddress] = useState('');
+  const [orderConfirmedId, setOrderConfirmedId] = useState<string | null>(null);
+  const [lastOrderSeller, setLastOrderSeller] = useState<string | null>(null);
 
   if (!isCartOpen) return null;
 
@@ -49,47 +64,31 @@ export function CartDrawer() {
   const shipping = cart.length === 0 ? 0 : isFreeShipping ? 0 : uniqueClosetsCount * 25;
   const grandTotal = subtotalAfterBundle + shipping;
 
-  const handleCheckoutWhatsApp = () => {
+  const handleConfirmInternalOrder = (e: React.FormEvent) => {
+    e.preventDefault();
     if (cart.length === 0) return;
 
-    const itemsText = cart
-      .map(
-        (item, i) =>
-          `${i + 1}. *${item.title}* (${item.brand}, ${item.size}) - Q${item.price} [Clóset: @${
-            item.sellerUsername
-          }]`
-      )
-      .join('\n');
+    const orderCode = `ECO-${Date.now().toString().slice(-5)}`;
+    const firstSeller = cart[0].sellerUsername;
 
-    const bundleLine =
-      bundleDiscount > 0 ? `🎁 *Descuento Paquete Mismo Clóset (-10%):* -Q${bundleDiscount}\n` : '';
-
-    const message = encodeURIComponent(
-      `¡Hola EcoRopaGT! 👋 Deseo confirmar mi pedido desde la web:\n\n` +
-        `📦 *Prendas seleccionadas:*\n${itemsText}\n\n` +
-        `💰 *Subtotal:* Q${subtotal}\n` +
-        bundleLine +
-        `🚚 *Envío (${uniqueClosetsCount} ${
-          uniqueClosetsCount === 1 ? 'clóset' : 'clósets'
-        }):* ${shipping === 0 ? '¡GRATIS!' : `Q${shipping}`}\n` +
-        `🏷️ *Total a pagar:* Q${grandTotal}\n` +
-        `🌱 *Ahorro circular total:* -Q${savings}\n\n` +
-        `¿Me indican los pasos para coordinar la entrega? ¡Gracias!`
-    );
-
-    const targetSeller =
-      uniqueClosetsCount === 1
-        ? sellers.find((s) => s.username === uniqueClosets[0])
-        : null;
-    const whatsappPhone = targetSeller?.whatsapp || '50255551234';
-
-    // Marcar prendas como reservadas en el sistema
+    // 1. Marcar prendas como reservadas y notificar por mensajería interna sin exponer teléfonos
     cart.forEach((item) => {
       updateGarmentStatus(item.id, 'reservada');
+      sendMessage({
+        sellerUsername: item.sellerUsername,
+        senderRole: 'comprador',
+        garment: item,
+        text: `✅ Pedido #${orderCode} confirmado por ${
+          buyerName.trim() || 'Comprador Verificado'
+        } (${
+          buyerAddress.trim() || 'Guatemala'
+        }). Prenda reservada con Pago Protegido EcoRopaGT.`,
+      });
     });
 
-    setOrderSent(true);
-    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, '_blank');
+    setLastOrderSeller(firstSeller);
+    setOrderConfirmedId(orderCode);
+    clearCart();
   };
 
   return (
@@ -97,7 +96,7 @@ export function CartDrawer() {
       <div
         onClick={() => {
           setIsCartOpen(false);
-          setOrderSent(false);
+          setOrderConfirmedId(null);
         }}
         className="fixed inset-0 bg-grafito-900/50 backdrop-blur-xs z-50 transition-opacity"
       />
@@ -115,7 +114,7 @@ export function CartDrawer() {
                   type="button"
                   onClick={() => {
                     clearCart();
-                    setOrderSent(false);
+                    setOrderConfirmedId(null);
                   }}
                   className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-600 hover:bg-red-50 transition cursor-pointer"
                 >
@@ -126,7 +125,7 @@ export function CartDrawer() {
                 type="button"
                 onClick={() => {
                   setIsCartOpen(false);
-                  setOrderSent(false);
+                  setOrderConfirmedId(null);
                 }}
                 className="p-2 rounded-lg hover:bg-beige-200 text-grafito-700 transition cursor-pointer"
               >
@@ -157,32 +156,47 @@ export function CartDrawer() {
           </div>
         </div>
 
-        {/* Lista de Prendas + Indicador de Bundle por Clóset */}
+        {/* Lista de Prendas + Confirmación Interna */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
-          {orderSent && (
-            <div className="p-4 rounded-2xl bg-verde-50 border border-verde-300 text-verde-900 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-xs text-verde-800">
-                <CheckCircle2 className="w-4 h-4 text-verde-600 shrink-0" />
-                <span>¡Pedido enviado por WhatsApp y prendas reservadas!</span>
+          {orderConfirmedId ? (
+            <div className="p-5 rounded-3xl bg-white border-2 border-verde-300 shadow-sm space-y-3 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-verde-100 text-verde-700 flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-7 h-7" />
               </div>
-              <p className="text-[11px] text-grafito-700">
-                Tus prendas quedaron marcadas como <strong>Reservadas</strong> mientras coordinas tu entrega.
+              <h4 className="font-display text-base font-extrabold text-grafito-900">
+                ¡Orden #{orderConfirmedId} Reservada!
+              </h4>
+              <p className="text-xs text-grafito-700 leading-relaxed">
+                Tus prendas fueron reservadas y notificamos al vendedor en la{' '}
+                <strong>Mensajería Interna de EcoRopaGT</strong>. Tu número queda resguardado únicamente para que EcoRopaGT genere tu guía de envío.
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  clearCart();
-                  setOrderSent(false);
-                  setIsCartOpen(false);
-                }}
-                className="w-full py-2 rounded-xl bg-white border border-verde-300 text-xs font-bold text-verde-800 hover:bg-verde-100 transition cursor-pointer"
-              >
-                Limpiar bolsa y seguir explorando
-              </button>
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const target = lastOrderSeller || 'sofia_gt';
+                    setIsCartOpen(false);
+                    setOrderConfirmedId(null);
+                    openChatWithSeller(target);
+                  }}
+                  className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Ir al Chat Interno con el Vendedor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOrderConfirmedId(null);
+                    setIsCartOpen(false);
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-beige-100 hover:bg-beige-200 text-grafito-800 text-xs font-bold transition cursor-pointer"
+                >
+                  Seguir explorando catálogo
+                </button>
+              </div>
             </div>
-          )}
-
-          {cart.length === 0 ? (
+          ) : cart.length === 0 ? (
             <div className="text-center py-16 space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center mx-auto text-2xl">
                 <ShoppingBag className="w-6 h-6" />
@@ -278,12 +292,50 @@ export function CartDrawer() {
                   </div>
                 );
               })}
+
+              {/* Formulario de Verificación Privada para Guía de Envío EcoRopaGT */}
+              <form
+                id="checkout-internal-form"
+                onSubmit={handleConfirmInternalOrder}
+                className="bg-white p-3.5 rounded-2xl border border-beige-200 space-y-2.5 mt-2"
+              >
+                <div className="flex items-center gap-1.5 text-[11px] font-bold text-verde-800">
+                  <Lock className="w-3.5 h-3.5 text-verde-600 shrink-0" />
+                  <span>Datos privados para guía de envío EcoRopaGT (No públicos):</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={buyerName}
+                    onChange={(e) => setBuyerName(e.target.value)}
+                    placeholder="Tu nombre *"
+                    className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                  />
+                  <input
+                    type="tel"
+                    required
+                    value={buyerPhone}
+                    onChange={(e) => setBuyerPhone(e.target.value)}
+                    placeholder="WhatsApp (Solo EcoRopa) *"
+                    className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                  />
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={buyerAddress}
+                  onChange={(e) => setBuyerAddress(e.target.value)}
+                  placeholder="Zona / Municipio de entrega en Guatemala *"
+                  className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                />
+              </form>
             </>
           )}
         </div>
 
         {/* Resumen & CTA */}
-        {cart.length > 0 && (
+        {cart.length > 0 && !orderConfirmedId && (
           <div className="p-4 sm:p-5 bg-white border-t border-beige-200 space-y-3 pb-safe">
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between text-grafito-700">
@@ -316,11 +368,11 @@ export function CartDrawer() {
             </div>
 
             <button
-              type="button"
-              onClick={handleCheckoutWhatsApp}
+              type="submit"
+              form="checkout-internal-form"
               className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              <span>Confirmar Pedido por WhatsApp</span>
+              <span>Confirmar Pedido y Abrir Chat Interno</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

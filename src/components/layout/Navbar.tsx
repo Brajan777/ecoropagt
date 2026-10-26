@@ -20,6 +20,7 @@ import {
   SlidersHorizontal,
   LayoutGrid,
   ShieldCheck,
+  MessageSquare,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -28,7 +29,9 @@ export function Navbar() {
   const {
     cart,
     wishlist,
+    messages,
     setIsCartOpen,
+    setIsChatOpen,
     triggerSellerStudio,
     searchQuery,
     setSearchQuery,
@@ -164,6 +167,19 @@ export function Navbar() {
                     {wishlist.length}
                   </span>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(true)}
+                className="relative h-10 px-2.5 sm:px-3.5 sm:py-2.5 rounded-xl border border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
+                title="Bandeja de Mensajes Internos"
+              >
+                <MessageSquare className="w-5 h-5 text-verde-600" />
+                <span className="hidden lg:inline">Mensajes</span>
+                <span className="px-1.5 py-0.5 rounded-md bg-lavanda-100 text-lavanda-700 text-[11px] font-bold">
+                  {messages.length}
+                </span>
               </button>
 
               <button

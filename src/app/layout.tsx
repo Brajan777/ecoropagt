@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { QuickViewModal } from '@/components/catalog/QuickViewModal';
+import { InternalChatDrawer } from '@/components/chat/InternalChatDrawer';
 
 export const metadata: Metadata = {
   title: 'EcoRopaGT | Compra y Vende Ropa de Segunda Mano para Toda la Familia',
@@ -36,6 +37,7 @@ export default function RootLayout({
           </div>
           <Footer />
           <CartDrawer />
+          <InternalChatDrawer />
           <QuickViewModal />
         </AppProvider>
       </body>

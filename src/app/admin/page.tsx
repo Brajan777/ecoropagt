@@ -728,6 +728,10 @@ export default function AdminPage() {
                         <span className="font-semibold text-verde-800">
                           {sellerGarments.length} prendas disponibles
                         </span>
+                        <span>•</span>
+                        <span className="font-bold text-grafito-800 bg-beige-100 px-2 py-0.5 rounded-md">
+                          🔒 Tel. Interno EcoRopaGT: +{seller.whatsapp}
+                        </span>
                       </div>
                     </div>
                   </div>

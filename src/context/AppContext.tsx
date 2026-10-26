@@ -1,8 +1,19 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Garment, GarmentCategory, SellerProfile, SiteContentConfig } from '@/types';
-import { initialGarments, initialSellers, initialSiteConfig } from '@/data/mockData';
+import {
+  Garment,
+  GarmentCategory,
+  InternalMessage,
+  SellerProfile,
+  SiteContentConfig,
+} from '@/types';
+import {
+  initialGarments,
+  initialMessages,
+  initialSellers,
+  initialSiteConfig,
+} from '@/data/mockData';
 
 interface AppContextType {
   siteConfig: SiteContentConfig;
@@ -34,12 +45,27 @@ interface AppContextType {
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
+  // Mensajería Interna Privada
+  messages: InternalMessage[];
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
+  activeChatSeller: string;
+  setActiveChatSeller: (username: string) => void;
+  chatContextGarment: Garment | null;
+  setChatContextGarment: (garment: Garment | null) => void;
+  openChatWithSeller: (sellerUsername: string, garment?: Garment) => void;
+  sendMessage: (params: {
+    sellerUsername: string;
+    text: string;
+    senderRole?: 'comprador' | 'vendedor' | 'ecoropa';
+    garment?: Garment | null;
+  }) => void;
   isSellerStudioOpen: boolean;
   setIsSellerStudioOpen: (open: boolean) => void;
   studioActionCounter: number;
-  studioRequestedTab: 'inventario' | 'subir' | 'perfil';
+  studioRequestedTab: 'inventario' | 'subir' | 'perfil' | 'mensajes';
   triggerSellerStudio: (
-    tab?: 'inventario' | 'subir' | 'perfil',
+    tab?: 'inventario' | 'subir' | 'perfil' | 'mensajes',
     sellerUsername?: string
   ) => void;
   wishlist: number[];
@@ -62,21 +88,34 @@ function mergeMissingInitialGarments(loaded: Garment[]): Garment[] {
   return missing.length > 0 ? [...loaded, ...missing] : loaded;
 }
 
+function mergeMissingInitialSellers(loaded: SellerProfile[]): SellerProfile[] {
+  const existingUsernames = new Set(loaded.map((s) => s.username.toLowerCase()));
+  const missing = initialSellers.filter((s) => !existingUsernames.has(s.username.toLowerCase()));
+  return missing.length > 0 ? [...loaded, ...missing] : loaded;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [siteConfig, setSiteConfig] = useState<SiteContentConfig>(initialSiteConfig);
   const [garments, setGarments] = useState<Garment[]>(initialGarments);
   const [sellers, setSellers] = useState<SellerProfile[]>(initialSellers);
+  const [messages, setMessages] = useState<InternalMessage[]>(initialMessages);
   const [currentSellerUsername, setCurrentSellerUsername] = useState<string>(
     initialSellers[0].username
   );
   const [isSellerLoggedIn, setIsSellerLoggedIn] = useState(false);
   const [cart, setCart] = useState<Garment[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Estado de Mensajería Interna
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [activeChatSeller, setActiveChatSeller] = useState<string>(initialSellers[0].username);
+  const [chatContextGarment, setChatContextGarment] = useState<Garment | null>(null);
+
   const [isSellerStudioOpen, setIsSellerStudioOpen] = useState(false);
   const [studioActionCounter, setStudioActionCounter] = useState(0);
-  const [studioRequestedTab, setStudioRequestedTab] = useState<'inventario' | 'subir' | 'perfil'>(
-    'inventario'
-  );
+  const [studioRequestedTab, setStudioRequestedTab] = useState<
+    'inventario' | 'subir' | 'perfil' | 'mensajes'
+  >('inventario');
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [quickViewItem, setQuickViewItem] = useState<Garment | null>(null);
 
@@ -92,6 +131,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsSellerLoggedIn(true);
         setCurrentSellerUsername(savedSeller);
       }
+      const savedMessages = localStorage.getItem('ecoropa_messages');
+      if (savedMessages) {
+        try {
+          const parsed = JSON.parse(savedMessages);
+          if (Array.isArray(parsed) && parsed.length > 0) setMessages(parsed);
+        } catch {}
+      }
     }
 
     async function loadCloudStore() {
@@ -101,11 +147,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const data = await res.json();
           if (data.siteConfig) setSiteConfig(data.siteConfig);
           if (Array.isArray(data.garments) && data.garments.length > 0) {
-            const merged = mergeMissingInitialGarments(data.garments);
-            setGarments(merged);
+            setGarments(mergeMissingInitialGarments(data.garments));
           }
           if (Array.isArray(data.sellers) && data.sellers.length > 0) {
-            setSellers(data.sellers);
+            setSellers(mergeMissingInitialSellers(data.sellers));
+          }
+          if (Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages(data.messages);
           }
           return;
         }
@@ -122,7 +170,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }
 
         const savedSellers = localStorage.getItem('ecoropa_sellers');
-        if (savedSellers) setSellers(JSON.parse(savedSellers));
+        if (savedSellers) {
+          const parsed = JSON.parse(savedSellers);
+          if (Array.isArray(parsed)) setSellers(mergeMissingInitialSellers(parsed));
+        }
       } catch (e) {}
     }
 
@@ -141,6 +192,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     siteConfig?: SiteContentConfig;
     sellers?: SellerProfile[];
     garments?: Garment[];
+    messages?: InternalMessage[];
   }) => {
     try {
       await fetch('/api/store', {
@@ -161,8 +213,54 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const openChatWithSeller = (sellerUsername: string, garment?: Garment) => {
+    setActiveChatSeller(sellerUsername);
+    if (garment) {
+      setChatContextGarment(garment);
+    }
+    setIsChatOpen(true);
+  };
+
+  const sendMessage = ({
+    sellerUsername,
+    text,
+    senderRole = 'comprador',
+    garment,
+  }: {
+    sellerUsername: string;
+    text: string;
+    senderRole?: 'comprador' | 'vendedor' | 'ecoropa';
+    garment?: Garment | null;
+  }) => {
+    if (!text.trim()) return;
+    const sellerObj = sellers.find((s) => s.username === sellerUsername);
+    const newMsg: InternalMessage = {
+      id: `msg_${Date.now()}`,
+      sellerUsername,
+      sellerName: sellerObj?.displayName || sellerUsername,
+      buyerName: 'Comprador Verificado',
+      senderRole,
+      text: text.trim(),
+      garmentId: garment?.id,
+      garmentTitle: garment?.title,
+      garmentPrice: garment?.price,
+      garmentImage: garment?.image,
+      createdAt: 'Justo ahora',
+      read: false,
+    };
+
+    setMessages((prev) => {
+      const updated = [...prev, newMsg];
+      try {
+        localStorage.setItem('ecoropa_messages', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ messages: updated });
+      return updated;
+    });
+  };
+
   const triggerSellerStudio = (
-    tab: 'inventario' | 'subir' | 'perfil' = 'inventario',
+    tab: 'inventario' | 'subir' | 'perfil' | 'mensajes' = 'inventario',
     sellerUsername?: string
   ) => {
     if (sellerUsername) {
@@ -192,12 +290,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSiteConfig(initialSiteConfig);
     setGarments(initialGarments);
     setSellers(initialSellers);
+    setMessages(initialMessages);
     setCart([]);
     setWishlist([]);
     try {
       localStorage.removeItem('ecoropa_config');
       localStorage.removeItem('ecoropa_garments');
       localStorage.removeItem('ecoropa_sellers');
+      localStorage.removeItem('ecoropa_messages');
       localStorage.removeItem('ecoropa_cart');
       localStorage.removeItem('ecoropa_wishlist');
     } catch (e) {}
@@ -405,6 +505,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         isCartOpen,
         setIsCartOpen,
+        messages,
+        isChatOpen,
+        setIsChatOpen,
+        activeChatSeller,
+        setActiveChatSeller,
+        chatContextGarment,
+        setChatContextGarment,
+        openChatWithSeller,
+        sendMessage,
         isSellerStudioOpen,
         setIsSellerStudioOpen,
         studioActionCounter,

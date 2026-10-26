@@ -29,6 +29,8 @@ import {
   Camera,
   Package,
   Heart,
+  MessageSquare,
+  Lock,
 } from 'lucide-react';
 
 interface SamplePreset {
@@ -123,6 +125,8 @@ export default function SellerDashboardPage() {
     addGarment,
     updateGarmentStatus,
     deleteGarment,
+    openChatWithSeller,
+    messages,
   } = useApp();
 
   // Tabs del estudio: 'inventario' | 'perfil'
@@ -490,6 +494,17 @@ export default function SellerDashboardPage() {
             <UserCog className="w-4 h-4" />
             <span>Personalizar Perfil de mi Clóset</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => openChatWithSeller(currentSeller.username)}
+            className="px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 bg-verde-50 hover:bg-verde-100 text-verde-800 border border-verde-200 cursor-pointer"
+          >
+            <MessageSquare className="w-4 h-4 text-verde-700" />
+            <span>
+              Bandeja de Mensajes ({messages.filter((m) => m.sellerUsername === currentSeller.username).length})
+            </span>
+          </button>
         </div>
 
         <Link
@@ -756,7 +771,7 @@ export default function SellerDashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-grafito-800 mb-1">
-                    WhatsApp de Contacto Directo (con código 502)
+                    🔒 WhatsApp para Verificación EcoRopaGT (Privado • Nunca público)
                   </label>
                   <div className="relative">
                     <Phone className="w-4 h-4 text-grafito-700 absolute left-3 top-3" />
@@ -768,6 +783,9 @@ export default function SellerDashboardPage() {
                       className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-beige-50/60 border border-beige-300 text-xs sm:text-sm focus:outline-none focus:border-lavanda-500"
                     />
                   </div>
+                  <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
+                    <Lock className="w-3 h-3" /> Solo visible para EcoRopaGT (recolecciones y pagos). Los compradores te escriben por el Chat Interno.
+                  </p>
                 </div>
 
                 <div>
@@ -860,9 +878,9 @@ export default function SellerDashboardPage() {
                       <MapPin className="w-3.5 h-3.5 text-lavanda-500" />
                       <span>{profileLocation || 'Guatemala'}</span>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <Phone className="w-3.5 h-3.5 text-verde-600" />
-                      <span>+{profileWhatsapp || '502'}</span>
+                    <p className="flex items-center gap-2 text-verde-700 font-semibold">
+                      <Lock className="w-3.5 h-3.5 text-verde-600" />
+                      <span>Teléfono privado • Chat interno activo</span>
                     </p>
                   </div>
                 </div>

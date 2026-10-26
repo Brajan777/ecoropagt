@@ -24,7 +24,7 @@ export function QuickViewModal() {
     setIsCartOpen,
     wishlist,
     toggleWishlist,
-    sellers,
+    openChatWithSeller,
   } = useApp();
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
 
@@ -37,8 +37,6 @@ export function QuickViewModal() {
   const item = quickViewItem;
   const inCart = cart.some((c) => c.id === item.id);
   const isFav = wishlist.includes(item.id);
-  const sellerProfile = sellers.find((s) => s.username === item.sellerUsername);
-  const sellerWhatsapp = sellerProfile?.whatsapp || '50255551234';
 
   const gallery =
     item.gallery && item.gallery.length > 0
@@ -243,17 +241,17 @@ export function QuickViewModal() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
 
-              <a
-                href={`https://wa.me/${sellerWhatsapp}?text=${encodeURIComponent(
-                  `¡Hola @${item.sellerUsername}! Me interesa tu prenda "${item.title}" (Q${item.price}) en EcoRopaGT.`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="py-2.5 px-3 rounded-xl bg-verde-50 hover:bg-verde-100 border border-verde-200 text-verde-800 font-bold text-xs transition flex items-center justify-center gap-1.5"
+              <button
+                type="button"
+                onClick={() => {
+                  setQuickViewItem(null);
+                  openChatWithSeller(item.sellerUsername, item);
+                }}
+                className="py-2.5 px-3 rounded-xl bg-verde-50 hover:bg-verde-100 border border-verde-200 text-verde-800 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <MessageCircle className="w-3.5 h-3.5 text-verde-700" />
-                <span>Preguntar al vendedor</span>
-              </a>
+                <span>Mensaje interno al vendedor</span>
+              </button>
             </div>
           </div>
         </div>

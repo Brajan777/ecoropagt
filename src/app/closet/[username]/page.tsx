@@ -94,7 +94,7 @@ const CATEGORIES: { id: 'todos' | GarmentCategory; label: string }[] = [
 ];
 
 export default function ClosetProfilePage({ params }: Props) {
-  const { sellers, garments, setCurrentSellerByUsername } = useApp();
+  const { sellers, garments, setCurrentSellerByUsername, openChatWithSeller } = useApp();
 
   const [activeTab, setActiveTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
   const [internalSearch, setInternalSearch] = useState('');
@@ -359,17 +359,14 @@ export default function ClosetProfilePage({ params }: Props) {
                 <span>Ir a gestionar este clóset</span>
               </Link>
 
-              <a
-                href={`https://wa.me/${seller.whatsapp}?text=${encodeURIComponent(
-                  `¡Hola ${seller.displayName}! Vi tu clóset virtual (@${seller.username}) en EcoRopaGT y me encantaron tus prendas.`
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex-1 lg:flex-initial py-3 px-5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-xs sm:text-sm shadow-xs transition flex items-center justify-center gap-2"
+              <button
+                type="button"
+                onClick={() => openChatWithSeller(seller.username)}
+                className="flex-1 lg:flex-initial py-3 px-5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-xs sm:text-sm shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <MessageCircle className="w-4 h-4" />
-                <span>Contactar Vendedor</span>
-              </a>
+                <span>Mensaje Interno al Vendedor</span>
+              </button>
             </div>
           </div>
 

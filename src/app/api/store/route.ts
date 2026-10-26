@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { initialGarments, initialSellers, initialSiteConfig } from '@/data/mockData';
+import {
+  initialGarments,
+  initialMessages,
+  initialSellers,
+  initialSiteConfig,
+} from '@/data/mockData';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'cloud-store.json');
@@ -17,6 +22,7 @@ function getInitialData() {
     siteConfig: initialSiteConfig,
     sellers: initialSellers,
     garments: initialGarments,
+    messages: initialMessages,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -66,10 +72,13 @@ async function getStoreData() {
         .single();
 
       if (!error && data) {
+        const rawConfig = data.site_config || initialSiteConfig;
+        const { _internalMessages, ...cleanConfig } = rawConfig as any;
         return {
-          siteConfig: data.site_config || initialSiteConfig,
+          siteConfig: cleanConfig,
           sellers: data.sellers || initialSellers,
           garments: data.garments || initialGarments,
+          messages: Array.isArray(_internalMessages) ? _internalMessages : initialMessages,
           updatedAt: data.updated_at || new Date().toISOString(),
           source: 'supabase',
         };
@@ -78,7 +87,7 @@ async function getStoreData() {
       const seed = getInitialData();
       await supabase.from('app_store').upsert({
         id: 'main',
-        site_config: seed.siteConfig,
+        site_config: { ...seed.siteConfig, _internalMessages: seed.messages },
         sellers: seed.sellers,
         garments: seed.garments,
         updated_at: seed.updatedAt,
@@ -97,7 +106,7 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
     try {
       const { error } = await supabase.from('app_store').upsert({
         id: 'main',
-        site_config: updated.siteConfig,
+        site_config: { ...updated.siteConfig, _internalMessages: updated.messages },
         sellers: updated.sellers,
         garments: updated.garments,
         updated_at: updated.updatedAt,
@@ -188,6 +197,7 @@ export async function POST(request: Request) {
       siteConfig: body.siteConfig ?? current.siteConfig,
       sellers: body.sellers ?? current.sellers,
       garments: body.garments ?? current.garments,
+      messages: body.messages ?? current.messages ?? initialMessages,
       updatedAt: new Date().toISOString(),
     };
 
