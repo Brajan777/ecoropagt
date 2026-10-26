@@ -120,6 +120,7 @@ export default function SellerDashboardPage() {
     siteConfig,
     currentSeller,
     sellers,
+    addSeller,
     setCurrentSellerByUsername,
     updateSellerProfile,
     garments,
@@ -131,6 +132,8 @@ export default function SellerDashboardPage() {
     orders,
     isSellerLoggedIn,
     setIsSellerLoggedIn,
+    studioRequestedTab,
+    studioActionCounter,
   } = useApp();
 
   // Tabs del estudio: 'inventario' | 'ventas' | 'perfil'
@@ -139,10 +142,35 @@ export default function SellerDashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAdminSession, setIsAdminSession] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [loginUsername, setLoginUsername] = useState(currentSeller.username);
   const [loginWhatsapp, setLoginWhatsapp] = useState('');
   const [loginError, setLoginError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+
+  // Campos para crear nuevo clóset desde /vendedor/mi-closet
+  const [newDisplayName, setNewDisplayName] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newLocation, setNewLocation] = useState('Guatemala, Zona 10');
+  const [newPickupAddress, setNewPickupAddress] = useState('');
+  const [newWhatsapp, setNewWhatsapp] = useState('');
+  const [newBio, setNewBio] = useState('');
+  const [newBankName, setNewBankName] = useState('Banco Industrial');
+  const [newBankAccountType, setNewBankAccountType] = useState<'Monetaria' | 'Ahorro'>('Monetaria');
+  const [newBankAccountNumber, setNewBankAccountNumber] = useState('');
+  const [newBankAccountHolder, setNewBankAccountHolder] = useState('');
+
+  useEffect(() => {
+    if (studioActionCounter > 0 && isSellerLoggedIn) {
+      if (studioRequestedTab === 'subir') {
+        setIsModalOpen(true);
+      } else if (studioRequestedTab === 'perfil') {
+        setActiveTab('perfil');
+      } else {
+        setActiveTab('inventario');
+      }
+    }
+  }, [studioActionCounter, studioRequestedTab, isSellerLoggedIn]);
 
   useEffect(() => {
     setLoginUsername(currentSeller.username);
@@ -383,72 +411,294 @@ export default function SellerDashboardPage() {
   const netSellerEarnings = Math.round(soldEarnings * ((100 - commissionPct) / 100));
 
   if (!isSellerLoggedIn && !isAdminSession) {
+    const handleCreateNewClosetPage = (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!newDisplayName.trim() || !newUsername.trim()) {
+        setLoginError('Completa tu nombre y el @usuario de tu clóset.');
+        return;
+      }
+      const created = addSeller({
+        displayName: newDisplayName,
+        username: newUsername,
+        location: newLocation,
+        pickupAddress: newPickupAddress.trim() || newLocation,
+        whatsapp: newWhatsapp || '50255550000',
+        bio: newBio,
+        bankName: newBankName,
+        bankAccountType: newBankAccountType,
+        bankAccountNumber: newBankAccountNumber.trim(),
+        bankAccountHolder: newBankAccountHolder.trim() || newDisplayName,
+      });
+      setIsModalOpen(true);
+      showToast(`¡Tu nuevo clóset @${created.username} fue creado con éxito!`);
+    };
+
     return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-3xl border border-beige-200 shadow-xl p-8 max-w-md w-full">
-          <div className="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-700 flex items-center justify-center mb-4">
-            <Lock className="w-6 h-6" />
-          </div>
-          <h1 className="font-display text-xl font-extrabold text-grafito-900">
-            Ingresar al Estudio de Mi Clóset
-          </h1>
-          <p className="text-xs text-grafito-700 mt-1 mb-5 leading-relaxed">
-            Para proteger tus prendas y precios, selecciona tu clóset e ingresa el número de WhatsApp privado con el que lo registraste en EcoRopaGT.
-          </p>
-
-          <form onSubmit={handleVerifySellerStudio} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-grafito-800 mb-1">
-                1. Selecciona tu Clóset Virtual *
-              </label>
-              <select
-                value={loginUsername}
-                onChange={(e) => {
-                  setLoginUsername(e.target.value);
-                  setLoginError('');
-                }}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
-              >
-                {sellers.map((s) => (
-                  <option key={s.id} value={s.username}>
-                    @{s.username} — {s.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-grafito-800 mb-1">
-                2. Tu WhatsApp registrado (8 dígitos) *
-              </label>
-              <input
-                type="password"
-                required
-                value={loginWhatsapp}
-                onChange={(e) => {
-                  setLoginWhatsapp(e.target.value);
-                  setLoginError('');
-                }}
-                placeholder="Ingresa tu número registrado"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold focus:outline-none focus:border-lavanda-500"
-              />
-              {loginError && (
-                <p className="text-xs text-red-600 font-semibold mt-1.5">{loginError}</p>
-              )}
-            </div>
-
+      <div className="min-h-[75vh] flex items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-3xl border border-beige-200 shadow-xl p-6 sm:p-8 max-w-lg w-full">
+          {/* Selector Ingresar vs Crear Nuevo Clóset */}
+          <div className="grid grid-cols-2 gap-2 p-1 bg-beige-100 rounded-2xl mb-6">
             <button
-              type="submit"
-              disabled={isVerifying}
-              className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm transition cursor-pointer disabled:opacity-50"
+              type="button"
+              onClick={() => {
+                setAuthMode('login');
+                setLoginError('');
+              }}
+              className={`py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+                authMode === 'login'
+                  ? 'bg-white text-grafito-900 shadow-2xs'
+                  : 'text-grafito-700 hover:text-grafito-900'
+              }`}
             >
-              {isVerifying ? 'Verificando...' : 'Desbloquear Estudio de Vendedor'}
+              1. Ingresar a Mi Clóset
             </button>
-          </form>
+            <button
+              type="button"
+              onClick={() => {
+                setAuthMode('register');
+                setLoginError('');
+              }}
+              className={`py-2.5 rounded-xl text-xs font-extrabold transition cursor-pointer ${
+                authMode === 'register'
+                  ? 'bg-white text-grafito-900 shadow-2xs'
+                  : 'text-grafito-700 hover:text-grafito-900'
+              }`}
+            >
+              2. + Crear Clóset Nuevo
+            </button>
+          </div>
+
+          {authMode === 'login' ? (
+            <>
+              <div className="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-700 flex items-center justify-center mb-4">
+                <Lock className="w-6 h-6" />
+              </div>
+              <h1 className="font-display text-xl font-extrabold text-grafito-900">
+                Ingresar al Estudio de Mi Clóset
+              </h1>
+              <p className="text-xs text-grafito-700 mt-1 mb-5 leading-relaxed">
+                Selecciona tu clóset e ingresa el número de WhatsApp privado con el que lo registraste en EcoRopaGT.
+              </p>
+
+              <form onSubmit={handleVerifySellerStudio} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    1. Selecciona tu Clóset Virtual *
+                  </label>
+                  <select
+                    value={loginUsername}
+                    onChange={(e) => {
+                      setLoginUsername(e.target.value);
+                      setLoginError('');
+                    }}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+                  >
+                    {sellers.map((s) => (
+                      <option key={s.id} value={s.username}>
+                        @{s.username} — {s.displayName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    2. Tu WhatsApp registrado (8 dígitos) *
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={loginWhatsapp}
+                    onChange={(e) => {
+                      setLoginWhatsapp(e.target.value);
+                      setLoginError('');
+                    }}
+                    placeholder="Ingresa tu número registrado"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold focus:outline-none focus:border-lavanda-500"
+                  />
+                  {loginError && (
+                    <p className="text-xs text-red-600 font-semibold mt-1.5">{loginError}</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isVerifying}
+                  className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm transition cursor-pointer disabled:opacity-50"
+                >
+                  {isVerifying ? 'Verificando...' : 'Desbloquear Estudio de Vendedor'}
+                </button>
+              </form>
+            </>
+          ) : (
+            <form onSubmit={handleCreateNewClosetPage} className="space-y-3">
+              <h2 className="font-display text-xl font-extrabold text-grafito-900">
+                Crear mi Nuevo Clóset Virtual
+              </h2>
+              <p className="text-xs text-grafito-700 leading-relaxed">
+                Abre tu propio espacio verificado en EcoRopaGT con Guía Ciega y pago directo del 85% a tu banco.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    Tu Nombre o Nombre del Clóset *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newDisplayName}
+                    onChange={(e) => setNewDisplayName(e.target.value)}
+                    placeholder="Ej. Valeria Gómez"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    Usuario (@) *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    placeholder="valeria_gt"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    WhatsApp Privado (Solo EcoRopaGT) *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    value={newWhatsapp}
+                    onChange={(e) => setNewWhatsapp(e.target.value)}
+                    placeholder="55559999"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    Zona / Municipio (Visible)
+                  </label>
+                  <input
+                    type="text"
+                    value={newLocation}
+                    onChange={(e) => setNewLocation(e.target.value)}
+                    placeholder="Guatemala, Zona 15"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <label className="block text-xs font-bold text-verde-800">
+                    📍 Punto de Recolección o Entrega en Agencia (Privado) *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setNewPickupAddress(
+                        '🏢 [ENTREGA EN AGENCIA] Entrego personalmente en Agencia Forza / Cargo Expreso (Sin dirección de casa)'
+                      )
+                    }
+                    className="text-[10px] font-extrabold text-lavanda-700 hover:underline cursor-pointer"
+                  >
+                    🏢 Prefiero dejar en Agencia (Sin dar casa)
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={newPickupAddress}
+                  onChange={(e) => setNewPickupAddress(e.target.value)}
+                  placeholder="Calle/Av, # casa o escribe: Entrego en Agencia Forza Zona 10..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-verde-300 text-xs bg-verde-50/50 focus:border-verde-600 focus:outline-none"
+                />
+              </div>
+
+              <div className="p-3 rounded-2xl bg-lavanda-50/70 border border-lavanda-200 space-y-2">
+                <p className="text-[11px] font-extrabold text-lavanda-900">
+                  🏦 Cuenta Bancaria para Liquidarte tus Ventas (85% Neto • Privada) *
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={newBankName}
+                    onChange={(e) => setNewBankName(e.target.value)}
+                    className="w-full px-2.5 py-2 rounded-xl border border-beige-300 text-xs bg-white font-semibold"
+                  >
+                    <option value="Banco Industrial">Banco Industrial</option>
+                    <option value="Banrural">Banrural</option>
+                    <option value="BAC Credomatic">BAC Credomatic</option>
+                    <option value="G&T Continental">G&T Continental</option>
+                    <option value="Promerica">Banco Promerica</option>
+                  </select>
+                  <select
+                    value={newBankAccountType}
+                    onChange={(e) =>
+                      setNewBankAccountType(e.target.value as 'Monetaria' | 'Ahorro')
+                    }
+                    className="w-full px-2.5 py-2 rounded-xl border border-beige-300 text-xs bg-white font-semibold"
+                  >
+                    <option value="Monetaria">Cuenta Monetaria</option>
+                    <option value="Ahorro">Cuenta de Ahorro</option>
+                  </select>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={newBankAccountNumber}
+                    onChange={(e) => setNewBankAccountNumber(e.target.value)}
+                    placeholder="Número de cuenta *"
+                    className="w-full px-3 py-2 rounded-xl border border-beige-300 text-xs bg-white"
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={newBankAccountHolder}
+                    onChange={(e) => setNewBankAccountHolder(e.target.value)}
+                    placeholder="Nombre exacto del titular *"
+                    className="w-full px-3 py-2 rounded-xl border border-beige-300 text-xs bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-grafito-800 mb-1">
+                  Descripción corta de tu clóset
+                </label>
+                <textarea
+                  rows={2}
+                  value={newBio}
+                  onChange={(e) => setNewBio(e.target.value)}
+                  placeholder="Prendas casuales y de oficina en excelente estado..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-beige-300 text-xs bg-beige-50 focus:border-lavanda-500 focus:outline-none"
+                />
+              </div>
+
+              {loginError && (
+                <p className="text-xs text-red-600 font-semibold">{loginError}</p>
+              )}
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-xs sm:text-sm shadow-xs transition cursor-pointer"
+              >
+                Crear Mi Clóset y Empezar a Vender
+              </button>
+            </form>
+          )}
 
           <div className="mt-5 pt-4 border-t border-beige-100 text-center">
             <Link href="/" className="text-xs font-bold text-lavanda-600 hover:underline">
-              ← Volver al Catálogo Principal
+              ← Volver a Inicio
             </Link>
           </div>
         </div>

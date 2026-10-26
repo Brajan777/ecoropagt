@@ -45,13 +45,13 @@ export function HeroBanner() {
                 <Tag className="w-4 h-4" />
                 <span>Crear mi Clóset Virtual</span>
               </Link>
-              <a
-                href="#closets-destacados"
+              <Link
+                href="/closets"
                 className="py-3 px-5 rounded-xl bg-verde-100 hover:bg-verde-200 text-verde-700 font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5"
               >
                 <span>Ver Clósets Destacados</span>
-                <ArrowDown className="w-4 h-4" />
-              </a>
+                <ArrowDown className="w-4 h-4 -rotate-90" />
+              </Link>
             </div>
           </div>
 

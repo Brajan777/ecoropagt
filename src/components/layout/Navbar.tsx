@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   MessageSquare,
   UserCheck,
+  Home,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -44,38 +45,24 @@ export function Navbar() {
     setWishlistOnly,
   } = useApp();
 
-  const scrollToSection = (sectionId: string) => {
-    if (pathname !== '/') {
-      router.push(`/#${sectionId}`);
-    } else {
-      const el = document.getElementById(sectionId);
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleCategoryClick = (cat: 'todos' | GarmentCategory) => {
     setSelectedCategory(cat);
-    scrollToSection('catalogo');
+    router.push('/catalogo');
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    scrollToSection('catalogo');
+    router.push('/catalogo');
   };
 
   const handleToggleWishlistOnly = () => {
     setWishlistOnly(!wishlistOnly);
-    scrollToSection('catalogo');
+    router.push('/catalogo');
   };
 
   const handleOpenStudio = (tab: 'inventario' | 'subir' | 'perfil') => {
     triggerSellerStudio(tab);
-    if (pathname !== '/') {
-      router.push('/#mi-closet-virtual');
-    } else {
-      const el = document.getElementById('mi-closet-virtual');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    router.push('/vendedor/mi-closet');
   };
 
   const resetAll = () => {
@@ -254,35 +241,50 @@ export function Navbar() {
           </form>
         </div>
 
-        {/* Tier 2: Píldoras deslizables */}
+        {/* Tier 2: Píldoras deslizables con páginas dedicadas */}
         <div className="border-t border-beige-200 bg-beige-50">
           <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto no-scrollbar">
             <nav className="flex items-center gap-1.5 py-1.5 text-xs font-medium text-grafito-700 whitespace-nowrap">
-              <button
-                type="button"
-                onClick={() => scrollToSection('closets-destacados')}
-                className="px-3 py-1.5 sm:py-2 rounded-lg bg-verde-100 text-verde-800 hover:bg-verde-200 transition flex items-center gap-1 font-bold cursor-pointer"
+              <Link
+                href="/"
+                onClick={resetAll}
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 ${
+                  pathname === '/'
+                    ? 'bg-grafito-900 text-white font-bold'
+                    : 'hover:bg-beige-100 text-grafito-700'
+                }`}
               >
-                <Store className="w-3.5 h-3.5 text-verde-700" /> ★ Clósets Top
-              </button>
+                <Home className="w-3.5 h-3.5" /> Inicio
+              </Link>
+
+              <Link
+                href="/closets"
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 font-bold ${
+                  pathname === '/closets'
+                    ? 'bg-verde-600 text-white shadow-2xs'
+                    : 'bg-verde-100 text-verde-800 hover:bg-verde-200'
+                }`}
+              >
+                <Store className="w-3.5 h-3.5" /> ★ Clósets Top
+              </Link>
 
               <button
                 type="button"
                 onClick={() => handleCategoryClick('todos')}
                 className={`px-3 py-1.5 sm:py-2 rounded-lg transition cursor-pointer ${
-                  selectedCategory === 'todos' && pathname === '/'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                  selectedCategory === 'todos' && pathname === '/catalogo'
+                    ? 'bg-lavanda-500 text-white font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
               >
-                Todo
+                Todo el Catálogo
               </button>
               <button
                 type="button"
                 onClick={() => handleCategoryClick('mujer')}
                 className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-                  selectedCategory === 'mujer'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                  selectedCategory === 'mujer' && pathname === '/catalogo'
+                    ? 'bg-lavanda-500 text-white font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
               >
@@ -292,8 +294,8 @@ export function Navbar() {
                 type="button"
                 onClick={() => handleCategoryClick('hombre')}
                 className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-                  selectedCategory === 'hombre'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                  selectedCategory === 'hombre' && pathname === '/catalogo'
+                    ? 'bg-lavanda-500 text-white font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
               >
@@ -303,8 +305,8 @@ export function Navbar() {
                 type="button"
                 onClick={() => handleCategoryClick('ninos')}
                 className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-                  selectedCategory === 'ninos'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                  selectedCategory === 'ninos' && pathname === '/catalogo'
+                    ? 'bg-lavanda-500 text-white font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
               >
@@ -314,8 +316,8 @@ export function Navbar() {
                 type="button"
                 onClick={() => handleCategoryClick('calzado')}
                 className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
-                  selectedCategory === 'calzado'
-                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                  selectedCategory === 'calzado' && pathname === '/catalogo'
+                    ? 'bg-lavanda-500 text-white font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
               >
@@ -325,70 +327,86 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => handleOpenStudio('inventario')}
-                className="px-3 py-1.5 sm:py-2 rounded-lg text-lavanda-700 hover:bg-lavanda-50 font-bold transition flex items-center gap-1 cursor-pointer"
+                className={`px-3 py-1.5 sm:py-2 rounded-lg font-bold transition flex items-center gap-1 cursor-pointer ${
+                  pathname === '/vendedor/mi-closet'
+                    ? 'bg-lavanda-500 text-white'
+                    : 'text-lavanda-700 hover:bg-lavanda-50'
+                }`}
               >
-                <SlidersHorizontal className="w-3.5 h-3.5" /> Acceso Vendedores
+                <SlidersHorizontal className="w-3.5 h-3.5" /> Mi Clóset Virtual
               </button>
+
+              <Link
+                href="/envios-y-garantia"
+                className={`px-3 py-1.5 sm:py-2 rounded-lg font-bold transition flex items-center gap-1 ${
+                  pathname === '/envios-y-garantia'
+                    ? 'bg-verde-600 text-white'
+                    : 'text-verde-800 hover:bg-verde-50'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-verde-600" /> Envíos y Garantía 24h
+              </Link>
             </nav>
           </div>
         </div>
       </header>
 
-      {/* BARRA INFERIOR FIJA EN MÓVIL (ESTILO APP NATIVA) */}
+      {/* BARRA INFERIOR FIJA EN MÓVIL (CADA BOTÓN DESPLIEGA SU PROPIA PÁGINA) */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-beige-200 shadow-lg md:hidden pb-safe">
         <div className="grid grid-cols-5 items-center h-15 px-1 text-[10px] font-bold text-grafito-700">
-          <button
-            type="button"
-            onClick={() => scrollToSection('catalogo')}
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
+          <Link
+            href="/"
+            onClick={resetAll}
+            className={`flex flex-col items-center justify-center py-2 active:scale-95 transition ${
+              pathname === '/' ? 'text-lavanda-600 font-extrabold' : 'text-grafito-700 hover:text-lavanda-600'
+            }`}
           >
-            <LayoutGrid className="w-5 h-5 text-lavanda-600 mb-0.5" />
+            <Home className={`w-5 h-5 mb-0.5 ${pathname === '/' ? 'text-lavanda-600' : 'text-grafito-600'}`} />
+            <span>Inicio</span>
+          </Link>
+
+          <Link
+            href="/catalogo"
+            className={`flex flex-col items-center justify-center py-2 active:scale-95 transition ${
+              pathname === '/catalogo' ? 'text-lavanda-600 font-extrabold' : 'text-grafito-700 hover:text-lavanda-600'
+            }`}
+          >
+            <LayoutGrid className={`w-5 h-5 mb-0.5 ${pathname === '/catalogo' ? 'text-lavanda-600' : 'text-grafito-600'}`} />
             <span>Catálogo</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => scrollToSection('closets-destacados')}
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
-          >
-            <Store className="w-5 h-5 text-verde-600 mb-0.5" />
-            <span>Clósets</span>
-          </button>
+          </Link>
+
           <div className="flex items-center justify-center -mt-4">
             <button
               type="button"
               onClick={() => handleOpenStudio('subir')}
-              className="w-12 h-12 rounded-2xl bg-lavanda-500 text-white shadow-md flex flex-col items-center justify-center active:scale-95 transition border-2 border-white cursor-pointer"
+              className={`w-12 h-12 rounded-2xl text-white shadow-md flex flex-col items-center justify-center active:scale-95 transition border-2 border-white cursor-pointer ${
+                pathname === '/vendedor/mi-closet' ? 'bg-grafito-900' : 'bg-lavanda-500'
+              }`}
             >
               <PlusCircle className="w-5 h-5" />
               <span className="text-[8px] font-extrabold">Vender</span>
             </button>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsChatOpen(true)}
-            className="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
+
+          <Link
+            href="/closets"
+            className={`flex flex-col items-center justify-center py-2 active:scale-95 transition ${
+              pathname === '/closets' ? 'text-verde-700 font-extrabold' : 'text-grafito-700 hover:text-verde-700'
+            }`}
           >
-            <MessageSquare className="w-5 h-5 text-verde-600 mb-0.5" />
-            <span>Mensajes</span>
-            {messages.length > 0 && (
-              <span className="absolute top-1 right-3 w-4 h-4 rounded-full bg-lavanda-500 text-white text-[9px] font-extrabold flex items-center justify-center">
-                {messages.length}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => setIsCartOpen(true)}
-            className="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
+            <Store className={`w-5 h-5 mb-0.5 ${pathname === '/closets' ? 'text-verde-600' : 'text-grafito-600'}`} />
+            <span>Clósets</span>
+          </Link>
+
+          <Link
+            href="/envios-y-garantia"
+            className={`flex flex-col items-center justify-center py-2 active:scale-95 transition ${
+              pathname === '/envios-y-garantia' ? 'text-verde-700 font-extrabold' : 'text-grafito-700 hover:text-verde-700'
+            }`}
           >
-            <ShoppingBag className="w-5 h-5 text-grafito-800 mb-0.5" />
-            <span>Bolsa</span>
-            {cart.length > 0 && (
-              <span className="absolute top-1 right-3 w-4 h-4 rounded-full bg-verde-500 text-white text-[9px] font-extrabold flex items-center justify-center">
-                {cart.length}
-              </span>
-            )}
-          </button>
+            <ShieldCheck className={`w-5 h-5 mb-0.5 ${pathname === '/envios-y-garantia' ? 'text-verde-600' : 'text-grafito-600'}`} />
+            <span>Garantía</span>
+          </Link>
         </div>
       </nav>
     </>

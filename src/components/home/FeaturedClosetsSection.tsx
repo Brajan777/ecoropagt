@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { ProductCard } from '@/components/catalog/ProductCard';
 import {
@@ -24,12 +25,14 @@ import {
 const CLOSETS_PER_PAGE = 6;
 
 export function FeaturedClosetsSection() {
+  const pathname = usePathname();
+  const router = useRouter();
   const { sellers, garments, triggerSellerStudio, setQuickViewItem, openChatWithSeller } = useApp();
   const [selectedClosetUsername, setSelectedClosetUsername] = useState<string | null>(null);
   const [closetTab, setClosetTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
 
   // Controles de escalabilidad para cuando existan decenas o cientos de clósets
-  const [showDirectoryMode, setShowDirectoryMode] = useState(false);
+  const [showDirectoryMode, setShowDirectoryMode] = useState(pathname === '/closets');
   const [closetSearch, setClosetSearch] = useState('');
   const [locationFilter, setLocationFilter] = useState('todas');
   const [closetSort, setClosetSort] = useState<'destacados' | 'ventas' | 'rating' | 'prendas'>(
@@ -103,10 +106,7 @@ export function FeaturedClosetsSection() {
 
   const goToManageCloset = (username: string) => {
     triggerSellerStudio('inventario', username);
-    setTimeout(() => {
-      const el = document.getElementById('mi-closet-virtual');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 80);
+    router.push('/vendedor/mi-closet');
   };
 
   return (
@@ -145,8 +145,7 @@ export function FeaturedClosetsSection() {
             type="button"
             onClick={() => {
               triggerSellerStudio('inventario');
-              const el = document.getElementById('mi-closet-virtual');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
+              router.push('/vendedor/mi-closet');
             }}
             className="px-3.5 py-2.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
           >

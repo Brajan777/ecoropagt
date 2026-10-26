@@ -8,29 +8,18 @@ import { GarmentCategory } from '@/types';
 import { RotateCcw, ShieldCheck, Sparkles, Lock } from 'lucide-react';
 
 export function Footer() {
-  const pathname = usePathname();
   const router = useRouter();
   const { setSelectedCategory, triggerSellerStudio, setIsRulesModalOpen, setIsBuyerAuthOpen } =
     useApp();
 
   const handleCategoryLink = (cat: 'todos' | GarmentCategory) => {
     setSelectedCategory(cat);
-    if (pathname !== '/') {
-      router.push('/#catalogo');
-    } else {
-      const el = document.getElementById('catalogo');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    router.push('/catalogo');
   };
 
   const handleOpenStudioFromFooter = (tab: 'inventario' | 'subir') => {
     triggerSellerStudio(tab);
-    if (pathname !== '/') {
-      router.push('/#mi-closet-virtual');
-    } else {
-      const el = document.getElementById('mi-closet-virtual');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    router.push('/vendedor/mi-closet');
   };
 
   return (
@@ -66,7 +55,7 @@ export function Footer() {
                 </button>
               </li>
               <li>
-                <Link href="/#closets-destacados" className="hover:text-lavanda-600">
+                <Link href="/closets" className="hover:text-lavanda-600">
                   Clósets Destacados
                 </Link>
               </li>
@@ -137,8 +126,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#logistica-segura" className="hover:text-lavanda-600">
-                  Guía de Envíos Seguros
+                <Link href="/envios-y-garantia" className="hover:text-lavanda-600">
+                  Guía Ciega y Envíos Seguros
                 </Link>
               </li>
             </ul>
