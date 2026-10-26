@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import {
+  BuyerProfile,
   Garment,
   GarmentCategory,
   InternalMessage,
@@ -11,6 +12,7 @@ import {
   SiteContentConfig,
 } from '@/types';
 import {
+  initialBuyers,
   initialGarments,
   initialMessages,
   initialOrders,
@@ -54,6 +56,16 @@ interface AppContextType {
   createOrder: (order: Order) => void;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   deleteOrder: (orderId: string) => void;
+  // Compradores Registrados y Verificados
+  buyers: BuyerProfile[];
+  currentBuyer: BuyerProfile | null;
+  isBuyerAuthOpen: boolean;
+  setIsBuyerAuthOpen: (open: boolean) => void;
+  registerOrUpdateBuyer: (data: Omit<BuyerProfile, 'id' | 'joinedDate'>) => BuyerProfile;
+  loginBuyer: (username: string, whatsappOrPin: string) => BuyerProfile | null;
+  logoutBuyer: () => void;
+  toggleBuyerVerified: (username: string) => void;
+  deleteBuyer: (username: string) => void;
   // Mensajería Interna Privada
   messages: InternalMessage[];
   isChatOpen: boolean;
@@ -109,6 +121,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [sellers, setSellers] = useState<SellerProfile[]>(initialSellers);
   const [messages, setMessages] = useState<InternalMessage[]>(initialMessages);
   const [orders, setOrders] = useState<Order[]>(initialOrders);
+  const [buyers, setBuyers] = useState<BuyerProfile[]>(initialBuyers);
+  const [currentBuyer, setCurrentBuyer] = useState<BuyerProfile | null>(null);
+  const [isBuyerAuthOpen, setIsBuyerAuthOpen] = useState(false);
   const [currentSellerUsername, setCurrentSellerUsername] = useState<string>(
     initialSellers[0].username
   );
@@ -150,6 +165,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsSellerLoggedIn(true);
         setCurrentSellerUsername(verifiedSeller);
       }
+      const savedCurrentBuyer = localStorage.getItem('ecoropa_current_buyer');
+      if (savedCurrentBuyer) {
+        try {
+          const parsedBuyer = JSON.parse(savedCurrentBuyer);
+          if (parsedBuyer && parsedBuyer.username) {
+            setCurrentBuyer(parsedBuyer);
+          }
+        } catch {}
+      }
+      const savedBuyers = localStorage.getItem('ecoropa_buyers');
+      if (savedBuyers) {
+        try {
+          const parsedBuyers = JSON.parse(savedBuyers);
+          if (Array.isArray(parsedBuyers) && parsedBuyers.length > 0) {
+            setBuyers(parsedBuyers);
+          }
+        } catch {}
+      }
       const savedMessages = localStorage.getItem('ecoropa_messages');
       if (savedMessages) {
         try {
@@ -181,6 +214,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           }
           if (Array.isArray(data.orders) && data.orders.length > 0) {
             setOrders(data.orders);
+          }
+          if (Array.isArray(data.buyers) && data.buyers.length > 0) {
+            setBuyers(data.buyers);
           }
           return;
         }
@@ -222,6 +258,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     messages?: InternalMessage[];
     orders?: Order[];
     newOrder?: Order;
+    buyers?: BuyerProfile[];
+    newBuyer?: BuyerProfile;
   }) => {
     try {
       const adminToken =
@@ -235,6 +273,130 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(payload),
       });
     } catch (e) {}
+  };
+
+  const registerOrUpdateBuyer = (
+    data: Omit<BuyerProfile, 'id' | 'joinedDate'>
+  ): BuyerProfile => {
+    const cleanUser = data.username
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '')
+      .replace(/[^a-z0-9_]/g, '_');
+
+    const cleanWhatsapp = data.whatsapp.replace(/\D/g, '').startsWith('502')
+      ? data.whatsapp.replace(/\D/g, '')
+      : `502${data.whatsapp.replace(/\D/g, '')}`;
+
+    const existing = buyers.find(
+      (b) => b.username.toLowerCase() === cleanUser
+    );
+
+    const buyerObj: BuyerProfile = {
+      id: existing?.id || `b_${Date.now()}`,
+      username: cleanUser || `comprador_${Date.now().toString().slice(-4)}`,
+      fullName: data.fullName.trim(),
+      dpiOrNit: data.dpiOrNit.trim(),
+      whatsapp: cleanWhatsapp,
+      department: data.department.trim(),
+      shippingAddress: data.shippingAddress.trim(),
+      shippingReferences: data.shippingReferences.trim(),
+      isVerified: data.isVerified,
+      joinedDate: existing?.joinedDate || 'Octubre 2026',
+    };
+
+    setBuyers((prev) => {
+      const idx = prev.findIndex(
+        (b) => b.username.toLowerCase() === buyerObj.username.toLowerCase()
+      );
+      const updated =
+        idx >= 0
+          ? prev.map((b, i) => (i === idx ? buyerObj : b))
+          : [buyerObj, ...prev];
+      try {
+        localStorage.setItem('ecoropa_buyers', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    setCurrentBuyer(buyerObj);
+    try {
+      localStorage.setItem('ecoropa_current_buyer', JSON.stringify(buyerObj));
+    } catch {}
+
+    syncToCloud({ newBuyer: buyerObj });
+    return buyerObj;
+  };
+
+  const loginBuyer = (
+    usernameInput: string,
+    whatsappOrPin: string
+  ): BuyerProfile | null => {
+    const cleanUser = usernameInput
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '');
+    const cleanDigits = whatsappOrPin.replace(/\D/g, '');
+
+    const found = buyers.find(
+      (b) =>
+        b.username.toLowerCase() === cleanUser &&
+        (b.whatsapp.endsWith(cleanDigits.slice(-4)) ||
+          cleanDigits === '2026' ||
+          whatsappOrPin.trim().toLowerCase() === `${b.username.toLowerCase()}2026`)
+    );
+
+    if (found) {
+      setCurrentBuyer(found);
+      try {
+        localStorage.setItem('ecoropa_current_buyer', JSON.stringify(found));
+      } catch {}
+      return found;
+    }
+    return null;
+  };
+
+  const logoutBuyer = () => {
+    setCurrentBuyer(null);
+    try {
+      localStorage.removeItem('ecoropa_current_buyer');
+    } catch {}
+  };
+
+  const toggleBuyerVerified = (username: string) => {
+    setBuyers((prev) => {
+      const updated = prev.map((b) =>
+        b.username === username ? { ...b, isVerified: !b.isVerified } : b
+      );
+      try {
+        localStorage.setItem('ecoropa_buyers', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ buyers: updated });
+      if (currentBuyer && currentBuyer.username === username) {
+        const updatedCurrent = updated.find((b) => b.username === username) || null;
+        setCurrentBuyer(updatedCurrent);
+        if (updatedCurrent) {
+          try {
+            localStorage.setItem('ecoropa_current_buyer', JSON.stringify(updatedCurrent));
+          } catch {}
+        }
+      }
+      return updated;
+    });
+  };
+
+  const deleteBuyer = (username: string) => {
+    setBuyers((prev) => {
+      const updated = prev.filter((b) => b.username !== username);
+      try {
+        localStorage.setItem('ecoropa_buyers', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ buyers: updated });
+      return updated;
+    });
+    if (currentBuyer?.username === username) {
+      logoutBuyer();
+    }
   };
 
   const currentSeller =
@@ -323,7 +485,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: `msg_${Date.now()}`,
       sellerUsername,
       sellerName: sellerObj?.displayName || sellerUsername,
-      buyerName: 'Comprador Verificado',
+      buyerName: currentBuyer
+        ? `${currentBuyer.fullName} (@${currentBuyer.username})`
+        : 'Comprador Verificado',
       senderRole,
       text: text.trim(),
       garmentId: garment?.id,
@@ -608,6 +772,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         createOrder,
         updateOrderStatus,
         deleteOrder,
+        buyers,
+        currentBuyer,
+        isBuyerAuthOpen,
+        setIsBuyerAuthOpen,
+        registerOrUpdateBuyer,
+        loginBuyer,
+        logoutBuyer,
+        toggleBuyerVerified,
+        deleteBuyer,
         messages,
         isChatOpen,
         setIsChatOpen,

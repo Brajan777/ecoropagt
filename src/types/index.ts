@@ -78,6 +78,19 @@ export interface SiteContentConfig {
 
 export type OrderStatus = 'pendiente' | 'en_camino' | 'entregado' | 'cancelado';
 
+export interface BuyerProfile {
+  id: string;
+  username: string;
+  fullName: string;
+  dpiOrNit: string; // Documento de identificación / NIT para respaldo de seguridad y envío
+  whatsapp: string; // Privado: exclusivo para EcoRopaGT (verificación y guía de envío)
+  department: string; // Departamento y Zona / Municipio en Guatemala
+  shippingAddress: string; // Dirección exacta (calle, avenida, número de casa/apto, colonia)
+  shippingReferences: string; // Referencias para Forza / Cargo Expreso (garita, portón, etc.)
+  isVerified: boolean;
+  joinedDate: string;
+}
+
 export interface OrderItemSummary {
   garmentId: number;
   title: string;
@@ -89,9 +102,13 @@ export interface OrderItemSummary {
 
 export interface Order {
   id: string;
+  buyerUsername?: string;
   buyerName: string;
   buyerPhone: string;
+  buyerDpi?: string;
+  department?: string;
   address: string;
+  shippingReferences?: string;
   paymentMethod: 'contra_entrega' | 'transferencia' | 'tarjeta';
   items: OrderItemSummary[];
   subtotal: number;

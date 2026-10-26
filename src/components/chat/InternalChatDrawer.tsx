@@ -29,6 +29,8 @@ export function InternalChatDrawer() {
     sendMessage,
     isSellerLoggedIn,
     currentSeller,
+    currentBuyer,
+    setIsBuyerAuthOpen,
   } = useApp();
 
   const [inputText, setInputText] = useState('');
@@ -65,6 +67,11 @@ export function InternalChatDrawer() {
     e.preventDefault();
     if (!inputText.trim()) return;
 
+    if (roleMode === 'comprador' && (!currentBuyer || !currentBuyer.isVerified)) {
+      setIsBuyerAuthOpen(true);
+      return;
+    }
+
     if (containsRestrictedContact(inputText)) {
       setSecurityWarning(
         'Por políticas de seguridad de EcoRopaGT, no está permitido compartir números de teléfono, WhatsApp ni correos en el chat. Toda coordinación y pago está protegido dentro de la plataforma.'
@@ -84,6 +91,10 @@ export function InternalChatDrawer() {
   };
 
   const handleQuickPrompt = (promptText: string) => {
+    if (!currentBuyer || !currentBuyer.isVerified) {
+      setIsBuyerAuthOpen(true);
+      return;
+    }
     setSecurityWarning(null);
     sendMessage({
       sellerUsername: selectedSeller.username,
@@ -202,38 +213,51 @@ export function InternalChatDrawer() {
               </div>
             </Link>
 
-            <div className="flex items-center bg-beige-100 p-0.5 rounded-xl border border-beige-200 text-[10px] font-bold">
+            {isSellerLoggedIn && currentSeller.username === selectedSeller.username ? (
+              <div className="flex items-center bg-beige-100 p-0.5 rounded-xl border border-beige-200 text-[10px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setRoleMode('comprador')}
+                  className={`px-2 py-1 rounded-lg flex items-center gap-1 transition cursor-pointer ${
+                    roleMode === 'comprador'
+                      ? 'bg-white text-grafito-900 shadow-2xs'
+                      : 'text-grafito-600'
+                  }`}
+                >
+                  <User className="w-3 h-3" />
+                  <span>Comprador</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRoleMode('vendedor')}
+                  className={`px-2 py-1 rounded-lg flex items-center gap-1 transition cursor-pointer ${
+                    roleMode === 'vendedor'
+                      ? 'bg-lavanda-500 text-white shadow-2xs'
+                      : 'text-grafito-600'
+                  }`}
+                >
+                  <Store className="w-3 h-3" />
+                  <span>Responder (@{currentSeller.username})</span>
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={() => setRoleMode('comprador')}
-                className={`px-2 py-1 rounded-lg flex items-center gap-1 transition cursor-pointer ${
-                  roleMode === 'comprador'
-                    ? 'bg-white text-grafito-900 shadow-2xs'
-                    : 'text-grafito-600'
+                onClick={() => setIsBuyerAuthOpen(true)}
+                className={`px-2.5 py-1 rounded-xl text-[10px] font-bold flex items-center gap-1 border transition cursor-pointer ${
+                  currentBuyer?.isVerified
+                    ? 'bg-verde-50 border-verde-200 text-verde-800'
+                    : 'bg-lavanda-50 border-lavanda-200 text-lavanda-700 hover:bg-lavanda-100'
                 }`}
-                title="Escribir como comprador"
               >
                 <User className="w-3 h-3" />
-                <span>Comprador</span>
+                <span>
+                  {currentBuyer?.isVerified
+                    ? `✓ @${currentBuyer.username}`
+                    : 'Verificar mi Cuenta'}
+                </span>
               </button>
-              <button
-                type="button"
-                onClick={() => setRoleMode('vendedor')}
-                className={`px-2 py-1 rounded-lg flex items-center gap-1 transition cursor-pointer ${
-                  roleMode === 'vendedor'
-                    ? 'bg-lavanda-500 text-white shadow-2xs'
-                    : 'text-grafito-600'
-                }`}
-                title={
-                  isSellerLoggedIn
-                    ? `Responder como @${currentSeller.username}`
-                    : `Simular respuesta del vendedor @${selectedSeller.username}`
-                }
-              >
-                <Store className="w-3 h-3" />
-                <span>Vendedor</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
 

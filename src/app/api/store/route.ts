@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import {
+  initialBuyers,
   initialGarments,
   initialMessages,
   initialOrders,
@@ -26,6 +27,7 @@ function getInitialData() {
     garments: initialGarments,
     messages: initialMessages,
     orders: initialOrders,
+    buyers: initialBuyers,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -89,7 +91,7 @@ async function getStoreData() {
 
       if (!error && data) {
         const rawConfig = data.site_config || initialSiteConfig;
-        const { _internalMessages, _orders, ...cleanConfig } = rawConfig as any;
+        const { _internalMessages, _orders, _buyers, ...cleanConfig } = rawConfig as any;
         const loadedSellers = Array.isArray(data.sellers)
           ? data.sellers.map((s: any) => {
               const fallback = initialSellers.find((init) => init.username === s.username);
@@ -107,6 +109,7 @@ async function getStoreData() {
           garments: data.garments || initialGarments,
           messages: Array.isArray(_internalMessages) ? _internalMessages : initialMessages,
           orders: Array.isArray(_orders) && _orders.length > 0 ? _orders : initialOrders,
+          buyers: Array.isArray(_buyers) && _buyers.length > 0 ? _buyers : initialBuyers,
           updatedAt: data.updated_at || new Date().toISOString(),
           source: 'supabase',
         };
@@ -119,6 +122,7 @@ async function getStoreData() {
           ...seed.siteConfig,
           _internalMessages: seed.messages,
           _orders: seed.orders,
+          _buyers: seed.buyers,
         },
         sellers: seed.sellers,
         garments: seed.garments,
@@ -142,6 +146,7 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
           ...updated.siteConfig,
           _internalMessages: updated.messages,
           _orders: updated.orders,
+          _buyers: updated.buyers,
         },
         sellers: updated.sellers,
         garments: updated.garments,
@@ -220,9 +225,10 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       ...data,
-      // Si NO es el administrador autenticado, enmascarar los teléfonos y ocultar los datos privados de pedidos
+      // Si NO es el administrador autenticado, enmascarar los teléfonos y ocultar los datos privados de pedidos y compradores
       sellers: isAdmin ? data.sellers : maskSellersForPublic(data.sellers),
       orders: isAdmin ? data.orders : [],
+      buyers: isAdmin ? data.buyers : [],
     },
     { headers: securityHeaders }
   );
@@ -324,9 +330,13 @@ export async function POST(request: Request) {
       const rawOrder = body.newOrder;
       const sanitizedOrder = {
         id: sanitizeString(rawOrder.id || `ECO-${Date.now().toString().slice(-5)}`, 30),
+        buyerUsername: sanitizeString(rawOrder.buyerUsername || '', 60),
         buyerName: sanitizeString(rawOrder.buyerName || 'Comprador Verificado', 80),
         buyerPhone: sanitizeString(rawOrder.buyerPhone || '', 25),
-        address: sanitizeString(rawOrder.address || 'Guatemala', 200),
+        buyerDpi: sanitizeString(rawOrder.buyerDpi || '', 40),
+        department: sanitizeString(rawOrder.department || 'Guatemala', 80),
+        address: sanitizeString(rawOrder.address || 'Guatemala', 250),
+        shippingReferences: sanitizeString(rawOrder.shippingReferences || '', 250),
         paymentMethod: (['contra_entrega', 'transferencia', 'tarjeta'].includes(
           rawOrder.paymentMethod
         )
@@ -357,12 +367,47 @@ export async function POST(request: Request) {
       mergedOrders = body.orders.slice(0, 300);
     }
 
+    // Protección 6: Registro y Verificación de Compradores
+    let mergedBuyers = current.buyers ?? initialBuyers;
+    if (body.newBuyer && typeof body.newBuyer === 'object') {
+      const rawBuyer = body.newBuyer;
+      const cleanUser = sanitizeString(rawBuyer.username || '', 60)
+        .toLowerCase()
+        .replace(/^@/, '')
+        .replace(/[^a-z0-9_]/g, '_');
+      const sanitizedBuyer = {
+        id: sanitizeString(rawBuyer.id || `b_${Date.now()}`, 40),
+        username: cleanUser || `comprador_${Date.now().toString().slice(-4)}`,
+        fullName: sanitizeString(rawBuyer.fullName || 'Comprador EcoRopaGT', 100),
+        dpiOrNit: sanitizeString(rawBuyer.dpiOrNit || '', 40),
+        whatsapp: sanitizeString(rawBuyer.whatsapp || '', 25),
+        department: sanitizeString(rawBuyer.department || 'Guatemala', 100),
+        shippingAddress: sanitizeString(rawBuyer.shippingAddress || '', 250),
+        shippingReferences: sanitizeString(rawBuyer.shippingReferences || '', 250),
+        isVerified: Boolean(rawBuyer.isVerified),
+        joinedDate: sanitizeString(rawBuyer.joinedDate || 'Octubre 2026', 40),
+      };
+      const existingIdx = mergedBuyers.findIndex(
+        (b: any) => b.username.toLowerCase() === sanitizedBuyer.username.toLowerCase()
+      );
+      if (existingIdx >= 0) {
+        mergedBuyers = mergedBuyers.map((b: any, i: number) =>
+          i === existingIdx ? { ...b, ...sanitizedBuyer } : b
+        );
+      } else {
+        mergedBuyers = [sanitizedBuyer, ...mergedBuyers].slice(0, 500);
+      }
+    } else if (isAdmin && Array.isArray(body.buyers)) {
+      mergedBuyers = body.buyers.slice(0, 500);
+    }
+
     const updated = {
       siteConfig: isAdmin && body.siteConfig ? body.siteConfig : current.siteConfig,
       sellers: mergedSellers,
       garments: mergedGarments,
       messages: mergedMessages,
       orders: mergedOrders,
+      buyers: mergedBuyers,
       updatedAt: new Date().toISOString(),
     };
 
@@ -372,6 +417,7 @@ export async function POST(request: Request) {
         ...saved,
         sellers: isAdmin ? saved.sellers : maskSellersForPublic(saved.sellers),
         orders: isAdmin ? saved.orders : [],
+        buyers: isAdmin ? saved.buyers : [],
       },
       { headers: securityHeaders }
     );

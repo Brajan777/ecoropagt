@@ -12,6 +12,10 @@ import {
   CheckCircle2,
   Lock,
   MessageSquare,
+  ShieldCheck,
+  MapPin,
+  UserCheck,
+  Edit3,
 } from 'lucide-react';
 
 export function CartDrawer() {
@@ -26,11 +30,10 @@ export function CartDrawer() {
     sendMessage,
     openChatWithSeller,
     createOrder,
+    currentBuyer,
+    setIsBuyerAuthOpen,
   } = useApp();
 
-  const [buyerName, setBuyerName] = useState('');
-  const [buyerPhone, setBuyerPhone] = useState('');
-  const [buyerAddress, setBuyerAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'contra_entrega' | 'transferencia' | 'tarjeta'>(
     'contra_entrega'
   );
@@ -72,15 +75,24 @@ export function CartDrawer() {
     e.preventDefault();
     if (cart.length === 0) return;
 
+    if (!currentBuyer || !currentBuyer.isVerified) {
+      setIsBuyerAuthOpen(true);
+      return;
+    }
+
     const orderCode = `ECO-${Date.now().toString().slice(-5)}`;
     const firstSeller = cart[0].sellerUsername;
 
-    // 1. Registrar el Pedido Real en la base de datos para la Consola Admin (/panel-control-ecogt)
+    // 1. Registrar el Pedido Real con todos los datos del Comprador Verificado para la Consola Admin (/panel-control-ecogt)
     createOrder({
       id: orderCode,
-      buyerName: buyerName.trim() || 'Comprador Verificado',
-      buyerPhone: buyerPhone.trim(),
-      address: buyerAddress.trim() || 'Guatemala',
+      buyerUsername: currentBuyer.username,
+      buyerName: currentBuyer.fullName,
+      buyerPhone: currentBuyer.whatsapp,
+      buyerDpi: currentBuyer.dpiOrNit,
+      department: currentBuyer.department,
+      address: currentBuyer.shippingAddress,
+      shippingReferences: currentBuyer.shippingReferences,
       paymentMethod,
       items: cart.map((item) => ({
         garmentId: item.id,
@@ -108,11 +120,7 @@ export function CartDrawer() {
         sellerUsername: item.sellerUsername,
         senderRole: 'comprador',
         garment: item,
-        text: `✅ Pedido #${orderCode} confirmado por ${
-          buyerName.trim() || 'Comprador Verificado'
-        } (${
-          buyerAddress.trim() || 'Guatemala'
-        }). Prenda reservada con Pago Protegido EcoRopaGT.`,
+        text: `✅ Pedido #${orderCode} confirmado por ${currentBuyer.fullName} (@${currentBuyer.username} • Comprador Verificado en ${currentBuyer.department}). Prenda reservada con Pago Protegido EcoRopaGT.`,
       });
     });
 
@@ -323,61 +331,93 @@ export function CartDrawer() {
                 );
               })}
 
-              {/* Formulario de Verificación Privada para Guía de Envío EcoRopaGT */}
-              <form
-                id="checkout-internal-form"
-                onSubmit={handleConfirmInternalOrder}
-                className="bg-white p-3.5 rounded-2xl border border-beige-200 space-y-2.5 mt-2"
-              >
-                <div className="flex items-center gap-1.5 text-[11px] font-bold text-verde-800">
-                  <Lock className="w-3.5 h-3.5 text-verde-600 shrink-0" />
-                  <span>Datos privados para guía de envío EcoRopaGT (No públicos):</span>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <input
-                    type="text"
-                    required
-                    value={buyerName}
-                    onChange={(e) => setBuyerName(e.target.value)}
-                    placeholder="Tu nombre *"
-                    className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
-                  />
-                  <input
-                    type="tel"
-                    required
-                    value={buyerPhone}
-                    onChange={(e) => setBuyerPhone(e.target.value)}
-                    placeholder="WhatsApp (Solo EcoRopa) *"
-                    className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
-                  />
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={buyerAddress}
-                  onChange={(e) => setBuyerAddress(e.target.value)}
-                  placeholder="Dirección exacta y Zona / Municipio en Guatemala *"
-                  className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
-                />
-                <div>
-                  <label className="block text-[10px] font-bold text-grafito-700 mb-1">
-                    Método de Pago en Guatemala:
-                  </label>
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) =>
-                      setPaymentMethod(
-                        e.target.value as 'contra_entrega' | 'transferencia' | 'tarjeta'
-                      )
-                    }
-                    className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+              {/* Verificación Obligatoria de Comprador y Dirección para Guía de Envío */}
+              {!currentBuyer || !currentBuyer.isVerified ? (
+                <div className="bg-white p-4 rounded-2xl border-2 border-lavanda-300 shadow-2xs space-y-3 mt-2">
+                  <div className="flex items-start gap-2.5">
+                    <div className="p-2 rounded-xl bg-lavanda-100 text-lavanda-700 shrink-0">
+                      <UserCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-extrabold text-grafito-900">
+                        Paso Obligatorio: Regístrate y Verifica tu Dirección de Envío
+                      </h4>
+                      <p className="text-[11px] text-grafito-700 mt-0.5 leading-relaxed">
+                        Para comprar en EcoRopaGT es obligatorio contar con cuenta de comprador verificada, DPI/NIT, WhatsApp privado y dirección exacta de entrega para emitir tu guía de Forza / Cargo Expreso.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsBuyerAuthOpen(true)}
+                    className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-extrabold shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <option value="contra_entrega">💵 Pago Contra Entrega (Forza / Cargo Expreso)</option>
-                    <option value="transferencia">🏦 Transferencia BI / Banrural / BAC</option>
-                    <option value="tarjeta">💳 Tarjeta o Visacuotas</option>
-                  </select>
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>Registrarme / Verificar mis Datos de Envío →</span>
+                  </button>
                 </div>
-              </form>
+              ) : (
+                <form
+                  id="checkout-internal-form"
+                  onSubmit={handleConfirmInternalOrder}
+                  className="bg-white p-3.5 rounded-2xl border border-verde-300 space-y-2.5 mt-2"
+                >
+                  <div className="flex items-center justify-between gap-2 pb-2 border-b border-beige-200">
+                    <div className="flex items-center gap-1.5 text-xs font-extrabold text-verde-800">
+                      <ShieldCheck className="w-4 h-4 text-verde-600 shrink-0" />
+                      <span>Comprador Verificado: @{currentBuyer.username}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsBuyerAuthOpen(true)}
+                      className="text-[11px] font-bold text-lavanda-600 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Editar dirección</span>
+                    </button>
+                  </div>
+
+                  <div className="text-xs space-y-1 bg-beige-50 p-2.5 rounded-xl border border-beige-200">
+                    <p className="font-bold text-grafito-900">
+                      {currentBuyer.fullName} • <span className="text-grafito-700">DPI/NIT: {currentBuyer.dpiOrNit}</span>
+                    </p>
+                    <p className="text-[11px] text-verde-800 font-semibold flex items-center gap-1">
+                      <Lock className="w-3 h-3" />
+                      <span>WhatsApp Verificado (Privado): +{currentBuyer.whatsapp}</span>
+                    </p>
+                    <p className="text-[11px] text-grafito-800 font-semibold flex items-start gap-1 pt-0.5">
+                      <MapPin className="w-3.5 h-3.5 text-lavanda-600 shrink-0 mt-0.5" />
+                      <span>
+                        <strong>{currentBuyer.department}:</strong> {currentBuyer.shippingAddress}
+                        {currentBuyer.shippingReferences
+                          ? ` (${currentBuyer.shippingReferences})`
+                          : ''}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold text-grafito-700 mb-1">
+                      Método de Pago en Guatemala:
+                    </label>
+                    <select
+                      value={paymentMethod}
+                      onChange={(e) =>
+                        setPaymentMethod(
+                          e.target.value as 'contra_entrega' | 'transferencia' | 'tarjeta'
+                        )
+                      }
+                      className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+                    >
+                      <option value="contra_entrega">
+                        💵 Pago Contra Entrega (Forza / Cargo Expreso)
+                      </option>
+                      <option value="transferencia">🏦 Transferencia BI / Banrural / BAC</option>
+                      <option value="tarjeta">💳 Tarjeta o Visacuotas</option>
+                    </select>
+                  </div>
+                </form>
+              )}
             </>
           )}
         </div>
@@ -415,14 +455,25 @@ export function CartDrawer() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              form="checkout-internal-form"
-              className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Confirmar Pedido y Abrir Chat Interno</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {!currentBuyer || !currentBuyer.isVerified ? (
+              <button
+                type="button"
+                onClick={() => setIsBuyerAuthOpen(true)}
+                className="w-full py-3.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Registrarme y Verificar Dirección para Comprar</span>
+              </button>
+            ) : (
+              <button
+                type="submit"
+                form="checkout-internal-form"
+                className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Confirmar Pedido con Mis Datos Verificados</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            )}
           </div>
         )}
       </aside>

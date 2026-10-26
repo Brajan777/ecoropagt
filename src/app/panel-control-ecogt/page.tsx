@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { GarmentStatus, Order, OrderStatus, SellerProfile } from '@/types';
+import { BuyerProfile, GarmentStatus, Order, OrderStatus, SellerProfile } from '@/types';
 import {
   ShieldCheck,
   LayoutTemplate,
@@ -27,6 +27,7 @@ import {
   Lock,
   MessageSquare,
   LogOut,
+  UserCheck,
 } from 'lucide-react';
 
 export default function PrivateAdminControlPage() {
@@ -44,10 +45,13 @@ export default function PrivateAdminControlPage() {
     orders,
     updateOrderStatus,
     deleteOrder,
+    buyers,
+    toggleBuyerVerified,
+    deleteBuyer,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<
-    'orders' | 'content' | 'closets' | 'garments' | 'messages'
+    'orders' | 'content' | 'closets' | 'buyers' | 'garments' | 'messages'
   >('orders');
   const [savedAlert, setSavedAlert] = useState(false);
   const [resetAlert, setResetAlert] = useState(false);
@@ -59,6 +63,7 @@ export default function PrivateAdminControlPage() {
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
   const [adminSellers, setAdminSellers] = useState<SellerProfile[]>(sellers);
   const [adminOrders, setAdminOrders] = useState<Order[]>(orders);
+  const [adminBuyers, setAdminBuyers] = useState<BuyerProfile[]>(buyers);
 
   const loadUnmaskedAdminStore = async (token: string) => {
     try {
@@ -74,6 +79,9 @@ export default function PrivateAdminControlPage() {
         if (Array.isArray(data.orders)) {
           setAdminOrders(data.orders);
         }
+        if (Array.isArray(data.buyers)) {
+          setAdminBuyers(data.buyers);
+        }
       }
     } catch {}
   };
@@ -81,6 +89,7 @@ export default function PrivateAdminControlPage() {
   useEffect(() => {
     setAdminSellers(sellers);
     setAdminOrders(orders);
+    setAdminBuyers(buyers);
     if (typeof window !== 'undefined') {
       const savedToken = sessionStorage.getItem('ecoropa_admin_token');
       if (savedToken) {
@@ -88,7 +97,7 @@ export default function PrivateAdminControlPage() {
         loadUnmaskedAdminStore(savedToken);
       }
     }
-  }, [sellers, orders]);
+  }, [sellers, orders, buyers]);
 
   const handleServerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -444,8 +453,20 @@ export default function PrivateAdminControlPage() {
         >
           <Store className="w-4 h-4" />
           <span>
-            3. Clósets y Teléfonos Privados ({adminSellers.filter((s) => s.isFeatured).length} en portada)
+            3. Clósets y Teléfonos ({adminSellers.filter((s) => s.isFeatured).length} en portada)
           </span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('buyers')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
+            activeTab === 'buyers'
+              ? 'bg-lavanda-500 text-white shadow-xs'
+              : 'bg-white hover:bg-beige-100 text-grafito-700 border border-beige-200'
+          }`}
+        >
+          <UserCheck className="w-4 h-4" />
+          <span>4. Compradores Verificados ({adminBuyers.length})</span>
         </button>
 
         <button
@@ -457,7 +478,7 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>4. Moderación de Prendas ({garments.length})</span>
+          <span>5. Moderación de Prendas ({garments.length})</span>
         </button>
 
         <button
@@ -469,7 +490,7 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <MessageSquare className="w-4 h-4" />
-          <span>5. Auditoría de Mensajes ({messages.length})</span>
+          <span>6. Auditoría de Mensajes ({messages.length})</span>
         </button>
       </div>
 
@@ -622,21 +643,35 @@ export default function PrivateAdminControlPage() {
                       <div className="p-3.5 rounded-2xl bg-verde-50/70 border border-verde-200 space-y-2">
                         <p className="text-[11px] font-extrabold uppercase tracking-wider text-verde-800 flex items-center gap-1.5">
                           <Truck className="w-3.5 h-3.5" />
-                          <span>📥 2. Dirección de Entrega (Comprador)</span>
+                          <span>📥 2. Dirección de Entrega (Comprador Verificado)</span>
                         </p>
-                        <div className="text-xs bg-white p-2.5 rounded-xl border border-verde-100 space-y-1">
+                        <div className="text-xs bg-white p-2.5 rounded-xl border border-verde-100 space-y-1.5">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className="font-extrabold text-grafito-900">
-                              {order.buyerName}
+                              {order.buyerName}{' '}
+                              {order.buyerUsername ? `(@${order.buyerUsername})` : ''}
                             </span>
                             <span className="px-2 py-0.5 rounded-md bg-verde-100 text-verde-800 font-bold text-[11px]">
-                              🔒 WhatsApp: {order.buyerPhone}
+                              🔒 WhatsApp: +{order.buyerPhone.replace(/^\+/, '')}
                             </span>
                           </div>
+                          {order.buyerDpi && (
+                            <p className="text-[11px] font-bold text-grafito-700">
+                              🪪 DPI / NIT Verificado: {order.buyerDpi}
+                            </p>
+                          )}
                           <p className="text-grafito-800 font-semibold flex items-start gap-1.5">
                             <MapPin className="w-3.5 h-3.5 text-verde-700 shrink-0 mt-0.5" />
-                            <span>{order.address}</span>
+                            <span>
+                              {order.department ? `${order.department} — ` : ''}
+                              {order.address}
+                            </span>
                           </p>
+                          {order.shippingReferences && (
+                            <p className="text-[11px] text-grafito-700 bg-beige-50 p-1.5 rounded-lg border border-beige-200">
+                              <strong>Referencia Mensajero:</strong> {order.shippingReferences}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1145,7 +1180,137 @@ export default function PrivateAdminControlPage() {
         </div>
       )}
 
-      {/* TAB 3: Moderación de Prendas */}
+      {/* TAB 4: Compradores Registrados y Verificados (Direcciones de Envío y DPI/WhatsApp) */}
+      {activeTab === 'buyers' && (
+        <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-beige-200">
+            <div>
+              <h2 className="font-display text-lg font-bold text-grafito-900">
+                Padrón de Compradores Verificados y Direcciones de Envío
+              </h2>
+              <p className="text-xs text-grafito-700 mt-0.5">
+                Todos los compradores deben registrarse y pasar el proceso de verificación dejando su DPI/NIT, WhatsApp personal y dirección exacta antes de poder comprar.
+              </p>
+            </div>
+          </div>
+
+          {adminBuyers.length === 0 ? (
+            <div className="py-12 text-center text-xs text-grafito-600">
+              Aún no hay compradores registrados.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {adminBuyers.map((buyer) => (
+                <div
+                  key={buyer.id}
+                  className="p-5 rounded-2xl border border-beige-200 bg-beige-50/40 flex flex-col justify-between gap-4"
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="p-2 rounded-xl bg-lavanda-100 text-lavanda-700">
+                          <UserCheck className="w-4 h-4" />
+                        </span>
+                        <div>
+                          <h3 className="font-bold text-sm text-grafito-900">
+                            {buyer.fullName}
+                          </h3>
+                          <p className="text-xs font-bold text-lavanda-600">
+                            @{buyer.username} • Registro: {buyer.joinedDate}
+                          </p>
+                        </div>
+                      </div>
+
+                      {buyer.isVerified ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-verde-100 text-verde-800 border border-verde-300 text-[11px] font-extrabold">
+                          <ShieldCheck className="w-3.5 h-3.5 text-verde-700" />
+                          Verificado ✓
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[11px] font-extrabold">
+                          Pendiente de Verificación
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="px-2.5 py-1 rounded-lg bg-verde-100 text-verde-900 border border-verde-300 font-bold">
+                        🔒 WhatsApp: +{buyer.whatsapp.replace(/^\+/, '')}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-white border border-beige-200 font-bold text-grafito-800">
+                        🪪 DPI / NIT: {buyer.dpiOrNit || 'No especificado'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white border border-beige-200 text-xs space-y-1">
+                      <p className="font-extrabold text-lavanda-700 flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        <span>{buyer.department}</span>
+                      </p>
+                      <p className="font-semibold text-grafito-900">
+                        {buyer.shippingAddress}
+                      </p>
+                      {buyer.shippingReferences && (
+                        <p className="text-[11px] text-grafito-600 pt-0.5 border-t border-beige-100">
+                          <strong>Referencias:</strong> {buyer.shippingReferences}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-beige-200 flex items-center justify-between gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toggleBuyerVerified(buyer.username);
+                        setAdminBuyers((prev) =>
+                          prev.map((b) =>
+                            b.username === buyer.username
+                              ? { ...b, isVerified: !b.isVerified }
+                              : b
+                          )
+                        );
+                      }}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                        buyer.isVerified
+                          ? 'bg-verde-600 text-white'
+                          : 'bg-beige-200 hover:bg-verde-100 text-grafito-800'
+                      }`}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>
+                        {buyer.isVerified
+                          ? 'Cuenta Verificada (Clic para revocar)'
+                          : 'Aprobar Verificación'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (
+                          confirm(`¿Eliminar el registro del comprador @${buyer.username}?`)
+                        ) {
+                          deleteBuyer(buyer.username);
+                          setAdminBuyers((prev) =>
+                            prev.filter((b) => b.username !== buyer.username)
+                          );
+                        }
+                      }}
+                      className="p-2 rounded-xl text-grafito-600 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                      title="Eliminar comprador"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 5: Moderación de Prendas */}
       {activeTab === 'garments' && (
         <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-beige-200">

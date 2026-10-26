@@ -21,6 +21,7 @@ import {
   LayoutGrid,
   ShieldCheck,
   MessageSquare,
+  UserCheck,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -30,6 +31,8 @@ export function Navbar() {
     cart,
     wishlist,
     messages,
+    currentBuyer,
+    setIsBuyerAuthOpen,
     setIsCartOpen,
     setIsChatOpen,
     triggerSellerStudio,
@@ -139,6 +142,28 @@ export function Navbar() {
 
             {/* Controles Derechos */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsBuyerAuthOpen(true)}
+                className={`h-10 px-2.5 sm:px-3.5 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                  currentBuyer?.isVerified
+                    ? 'bg-verde-50 border-verde-300 text-verde-800 hover:bg-verde-100'
+                    : 'bg-white border-beige-200 hover:bg-lavanda-50 text-grafito-800'
+                }`}
+                title="Registro y verificación de cuenta de comprador (Dirección de envío)"
+              >
+                <UserCheck
+                  className={`w-4 h-4 ${
+                    currentBuyer?.isVerified ? 'text-verde-600' : 'text-lavanda-600'
+                  }`}
+                />
+                <span className="hidden xl:inline">
+                  {currentBuyer?.isVerified
+                    ? `✓ @${currentBuyer.username}`
+                    : 'Registrarme / Mi Envío'}
+                </span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleToggleWishlistOnly}

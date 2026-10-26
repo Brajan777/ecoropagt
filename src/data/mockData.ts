@@ -1,4 +1,4 @@
-import { Garment, InternalMessage, Order, SellerProfile, SiteContentConfig } from '@/types';
+import { BuyerProfile, Garment, InternalMessage, Order, SellerProfile, SiteContentConfig } from '@/types';
 
 export const initialSiteConfig: SiteContentConfig = {
   announcementText: '10% OFF automático al llevar 2+ prendas del mismo clóset',
@@ -533,12 +533,43 @@ export const initialGarments: Garment[] = [
   },
 ];
 
+export const initialBuyers: BuyerProfile[] = [
+  {
+    id: 'b1',
+    username: 'mafer_cabrera',
+    fullName: 'María Fernanda Cabrera',
+    dpiOrNit: '2845 91023 0101',
+    whatsapp: '50255441122',
+    department: 'Guatemala - Zona 14',
+    shippingAddress: '10a Avenida 14-32 Zona 14, Edificio Las Conchas, Apto 5B',
+    shippingReferences: 'Garita principal color blanco, dejar en recepción a nombre de Mafer.',
+    isVerified: true,
+    joinedDate: 'Octubre 2026',
+  },
+  {
+    id: 'b2',
+    username: 'jorge_mendez',
+    fullName: 'Jorge Alejandro Méndez',
+    dpiOrNit: '1983 44210 0108',
+    whatsapp: '50241228899',
+    department: 'Guatemala - Mixco (San Cristóbal)',
+    shippingAddress: 'Bulevar Principal San Cristóbal 8-19 Zona 8 de Mixco, Condominio Los Pinos Casa #14',
+    shippingReferences: 'Portón negro frente a parqueo de visitas, tocar timbre #14.',
+    isVerified: true,
+    joinedDate: 'Octubre 2026',
+  },
+];
+
 export const initialOrders: Order[] = [
   {
     id: 'ECO-89412',
+    buyerUsername: 'mafer_cabrera',
     buyerName: 'María Fernanda Cabrera',
     buyerPhone: '50255441122',
-    address: 'Zona 14, Ciudad de Guatemala',
+    buyerDpi: '2845 91023 0101',
+    department: 'Guatemala - Zona 14',
+    address: '10a Avenida 14-32 Zona 14, Edificio Las Conchas, Apto 5B',
+    shippingReferences: 'Garita principal color blanco, dejar en recepción a nombre de Mafer.',
     paymentMethod: 'contra_entrega',
     items: [
       {
