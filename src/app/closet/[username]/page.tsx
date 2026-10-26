@@ -202,18 +202,6 @@ export default function ClosetProfilePage({ params }: Props) {
   const availableItems = sellerGarments.filter((g) => g.status === 'disponible');
   const soldItems = sellerGarments.filter((g) => g.status === 'vendida');
 
-  // Cálculo de Eco-Impacto del Clóset
-  const waterSavedLiters = (seller.salesCount + availableItems.length) * 2700;
-  const averageSavingsPercent =
-    sellerGarments.length > 0
-      ? Math.round(
-          sellerGarments.reduce((acc, item) => {
-            if (!item.retailPrice || item.retailPrice <= item.price) return acc;
-            return acc + ((item.retailPrice - item.price) / item.retailPrice) * 100;
-          }, 0) / sellerGarments.length
-        )
-      : 62;
-
   // Filtrado por pestaña + buscador interno + categoría
   const baseTabItems = activeTab === 'disponibles' ? availableItems : soldItems;
   const filteredItems = baseTabItems.filter((item) => {
@@ -377,162 +365,98 @@ export default function ClosetProfilePage({ params }: Props) {
             </div>
           )}
 
-          {/* Biografía */}
-          <div className="mt-5 pt-5 border-t border-beige-200">
-            <p className="text-xs sm:text-sm text-grafito-700 leading-relaxed max-w-3xl">
+          {/* Biografía + Promoción Todo-en-Uno del Clóset */}
+          <div className="mt-4 pt-4 border-t border-beige-200 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <p className="text-xs sm:text-sm text-grafito-700 leading-relaxed max-w-2xl">
               {seller.bio}
             </p>
+            <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-lavanda-50 border border-lavanda-200 text-lavanda-700 text-xs font-bold shrink-0">
+              <Sparkles className="w-4 h-4 text-lavanda-600 shrink-0" />
+              <span>Lleva 2+ prendas de @{seller.username} y obtén 10% OFF + 1 solo envío</span>
+            </div>
           </div>
 
-          {/* Eco-Impacto del Clóset */}
-          <div className="mt-6 pt-6 border-t border-beige-200">
-            <div className="flex items-center justify-between mb-3">
-              <span className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-verde-700">
-                <Leaf className="w-4 h-4" /> Eco-Impacto del Clóset de @{seller.username}
-              </span>
-              <span className="text-[11px] text-grafito-700 hidden sm:inline">
-                Cada prenda reutilizada ahorra ~2,700 L de agua
-              </span>
+          {/* Barra Integrada Todo-en-Uno: Pestañas + Buscador + Categorías */}
+          <div className="mt-5 pt-5 border-t border-beige-200 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => setActiveTab('disponibles')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'disponibles'
+                    ? 'bg-lavanda-500 text-white shadow-xs'
+                    : 'bg-beige-50 hover:bg-beige-100 text-grafito-700 border border-beige-200'
+                }`}
+              >
+                <Tag className="w-3.5 h-3.5" />
+                <span>Prendas Disponibles ({availableItems.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('vendidas')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'vendidas'
+                    ? 'bg-lavanda-500 text-white shadow-xs'
+                    : 'bg-beige-50 hover:bg-beige-100 text-grafito-700 border border-beige-200'
+                }`}
+              >
+                <ShoppingBag className="w-3.5 h-3.5" />
+                <span>Vendidas ({soldItems.length})</span>
+              </button>
+
+              <button
+                onClick={() => setActiveTab('resenas')}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'resenas'
+                    ? 'bg-lavanda-500 text-white shadow-xs'
+                    : 'bg-beige-50 hover:bg-beige-100 text-grafito-700 border border-beige-200'
+                }`}
+              >
+                <Star className="w-3.5 h-3.5" />
+                <span>Reseñas ({GUATEMALAN_REVIEWS.length})</span>
+              </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-              {/* Litros de Agua Ahorrados */}
-              <div className="rounded-2xl bg-verde-50/80 border border-verde-200 p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-verde-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Droplets className="w-5 h-5" />
+            {activeTab !== 'resenas' && (
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 lg:max-w-xl">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-grafito-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={internalSearch}
+                    onChange={(e) => setInternalSearch(e.target.value)}
+                    placeholder={`Buscar prenda, marca o talla en @${seller.username}...`}
+                    className="w-full pl-9 pr-8 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs text-grafito-900 placeholder:text-grafito-600 focus:outline-hidden focus:border-lavanda-400 transition"
+                  />
+                  {internalSearch && (
+                    <button
+                      onClick={() => setInternalSearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-grafito-600 hover:text-grafito-900"
+                      title="Limpiar búsqueda"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
-                <div>
-                  <p className="text-lg sm:text-xl font-display font-extrabold text-grafito-900">
-                    {waterSavedLiters.toLocaleString('es-GT')} L
-                  </p>
-                  <p className="text-xs font-semibold text-verde-800">
-                    Agua ahorrada al planeta
-                  </p>
-                </div>
-              </div>
 
-              {/* Ahorro Promedio en % */}
-              <div className="rounded-2xl bg-lavanda-50/80 border border-lavanda-200 p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-lavanda-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <TrendingDown className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-lg sm:text-xl font-display font-extrabold text-grafito-900">
-                    {averageSavingsPercent}% menos
-                  </p>
-                  <p className="text-xs font-semibold text-lavanda-700">
-                    Ahorro promedio vs. precio retail
-                  </p>
-                </div>
-              </div>
-
-              {/* Prendas en Circulación */}
-              <div className="rounded-2xl bg-beige-100/80 border border-beige-200 p-4 flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-xl bg-grafito-800 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <p className="text-lg sm:text-xl font-display font-extrabold text-grafito-900">
-                    {seller.salesCount + availableItems.length} prendas
-                  </p>
-                  <p className="text-xs font-semibold text-grafito-700">
-                    Con segunda vida garantizada
-                  </p>
+                <div className="flex items-center gap-1 overflow-x-auto">
+                  {CATEGORIES.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedCategory(cat.id)}
+                      className={`px-2.5 py-2 rounded-xl text-[11px] font-bold whitespace-nowrap transition cursor-pointer ${
+                        selectedCategory === cat.id
+                          ? 'bg-grafito-900 text-white'
+                          : 'bg-beige-100/80 hover:bg-beige-200 text-grafito-700'
+                      }`}
+                    >
+                      {cat.id === 'todos' ? 'Todas' : cat.label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
-
-        {/* Pestañas del Clóset */}
-        <div className="mt-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-beige-200 pb-4">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <button
-              onClick={() => setActiveTab('disponibles')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                activeTab === 'disponibles'
-                  ? 'bg-lavanda-500 text-white shadow-xs'
-                  : 'bg-white hover:bg-beige-100 text-grafito-700 border border-beige-200'
-              }`}
-            >
-              <Tag className="w-3.5 h-3.5" />
-              <span>En Venta ({availableItems.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('vendidas')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                activeTab === 'vendidas'
-                  ? 'bg-lavanda-500 text-white shadow-xs'
-                  : 'bg-white hover:bg-beige-100 text-grafito-700 border border-beige-200'
-              }`}
-            >
-              <ShoppingBag className="w-3.5 h-3.5" />
-              <span>Prendas Vendidas ({soldItems.length})</span>
-            </button>
-
-            <button
-              onClick={() => setActiveTab('resenas')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
-                activeTab === 'resenas'
-                  ? 'bg-lavanda-500 text-white shadow-xs'
-                  : 'bg-white hover:bg-beige-100 text-grafito-700 border border-beige-200'
-              }`}
-            >
-              <Star className="w-3.5 h-3.5" />
-              <span>Reseñas Verificadas ({GUATEMALAN_REVIEWS.length})</span>
-            </button>
-          </div>
-
-          {activeTab !== 'resenas' && (
-            <span className="text-xs font-semibold text-grafito-700">
-              Mostrando {filteredItems.length} de {baseTabItems.length} prendas
-            </span>
-          )}
-        </div>
-
-        {/* Buscador Interno y Filtro por Categoría (para pestañas de prendas) */}
-        {activeTab !== 'resenas' && (
-          <div className="mt-5 bg-white rounded-2xl p-4 border border-beige-200 shadow-2xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-            {/* Input de búsqueda interna */}
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-grafito-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={internalSearch}
-                onChange={(e) => setInternalSearch(e.target.value)}
-                placeholder={`Buscar en el clóset de @${seller.username} por prenda, marca o talla...`}
-                className="w-full pl-10 pr-9 py-2.5 rounded-xl bg-beige-50 border border-beige-200 text-xs sm:text-sm text-grafito-900 placeholder:text-grafito-600 focus:outline-hidden focus:border-lavanda-400 transition"
-              />
-              {internalSearch && (
-                <button
-                  onClick={() => setInternalSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-grafito-600 hover:text-grafito-900"
-                  title="Limpiar búsqueda"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            {/* Botones de Categoría */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-              {CATEGORIES.map((cat) => (
-                <button
-                  key={cat.id}
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition ${
-                    selectedCategory === cat.id
-                      ? 'bg-grafito-900 text-white'
-                      : 'bg-beige-100/80 hover:bg-beige-200 text-grafito-700'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* Contenido Principal según Pestaña */}
         <div className="mt-6">

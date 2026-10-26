@@ -316,15 +316,6 @@ export function Navbar() {
                 <span>Estudio Completo</span>
               </Link>
             </nav>
-
-            <Link
-              href="/admin"
-              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-grafito-600 hover:text-lavanda-700 hover:bg-beige-100 transition shrink-0"
-              title="Panel de Administración"
-            >
-              <ShieldCheck className="w-3.5 h-3.5 text-verde-600" />
-              <span>Admin</span>
-            </Link>
           </div>
         </div>
       </header>

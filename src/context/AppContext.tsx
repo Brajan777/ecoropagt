@@ -142,7 +142,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     async function loadCloudStore() {
       try {
-        const res = await fetch('/api/store', { cache: 'no-store' });
+        const adminToken =
+          typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_admin_token') || '' : '';
+        const res = await fetch('/api/store', {
+          cache: 'no-store',
+          headers: adminToken ? { 'x-admin-token': adminToken } : {},
+        });
         if (res.ok) {
           const data = await res.json();
           if (data.siteConfig) setSiteConfig(data.siteConfig);
@@ -195,9 +200,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     messages?: InternalMessage[];
   }) => {
     try {
+      const adminToken =
+        typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_admin_token') || '' : '';
       await fetch('/api/store', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+        },
         body: JSON.stringify(payload),
       });
     } catch (e) {}
@@ -301,9 +311,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem('ecoropa_cart');
       localStorage.removeItem('ecoropa_wishlist');
     } catch (e) {}
+    const adminToken =
+      typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_admin_token') || '' : '';
     fetch('/api/store', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+      },
       body: JSON.stringify({ reset: true }),
     }).catch(() => {});
   };

@@ -8,13 +8,14 @@ import {
   initialSiteConfig,
 } from '@/data/mockData';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { isValidAdminToken, sanitizeString } from '@/lib/adminAuth';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'cloud-store.json');
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+const securityHeaders = {
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'Cache-Control': 'no-store, max-age=0',
 };
 
 function getInitialData() {
@@ -25,6 +26,14 @@ function getInitialData() {
     messages: initialMessages,
     updatedAt: new Date().toISOString(),
   };
+}
+
+function maskSellersForPublic(sellers: typeof initialSellers) {
+  return sellers.map((s) => ({
+    ...s,
+    // Ocultar WhatsApp en la respuesta pública de la API para que nadie pueda extraerlo desde DevTools
+    whatsapp: 'privado',
+  }));
 }
 
 function readLocalDb() {
@@ -112,7 +121,6 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
         updated_at: updated.updatedAt,
       });
 
-      // Sincronizar también tablas relacionales sellers y garments en segundo plano
       if (Array.isArray(updated.sellers) && updated.sellers.length > 0) {
         await supabase.from('sellers').upsert(
           updated.sellers.map((s) => ({
@@ -174,39 +182,129 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
 }
 
 export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders });
+  return NextResponse.json({}, { headers: securityHeaders });
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const adminToken = request.headers.get('x-admin-token');
+  const isAdmin = isValidAdminToken(adminToken);
   const data = await getStoreData();
-  return NextResponse.json(data, { headers: corsHeaders });
+
+  return NextResponse.json(
+    {
+      ...data,
+      // Si NO es el administrador autenticado, enmascarar los teléfonos en la respuesta HTTP
+      sellers: isAdmin ? data.sellers : maskSellersForPublic(data.sellers),
+    },
+    { headers: securityHeaders }
+  );
 }
 
 export async function POST(request: Request) {
   try {
+    const adminToken = request.headers.get('x-admin-token');
+    const isAdmin = isValidAdminToken(adminToken);
+
     const current = await getStoreData();
     const body = await request.json();
 
+    // Protección 1: Solo un Admin autenticado puede restaurar la base de datos o editar el CMS de portada
     if (body.reset === true) {
+      if (!isAdmin) {
+        return NextResponse.json(
+          { error: 'No autorizado. Se requiere token de administrador.' },
+          { status: 403, headers: securityHeaders }
+        );
+      }
       const resetData = getInitialData();
       const saved = await saveStoreData(resetData);
-      return NextResponse.json(saved, { headers: corsHeaders });
+      return NextResponse.json(saved, { headers: securityHeaders });
+    }
+
+    if (body.siteConfig && !isAdmin) {
+      return NextResponse.json(
+        { error: 'No autorizado para modificar la configuración principal del sitio.' },
+        { status: 403, headers: securityHeaders }
+      );
+    }
+
+    // Protección 2: Preservar los números de WhatsApp reales en el servidor cuando el cliente envía 'privado'
+    let mergedSellers = current.sellers;
+    if (Array.isArray(body.sellers)) {
+      mergedSellers = body.sellers.slice(0, 200).map((incoming: any) => {
+        const existing = current.sellers.find(
+          (s: any) => s.username === incoming.username || s.id === incoming.id
+        );
+        const realWhatsapp =
+          incoming.whatsapp && incoming.whatsapp !== 'privado'
+            ? sanitizeString(incoming.whatsapp, 25)
+            : existing?.whatsapp || '50200000000';
+
+        return {
+          ...existing,
+          ...incoming,
+          displayName: sanitizeString(incoming.displayName, 80),
+          bio: sanitizeString(incoming.bio, 350),
+          location: sanitizeString(incoming.location, 80),
+          whatsapp: realWhatsapp,
+          // Solo el Admin puede cambiar isFeatured o isVerified de un clóset existente
+          isFeatured: isAdmin
+            ? Boolean(incoming.isFeatured)
+            : existing
+            ? existing.isFeatured
+            : false,
+          isVerified: isAdmin
+            ? Boolean(incoming.isVerified)
+            : existing
+            ? existing.isVerified
+            : true,
+        };
+      });
+    }
+
+    // Protección 3: Sanitizar prendas
+    let mergedGarments = current.garments;
+    if (Array.isArray(body.garments)) {
+      mergedGarments = body.garments.slice(0, 500).map((g: any) => ({
+        ...g,
+        title: sanitizeString(g.title, 120),
+        brand: sanitizeString(g.brand, 60),
+        size: sanitizeString(g.size, 40),
+        notes: sanitizeString(g.notes, 400),
+        price: Math.max(1, Math.min(50000, Number(g.price) || 100)),
+        retailPrice: Math.max(1, Math.min(100000, Number(g.retailPrice) || 200)),
+      }));
+    }
+
+    // Protección 4: Sanitizar mensajes internos y bloquear teléfonos en servidor
+    let mergedMessages = current.messages ?? initialMessages;
+    if (Array.isArray(body.messages)) {
+      mergedMessages = body.messages.slice(-200).map((m: any) => ({
+        ...m,
+        text: sanitizeString(m.text, 400).replace(/\b\d{8,15}\b/g, '[teléfono oculto]'),
+      }));
     }
 
     const updated = {
-      siteConfig: body.siteConfig ?? current.siteConfig,
-      sellers: body.sellers ?? current.sellers,
-      garments: body.garments ?? current.garments,
-      messages: body.messages ?? current.messages ?? initialMessages,
+      siteConfig: isAdmin && body.siteConfig ? body.siteConfig : current.siteConfig,
+      sellers: mergedSellers,
+      garments: mergedGarments,
+      messages: mergedMessages,
       updatedAt: new Date().toISOString(),
     };
 
     const saved = await saveStoreData(updated);
-    return NextResponse.json(saved, { headers: corsHeaders });
+    return NextResponse.json(
+      {
+        ...saved,
+        sellers: isAdmin ? saved.sellers : maskSellersForPublic(saved.sellers),
+      },
+      { headers: securityHeaders }
+    );
   } catch (e) {
     return NextResponse.json(
       { error: 'Error saving store data' },
-      { status: 500, headers: corsHeaders }
+      { status: 500, headers: securityHeaders }
     );
   }
 }

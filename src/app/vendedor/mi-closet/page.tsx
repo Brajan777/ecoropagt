@@ -231,7 +231,6 @@ export default function SellerDashboardPage() {
   const totalLikes = myGarments.reduce((acc, g) => acc + (g.likes || 0), 0);
   const soldEarnings = soldGarments.reduce((acc, g) => acc + g.price, 0);
   const potentialActiveValue = activeGarments.reduce((acc, g) => acc + g.price, 0);
-  const waterSavedLiters = myGarments.length * 2700;
 
   // Sugerencia automática de precio circular (35% - 45% del precio original en tienda)
   const suggestedMinPrice = Math.max(25, Math.round((retailPrice || 0) * 0.35));
@@ -401,7 +400,7 @@ export default function SellerDashboardPage() {
       </div>
 
       {/* Tarjetas de Métricas en Vivo */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-beige-200 shadow-2xs">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs font-bold text-grafito-700">Prendas Activas</span>
@@ -451,19 +450,6 @@ export default function SellerDashboardPage() {
           </span>
           <p className="text-[11px] text-grafito-700 mt-1">
             De prendas marcadas vendidas
-          </p>
-        </div>
-
-        <div className="col-span-2 lg:col-span-1 bg-verde-50/70 p-4 sm:p-5 rounded-2xl border border-verde-200 shadow-2xs">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-verde-700">Huella Eco Ahorrada</span>
-            <Droplets className="w-4 h-4 text-verde-600" />
-          </div>
-          <span className="font-display text-2xl sm:text-3xl font-extrabold text-verde-700">
-            {waterSavedLiters.toLocaleString()} L
-          </span>
-          <p className="text-[11px] text-verde-700 mt-1">
-            Agua preservada por tu clóset
           </p>
         </div>
       </div>

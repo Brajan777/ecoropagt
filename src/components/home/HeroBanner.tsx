@@ -55,14 +55,18 @@ export function HeroBanner() {
             </div>
           </div>
 
-          {/* Floating Eco Impact Pill on Bottom Right */}
+          {/* Floating Bundle & Trust Pill on Bottom Right */}
           <div className="hidden lg:flex absolute bottom-6 right-6 z-10 bg-beige-50/95 backdrop-blur-md px-4 py-3 rounded-2xl shadow-lg border border-beige-200 items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-verde-200 text-verde-700 flex items-center justify-center text-xl">
-              <Droplets className="w-5 h-5 fill-current" />
+            <div className="w-10 h-10 rounded-xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center text-xl">
+              <Tag className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs font-bold text-grafito-900">{siteConfig.ecoWaterStat}</p>
-              <p className="text-[11px] text-grafito-700">Moda circular verificada en Guatemala</p>
+              <p className="text-xs font-bold text-grafito-900">
+                -10% OFF en paquetes del mismo clóset
+              </p>
+              <p className="text-[11px] text-grafito-700">
+                Prendas verificadas con medidas reales en cm
+              </p>
             </div>
           </div>
         </div>

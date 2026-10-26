@@ -153,15 +153,6 @@ export function Footer() {
               </li>
               <li>Envíos a todo el país vía Cargo Expreso / Forza.</li>
               <li>Pago resguardado hasta que recibes tu pedido conforme.</li>
-              <li className="pt-1">
-                <Link
-                  href="/admin"
-                  className="inline-flex items-center gap-1 text-grafito-600 hover:text-lavanda-600 font-semibold"
-                >
-                  <Lock className="w-3 h-3" />
-                  <span>Panel de Administración</span>
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
