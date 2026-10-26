@@ -2,10 +2,10 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { GarmentCategory } from '@/types';
-import { RotateCcw, ShieldCheck, Sparkles, Lock } from 'lucide-react';
+import { RotateCcw, ShieldCheck, Sparkles } from 'lucide-react';
 
 export function Footer() {
   const router = useRouter();

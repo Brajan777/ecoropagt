@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { Garment } from '@/types';
 import { useApp } from '@/context/AppContext';
-import { Heart, ShoppingBag, Check, ShieldCheck } from 'lucide-react';
+import { Heart, ShoppingBag, Check } from 'lucide-react';
 
 interface ProductCardProps {
   item: Garment;
@@ -14,6 +14,9 @@ export function ProductCard({ item }: ProductCardProps) {
   const { cart, addToCart, wishlist, toggleWishlist, setQuickViewItem } = useApp();
 
   const inCart = cart.some((c) => c.id === item.id);
+  const sellerCartCount = cart.filter(
+    (c) => c.sellerUsername.toLowerCase() === item.sellerUsername.toLowerCase()
+  ).length;
   const isFav = wishlist.includes(item.id);
   const likeCount = isFav ? item.likes + 1 : item.likes;
   const avatarLetter = item.sellerUsername.charAt(0).toUpperCase();
@@ -72,16 +75,26 @@ export function ProductCard({ item }: ProductCardProps) {
 
         {/* Vinted Compact Details */}
         <div className="p-3">
-          <div className="flex items-baseline justify-between">
+          <div className="flex items-baseline justify-between gap-1">
             <div className="flex items-baseline gap-1.5">
               <span className="font-display text-base sm:text-lg font-extrabold text-grafito-900">
                 Q{item.price}
               </span>
               <span className="text-[11px] text-grafito-700/50 line-through">Q{item.retailPrice}</span>
             </div>
-            <span className="text-[10px] font-bold text-verde-700 bg-verde-50 px-2 py-0.5 rounded-md border border-verde-200">
-              -10% Pack
-            </span>
+            {sellerCartCount >= 3 ? (
+              <span className="text-[10px] font-extrabold text-white bg-verde-600 px-2 py-0.5 rounded-md">
+                🎉 -10% Activo
+              </span>
+            ) : sellerCartCount > 0 ? (
+              <span className="text-[10px] font-extrabold text-lavanda-800 bg-lavanda-100 px-2 py-0.5 rounded-md border border-lavanda-300">
+                🎁 Llevas {sellerCartCount}/3 (-10%)
+              </span>
+            ) : (
+              <span className="text-[10px] font-bold text-verde-700 bg-verde-50 px-2 py-0.5 rounded-md border border-verde-200">
+                -10% en 3+
+              </span>
+            )}
           </div>
 
           <p className="text-xs font-semibold text-grafito-700 mt-1 truncate">

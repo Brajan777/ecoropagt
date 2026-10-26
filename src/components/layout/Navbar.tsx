@@ -24,7 +24,6 @@ import {
   UserCheck,
   Home,
   Bell,
-  CheckCircle2,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -371,7 +370,7 @@ export function Navbar() {
               <button
                 type="button"
                 onClick={() => handleOpenStudio('subir')}
-                className="h-10 px-3 sm:px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                className="hidden md:flex h-10 px-3 sm:px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs sm:text-sm font-bold shadow-xs transition items-center gap-1.5 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Vender</span>

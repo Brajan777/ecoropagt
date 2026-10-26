@@ -13,6 +13,9 @@ import {
   Heart,
   Check,
   MessageCircle,
+  Bell,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 export function QuickViewModal() {
@@ -24,6 +27,8 @@ export function QuickViewModal() {
     setIsCartOpen,
     wishlist,
     toggleWishlist,
+    followedClosets,
+    toggleFollowCloset,
     openChatWithSeller,
   } = useApp();
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
@@ -36,6 +41,12 @@ export function QuickViewModal() {
 
   const item = quickViewItem;
   const inCart = cart.some((c) => c.id === item.id);
+  const sellerCartCount = cart.filter(
+    (c) => c.sellerUsername.toLowerCase() === item.sellerUsername.toLowerCase()
+  ).length;
+  const isFollowingSeller = followedClosets.some(
+    (u) => u.toLowerCase() === item.sellerUsername.toLowerCase()
+  );
   const isFav = wishlist.includes(item.id);
 
   const gallery =
@@ -85,8 +96,31 @@ export function QuickViewModal() {
 
         {/* Columna Izquierda: Galería Multi-Foto (Frente, Etiqueta, Textura) */}
         <div className="md:col-span-6 bg-beige-100 flex flex-col justify-between -mt-12 sm:mt-0">
-          <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden">
+          <div className="relative h-64 sm:h-80 md:h-96 w-full overflow-hidden group">
             <img src={activeImage} alt={item.title} className="w-full h-full object-cover" />
+
+            {/* Controles rápidos Anterior / Siguiente para cambiar ángulo cómodamente en móvil */}
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedImgIdx((prev) => (prev - 1 + gallery.slice(0, 3).length) % gallery.slice(0, 3).length)
+              }
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 text-grafito-900 flex items-center justify-center shadow-md hover:bg-white transition cursor-pointer"
+              title="Foto anterior"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                setSelectedImgIdx((prev) => (prev + 1) % gallery.slice(0, 3).length)
+              }
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/90 text-grafito-900 flex items-center justify-center shadow-md hover:bg-white transition cursor-pointer"
+              title="Siguiente foto"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+
             <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-grafito-900/75 text-white text-[10px] font-bold">
               {photoLabels[selectedImgIdx] || `Foto ${selectedImgIdx + 1}`}
             </span>
@@ -130,28 +164,43 @@ export function QuickViewModal() {
         {/* Columna Derecha: Información + Medidas en cm + Bundle Promo */}
         <div className="md:col-span-6 p-5 sm:p-6 flex flex-col justify-between space-y-3.5">
           <div>
-            <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-beige-200">
+            <div className="flex items-center justify-between gap-2 pb-2.5 mb-2.5 border-b border-beige-200">
               <Link
                 href={`/closet/${item.sellerUsername}`}
                 onClick={() => setQuickViewItem(null)}
-                className="flex items-center gap-2 group"
+                className="flex items-center gap-2 group min-w-0"
               >
-                <span className="w-8 h-8 rounded-full bg-lavanda-200 text-lavanda-700 font-bold text-xs flex items-center justify-center">
+                <span className="w-8 h-8 rounded-full bg-lavanda-200 text-lavanda-700 font-bold text-xs flex items-center justify-center shrink-0">
                   {avatarLetter}
                 </span>
-                <div>
-                  <p className="text-xs font-bold text-grafito-900 group-hover:text-lavanda-600 transition">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-grafito-900 group-hover:text-lavanda-600 transition truncate">
                     @{item.sellerUsername}
                   </p>
                   <p className="text-[10px] text-verde-700 font-semibold flex items-center gap-0.5">
                     <Star className="w-2.5 h-2.5 fill-current text-amber-500" />
-                    <span>Clóset verificado • Ver perfil</span>
+                    <span>Clóset verificado</span>
                   </p>
                 </div>
               </Link>
-              <span className="px-2.5 py-1 rounded-md bg-verde-100 text-verde-700 text-xs font-bold">
-                -{discountPct}% ahorro
-              </span>
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => toggleFollowCloset(item.sellerUsername)}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold border transition flex items-center gap-1 cursor-pointer ${
+                    isFollowingSeller
+                      ? 'bg-lavanda-100 border-lavanda-300 text-lavanda-800'
+                      : 'bg-white hover:bg-lavanda-50 border-beige-200 text-grafito-800'
+                  }`}
+                >
+                  <Bell className="w-3 h-3" />
+                  <span>{isFollowingSeller ? 'Siguiendo' : '+ Seguir'}</span>
+                </button>
+                <span className="px-2 py-1 rounded-md bg-verde-100 text-verde-700 text-[11px] font-bold">
+                  -{discountPct}%
+                </span>
+              </div>
             </div>
 
             <h3 className="font-display text-lg sm:text-xl font-extrabold text-grafito-900">
@@ -170,13 +219,26 @@ export function QuickViewModal() {
               </span>
             </div>
 
-            {/* Banner de Paquete del Mismo Clóset (-10% Bundle en 3+ prendas) */}
+            {/* Banner Dinámico de Paquete del Mismo Clóset (-10% Bundle en 3+ prendas) */}
             <div className="mt-2.5 px-3 py-2 rounded-xl bg-lavanda-50 border border-lavanda-200 flex items-center gap-2 text-[11px] text-lavanda-700 font-semibold">
               <Sparkles className="w-4 h-4 text-lavanda-500 shrink-0" />
-              <span>
-                ¡Lleva 3+ prendas de <strong>@{item.sellerUsername}</strong> y obtén{' '}
-                <strong>10% OFF extra</strong> + 1 solo envío (Q25)!
-              </span>
+              {sellerCartCount >= 3 ? (
+                <span>
+                  🎉 <strong>¡Ya tienes {sellerCartCount} prendas de @{item.sellerUsername}!</strong> El{' '}
+                  <strong>-10% OFF extra</strong> ya está activo en tu bolsa.
+                </span>
+              ) : sellerCartCount > 0 ? (
+                <span>
+                  🎁 Llevas <strong>{sellerCartCount} de 3</strong> prendas de{' '}
+                  <strong>@{item.sellerUsername}</strong>. ¡Agrega {3 - sellerCartCount} más para{' '}
+                  <strong>-10% OFF</strong> + 1 solo envío (Q25)!
+                </span>
+              ) : (
+                <span>
+                  ¡Lleva 3+ prendas de <strong>@{item.sellerUsername}</strong> y obtén{' '}
+                  <strong>10% OFF extra</strong> + 1 solo envío (Q25)!
+                </span>
+              )}
             </div>
 
             {/* Bloque de Medidas Exactas en Centímetros */}

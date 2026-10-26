@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { Sparkles, Tag, ArrowDown, Droplets } from 'lucide-react';
+import { Sparkles, Tag, ArrowDown } from 'lucide-react';
 
 export function HeroBanner() {
   const { siteConfig } = useApp();

@@ -107,8 +107,6 @@ interface AppContextType {
     senderRole?: 'comprador' | 'vendedor' | 'ecoropa';
     garment?: Garment | null;
   }) => void;
-  isSellerStudioOpen: boolean;
-  setIsSellerStudioOpen: (open: boolean) => void;
   studioActionCounter: number;
   studioRequestedTab: 'inventario' | 'subir' | 'perfil' | 'mensajes';
   triggerSellerStudio: (
@@ -183,7 +181,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [activeChatSeller, setActiveChatSeller] = useState<string>(initialSellers[0].username);
   const [chatContextGarment, setChatContextGarment] = useState<Garment | null>(null);
 
-  const [isSellerStudioOpen, setIsSellerStudioOpen] = useState(false);
   const [studioActionCounter, setStudioActionCounter] = useState(0);
   const [studioRequestedTab, setStudioRequestedTab] = useState<
     'inventario' | 'subir' | 'perfil' | 'mensajes'
@@ -682,7 +679,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
     setStudioRequestedTab(tab);
-    setIsSellerStudioOpen(true);
     setStudioActionCounter((c) => c + 1);
   };
 
@@ -1030,8 +1026,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setChatContextGarment,
         openChatWithSeller,
         sendMessage,
-        isSellerStudioOpen,
-        setIsSellerStudioOpen,
         studioActionCounter,
         studioRequestedTab,
         triggerSellerStudio,
