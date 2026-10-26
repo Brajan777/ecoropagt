@@ -27,11 +27,23 @@ export function ProductGrid() {
   } = useApp();
 
   const [genderFilter, setGenderFilter] = useState('todos');
+  const [sizeFilter, setSizeFilter] = useState('todas');
   const [brandFilter, setBrandFilter] = useState('todas');
   const [conditionFilter, setConditionFilter] = useState('todas');
   const [sortBy, setSortBy] = useState('destacados');
   const [activeBrandChip, setActiveBrandChip] = useState('todas');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  const quickSizes = [
+    { id: 'todas', label: 'Todas las Tallas' },
+    { id: 'XS', label: 'Talla XS' },
+    { id: 'S', label: 'Talla S' },
+    { id: 'M', label: 'Talla M' },
+    { id: 'L', label: 'Talla L' },
+    { id: 'XL', label: 'Talla XL' },
+    { id: 'Niños', label: 'Niños / Bebés' },
+    { id: 'Calzado', label: 'Tallas Calzado' },
+  ];
 
   const popularBrands = [
     'todas',
@@ -52,6 +64,7 @@ export function ProductGrid() {
 
   const resetFilters = () => {
     setGenderFilter('todos');
+    setSizeFilter('todas');
     setBrandFilter('todas');
     setConditionFilter('todas');
     setSortBy('destacados');
@@ -89,13 +102,30 @@ export function ProductGrid() {
       const matchBrand = brandFilter === 'todas' || item.brand === brandFilter;
       const matchCondition = conditionFilter === 'todas' || item.condition === conditionFilter;
 
+      const matchSize = (() => {
+        if (sizeFilter === 'todas') return true;
+        if (sizeFilter === 'XS') return /\bxs\b/i.test(item.size);
+        if (sizeFilter === 'S') return /\bs\b/i.test(item.size);
+        if (sizeFilter === 'M') return /\bm\b/i.test(item.size);
+        if (sizeFilter === 'L') return /\bl\b/i.test(item.size);
+        if (sizeFilter === 'XL') return /\bxl\b/i.test(item.size);
+        if (sizeFilter === 'Niños')
+          return item.category === 'ninos' || /\b(meses|años|\d+t\b)/i.test(item.size);
+        if (sizeFilter === 'Calzado')
+          return (
+            item.category === 'calzado' || /\b(35|36|37|38|39|40|41|42|eu)\b/i.test(item.size)
+          );
+        return true;
+      })();
+
       return (
         matchSearch &&
         matchCategory &&
         matchWishlist &&
         matchGender &&
         matchBrand &&
-        matchCondition
+        matchCondition &&
+        matchSize
       );
     });
 
@@ -119,6 +149,7 @@ export function ProductGrid() {
     wishlistOnly,
     wishlist,
     genderFilter,
+    sizeFilter,
     brandFilter,
     conditionFilter,
     sortBy,
@@ -129,6 +160,7 @@ export function ProductGrid() {
     selectedCategory !== 'todos' ||
     wishlistOnly ||
     genderFilter !== 'todos' ||
+    sizeFilter !== 'todas' ||
     brandFilter !== 'todas' ||
     conditionFilter !== 'todas';
 
@@ -165,6 +197,26 @@ export function ProductGrid() {
               }`}
             >
               {b === 'todas' ? 'Todas las prendas' : b}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Barra de Filtro Rápido por Talla (Visible en Móvil y Desktop) */}
+      <div className="mb-4">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5">
+          {quickSizes.map((sz) => (
+            <button
+              key={sz.id}
+              type="button"
+              onClick={() => setSizeFilter(sz.id)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-extrabold shrink-0 transition cursor-pointer border ${
+                sizeFilter === sz.id
+                  ? 'bg-grafito-900 text-white border-grafito-900 shadow-2xs'
+                  : 'bg-white hover:bg-beige-100 border-beige-200 text-grafito-800'
+              }`}
+            >
+              {sz.label}
             </button>
           ))}
         </div>
@@ -259,6 +311,20 @@ export function ProductGrid() {
                 onClick={() => setConditionFilter('todas')}
                 className="ml-0.5 text-grafito-700 hover:text-grafito-900 cursor-pointer"
                 title="Quitar filtro de estado"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {sizeFilter !== 'todas' && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-grafito-900 text-white text-xs font-bold">
+              <span>Talla: {sizeFilter}</span>
+              <button
+                type="button"
+                onClick={() => setSizeFilter('todas')}
+                className="ml-0.5 text-white/80 hover:text-white cursor-pointer"
+                title="Quitar filtro de talla"
               >
                 <X className="w-3.5 h-3.5" />
               </button>

@@ -40,9 +40,12 @@ export function EmbeddedSellerStudio() {
     studioRequestedTab,
     openChatWithSeller,
     messages,
+    orders,
   } = useApp();
 
-  const [studioTab, setStudioTab] = useState<'inventario' | 'subir' | 'perfil'>('inventario');
+  const [studioTab, setStudioTab] = useState<'inventario' | 'ventas' | 'subir' | 'perfil'>(
+    'inventario'
+  );
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isAdminSession, setIsAdminSession] = useState(false);
 
@@ -263,6 +266,9 @@ export function EmbeddedSellerStudio() {
   const soldGarments = myGarments.filter((g) => g.status === 'vendida');
   const totalViews = myGarments.reduce((acc, g) => acc + (g.views || 0), 0);
   const totalSalesQ = soldGarments.reduce((acc, g) => acc + g.price, 0);
+  const sellerOrders = orders.filter((o) =>
+    o.items.some((it) => it.sellerUsername === currentSeller.username)
+  );
 
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -739,6 +745,18 @@ export function EmbeddedSellerStudio() {
             </button>
             <button
               type="button"
+              onClick={() => setStudioTab('ventas')}
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
+                studioTab === 'ventas'
+                  ? 'bg-verde-600 text-white'
+                  : 'bg-verde-50 text-verde-800 border border-verde-200'
+              }`}
+            >
+              <Truck className="w-3.5 h-3.5" />
+              <span>Ventas y Pagos ({sellerOrders.length})</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setStudioTab('subir')}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                 studioTab === 'subir'
@@ -1086,6 +1104,142 @@ export function EmbeddedSellerStudio() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+        )}
+
+        {/* PESTAÑA: MIS VENTAS, GUÍA CIEGA Y LIQUIDACIONES BANCARIAS */}
+        {studioTab === 'ventas' && (
+          <div className="bg-white rounded-2xl border border-beige-200 p-4 sm:p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-beige-200">
+              <div>
+                <h3 className="font-display text-base font-extrabold text-grafito-900">
+                  📦 Órdenes de mi Clóset, Guía Ciega y Liquidaciones Bancarias
+                </h3>
+                <p className="text-xs text-grafito-700">
+                  Por seguridad mutua, aquí ves el código único para rotular tu paquete cerrado sin exponer tus datos ni los del comprador.
+                </p>
+              </div>
+              <span className="px-3 py-1 rounded-xl bg-lavanda-50 border border-lavanda-200 text-xs font-bold text-lavanda-800">
+                🏦 Cuenta de Pago: {currentSeller.bankName || 'Banco Industrial'} ({currentSeller.bankAccountType || 'Monetaria'})
+              </span>
+            </div>
+
+            {sellerOrders.length === 0 ? (
+              <div className="py-10 text-center space-y-2">
+                <Truck className="w-8 h-8 text-lavanda-500 mx-auto" />
+                <p className="text-sm font-bold text-grafito-900">
+                  Aún no tienes órdenes registradas en este clóset
+                </p>
+                <p className="text-xs text-grafito-700">
+                  Cuando un comprador reserve tus prendas, aquí verás el código de Guía Ciega y el estado de tu depósito del 85%.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {sellerOrders.map((order) => {
+                  const myItemsInOrder = order.items.filter(
+                    (it) => it.sellerUsername === currentSeller.username
+                  );
+                  const mySubtotal = myItemsInOrder.reduce((acc, it) => acc + it.price, 0);
+                  const commPct = siteConfig.commissionPercent ?? 15;
+                  const myNetEarnings = Math.round(mySubtotal * ((100 - commPct) / 100));
+
+                  return (
+                    <div
+                      key={order.id}
+                      className="p-4 rounded-2xl bg-beige-50/70 border border-beige-200 space-y-3"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg bg-grafito-900 text-white text-xs font-extrabold">
+                            Orden #{order.id}
+                          </span>
+                          <span className="text-xs font-bold text-grafito-700">
+                            {order.createdAt}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold ${
+                              order.status === 'entregado'
+                                ? 'bg-verde-100 text-verde-800'
+                                : order.status === 'en_camino'
+                                  ? 'bg-lavanda-100 text-lavanda-800'
+                                  : 'bg-amber-100 text-amber-900'
+                            }`}
+                          >
+                            {order.status === 'entregado'
+                              ? '✅ Entregado al Comprador'
+                              : order.status === 'en_camino'
+                                ? '🚚 En Tránsito'
+                                : '⏳ Preparar Paquete Cerrado'}
+                          </span>
+
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold border ${
+                              order.sellerPayoutStatus === 'liquidado'
+                                ? 'bg-verde-600 text-white border-verde-700'
+                                : 'bg-white text-grafito-800 border-beige-300'
+                            }`}
+                          >
+                            {order.sellerPayoutStatus === 'liquidado'
+                              ? `💸 85% Liquidado (${order.sellerPayoutRef || 'Depositado'})`
+                              : `⏳ Pago en Resguardo: Q${myNetEarnings}`}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Instrucción de Guía Ciega para el Vendedor */}
+                      <div className="p-3 rounded-xl bg-white border border-lavanda-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <p className="font-extrabold text-lavanda-900 flex items-center gap-1.5">
+                            <Lock className="w-3.5 h-3.5 text-verde-700" />
+                            <span>
+                              🛡️ Instrucción de Guía Ciega: Rotula la bolsa cerrada únicamente con #{order.id}
+                            </span>
+                          </p>
+                          <p className="text-[11px] text-grafito-700">
+                            Destino protegido: <strong>{order.department || 'Guatemala'}</strong> • Paquetería:{' '}
+                            <strong>{order.courierName || 'Forza / Cargo Expreso'}</strong> • Guía:{' '}
+                            <strong className="text-lavanda-700">
+                              {order.trackingNumber || 'En emisión por EcoRopaGT'}
+                            </strong>
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className="text-[11px] text-grafito-600">Tu ganancia neta (85%):</p>
+                          <p className="font-display text-base font-extrabold text-verde-700">
+                            Q{myNetEarnings}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {myItemsInOrder.map((item, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-beige-200 text-xs"
+                          >
+                            <img
+                              src={item.image}
+                              alt={item.title}
+                              className="w-10 h-11 rounded-lg object-cover shrink-0"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-grafito-900 truncate">{item.title}</p>
+                              <p className="text-[10px] text-grafito-600">
+                                Talla {item.size} • Venta Q{item.price}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}

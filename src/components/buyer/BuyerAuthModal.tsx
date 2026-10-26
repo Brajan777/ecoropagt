@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Package,
   Clock,
+  Star,
 } from 'lucide-react';
 
 const GUATEMALA_ZONES = [
@@ -62,11 +63,15 @@ export function BuyerAuthModal() {
     loginBuyer,
     logoutBuyer,
     orders,
+    submitOrderReview,
   } = useApp();
 
   const [mode, setMode] = useState<'register' | 'login' | 'profile'>('register');
   const [profileTab, setProfileTab] = useState<'orders' | 'address'>('orders');
   const [step, setStep] = useState<'form' | 'verify'>('form');
+  const [reviewOrderId, setReviewOrderId] = useState<string | null>(null);
+  const [reviewRating, setReviewRating] = useState<number>(5);
+  const [reviewComment, setReviewComment] = useState<string>('');
 
   // Campos de Registro / Edición
   const [fullName, setFullName] = useState('');
@@ -564,6 +569,102 @@ export function BuyerAuthModal() {
                           </div>
                         ))}
                       </div>
+
+                      {/* Calificación Post-Compra (Disponible cuando el pedido está Entregado) */}
+                      {order.status === 'entregado' && (
+                        <div className="pt-2 border-t border-beige-200">
+                          {order.sellerRating ? (
+                            <div className="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-xs space-y-0.5">
+                              <p className="font-extrabold text-amber-900 flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                                <span>
+                                  Tu calificación verificada: {order.sellerRating}/5 estrellas
+                                </span>
+                              </p>
+                              {order.sellerReviewComment && (
+                                <p className="text-[11px] text-grafito-800 italic">
+                                  &ldquo;{order.sellerReviewComment}&rdquo;
+                                </p>
+                              )}
+                            </div>
+                          ) : reviewOrderId === order.id ? (
+                            <div className="p-3 rounded-xl bg-white border border-lavanda-300 space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-extrabold text-grafito-900">
+                                  ⭐ Calificar Clóset @{order.items[0]?.sellerUsername}
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3, 4, 5].map((st) => (
+                                    <button
+                                      key={st}
+                                      type="button"
+                                      onClick={() => setReviewRating(st)}
+                                      className="p-0.5 cursor-pointer"
+                                    >
+                                      <Star
+                                        className={`w-4 h-4 ${
+                                          st <= reviewRating
+                                            ? 'fill-amber-400 text-amber-500'
+                                            : 'text-beige-300'
+                                        }`}
+                                      />
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                              <input
+                                type="text"
+                                value={reviewComment}
+                                onChange={(e) => setReviewComment(e.target.value)}
+                                placeholder="¿Qué tal el estado y las medidas de la prenda?"
+                                className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                              />
+                              <div className="flex justify-end gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewOrderId(null)}
+                                  className="px-3 py-1.5 rounded-lg bg-beige-100 text-grafito-700 text-[11px] font-bold cursor-pointer"
+                                >
+                                  Cancelar
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    submitOrderReview(
+                                      order.id,
+                                      reviewRating,
+                                      reviewComment ||
+                                        '¡Prenda impecable, medidas exactas y envío súper seguro!'
+                                    );
+                                    setReviewOrderId(null);
+                                    setReviewComment('');
+                                    setSuccessMsg(
+                                      '¡Gracias! Tu reseña verificada ya suma en el clóset del vendedor.'
+                                    );
+                                    setTimeout(() => setSuccessMsg(null), 2500);
+                                  }}
+                                  className="px-3.5 py-1.5 rounded-lg bg-verde-600 hover:bg-verde-700 text-white text-[11px] font-extrabold cursor-pointer"
+                                >
+                                  Publicar Calificación
+                                </button>
+                              </div>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReviewOrderId(order.id);
+                                setReviewRating(5);
+                                setReviewComment('');
+                              }}
+                              className="w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 text-xs font-extrabold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                            >
+                              <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-500" />
+                              <span>Calificar Clóset por esta Compra Verificada</span>
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

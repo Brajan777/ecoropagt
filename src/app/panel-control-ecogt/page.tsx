@@ -45,6 +45,7 @@ export default function PrivateAdminControlPage() {
     orders,
     updateOrderStatus,
     updateOrderTracking,
+    updateOrderPayout,
     deleteOrder,
     buyers,
     toggleBuyerVerified,
@@ -863,6 +864,67 @@ export default function PrivateAdminControlPage() {
                       <div className="font-display text-sm font-extrabold text-grafito-900">
                         Total Cobrado (con envío Q{order.shipping}):{' '}
                         <span className="text-verde-700 text-base">Q{order.total}</span>
+                      </div>
+                    </div>
+
+                    {/* Control de Liquidación Bancaria al Vendedor (85% Neto) */}
+                    <div className="p-3 rounded-2xl bg-white border border-beige-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Coins className="w-4 h-4 text-verde-700 shrink-0" />
+                        <span className="font-extrabold text-grafito-900">
+                          Liquidación Bancaria al Vendedor (Q{sellerNetQ}):
+                        </span>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-1 max-w-lg">
+                        <select
+                          value={order.sellerPayoutStatus || 'pendiente'}
+                          onChange={(e) => {
+                            const newPayoutStatus = e.target.value as
+                              | 'pendiente'
+                              | 'liquidado';
+                            updateOrderPayout(
+                              order.id,
+                              newPayoutStatus,
+                              order.sellerPayoutRef || ''
+                            );
+                            setAdminOrders((prev) =>
+                              prev.map((o) =>
+                                o.id === order.id
+                                  ? { ...o, sellerPayoutStatus: newPayoutStatus }
+                                  : o
+                              )
+                            );
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-[11px] font-extrabold border cursor-pointer ${
+                            order.sellerPayoutStatus === 'liquidado'
+                              ? 'bg-verde-100 border-verde-300 text-verde-900'
+                              : 'bg-amber-50 border-amber-300 text-amber-900'
+                          }`}
+                        >
+                          <option value="pendiente">⏳ Pendiente de Depositar 85%</option>
+                          <option value="liquidado">💸 85% Liquidado en Banco</option>
+                        </select>
+                        <input
+                          type="text"
+                          value={order.sellerPayoutRef || ''}
+                          onChange={(e) => {
+                            const refVal = e.target.value;
+                            updateOrderPayout(
+                              order.id,
+                              order.sellerPayoutStatus || 'pendiente',
+                              refVal
+                            );
+                            setAdminOrders((prev) =>
+                              prev.map((o) =>
+                                o.id === order.id
+                                  ? { ...o, sellerPayoutRef: refVal }
+                                  : o
+                              )
+                            );
+                          }}
+                          placeholder="# Boleta de pago al vendedor (ej. ACH-99201)"
+                          className="flex-1 px-3 py-1.5 rounded-xl bg-beige-50 border border-beige-300 text-[11px] font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500"
+                        />
                       </div>
                     </div>
                   </div>

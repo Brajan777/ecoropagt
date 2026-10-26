@@ -230,19 +230,26 @@ export async function GET(request: Request) {
   const buyerUsernameParam = searchParams.get('buyerUsername')?.trim().toLowerCase();
   const data = await getStoreData();
 
-  const filteredBuyerOrders = buyerUsernameParam
-    ? (data.orders || []).filter(
-        (o: any) =>
-          o.buyerUsername && o.buyerUsername.toLowerCase() === buyerUsernameParam
-      )
-    : [];
+  const publicSafeOrders = (data.orders || []).map((o: any) => {
+    const isThisBuyer =
+      buyerUsernameParam &&
+      o.buyerUsername &&
+      o.buyerUsername.toLowerCase() === buyerUsernameParam;
+    return {
+      ...o,
+      buyerPhone: isThisBuyer ? o.buyerPhone : 'privado',
+      buyerDpi: isThisBuyer ? o.buyerDpi : 'privado',
+      address: isThisBuyer ? o.address : 'Destino Protegido con Guía Ciega EcoRopaGT',
+      shippingReferences: isThisBuyer ? o.shippingReferences : 'privado',
+    };
+  });
 
   return NextResponse.json(
     {
       ...data,
       // Si NO es el administrador autenticado, enmascarar los teléfonos y ocultar los datos privados de pedidos y compradores
       sellers: isAdmin ? data.sellers : maskSellersForPublic(data.sellers),
-      orders: isAdmin ? data.orders : filteredBuyerOrders,
+      orders: isAdmin ? data.orders : publicSafeOrders,
       buyers: isAdmin ? data.buyers : [],
     },
     { headers: securityHeaders }
@@ -379,6 +386,15 @@ export async function POST(request: Request) {
         trackingNumber: sanitizeString(rawOrder.trackingNumber || '', 80),
         courierName:
           rawOrder.courierName === 'Cargo Expreso' ? 'Cargo Expreso' : 'Forza Delivery',
+        sellerPayoutStatus:
+          rawOrder.sellerPayoutStatus === 'liquidado' ? 'liquidado' : 'pendiente',
+        sellerPayoutRef: sanitizeString(rawOrder.sellerPayoutRef || '', 80),
+        sellerRating: rawOrder.sellerRating
+          ? Math.max(1, Math.min(5, Number(rawOrder.sellerRating)))
+          : undefined,
+        sellerReviewComment: rawOrder.sellerReviewComment
+          ? sanitizeString(rawOrder.sellerReviewComment, 300)
+          : undefined,
         items: Array.isArray(rawOrder.items)
           ? rawOrder.items.slice(0, 30).map((it: any) => ({
               garmentId: Number(it.garmentId) || 0,
@@ -400,6 +416,19 @@ export async function POST(request: Request) {
         ),
       };
       mergedOrders = [sanitizedOrder, ...mergedOrders].slice(0, 300);
+    } else if (body.orderReview && typeof body.orderReview === 'object') {
+      const { orderId, rating, comment } = body.orderReview;
+      const cleanRating = Math.max(1, Math.min(5, Number(rating) || 5));
+      const cleanComment = sanitizeString(comment || '', 300);
+      mergedOrders = mergedOrders.map((o: any) =>
+        o.id === orderId
+          ? {
+              ...o,
+              sellerRating: cleanRating,
+              sellerReviewComment: cleanComment,
+            }
+          : o
+      );
     } else if (isAdmin && Array.isArray(body.orders)) {
       mergedOrders = body.orders.slice(0, 300);
     }

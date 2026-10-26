@@ -68,7 +68,7 @@ const GUATEMALAN_REVIEWS: VerifiedReview[] = [
     date: 'Hace 1 semana',
     garmentPurchased: 'Artículo exclusivo segunda mano',
     comment:
-      'Súper atento por WhatsApp, me mandó medidas exactas antes de comprar y el paquete llegó rapidísimo a Antigua. Calidad 10/10 a menos de la mitad de precio en tienda.',
+      'Súper atento por el Chat Interno de EcoRopaGT, me confirmó las medidas exactas en centímetros y el paquete llegó rapidísimo a Antigua con Guía Ciega. Calidad 10/10.',
     fastDelivery: true,
   },
   {
@@ -94,7 +94,7 @@ const CATEGORIES: { id: 'todos' | GarmentCategory; label: string }[] = [
 ];
 
 export default function ClosetProfilePage({ params }: Props) {
-  const { sellers, garments, setCurrentSellerByUsername, openChatWithSeller } = useApp();
+  const { sellers, garments, orders, setCurrentSellerByUsername, openChatWithSeller } = useApp();
 
   const [activeTab, setActiveTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
   const [internalSearch, setInternalSearch] = useState('');
@@ -469,9 +469,38 @@ export default function ClosetProfilePage({ params }: Props) {
                 </span>
               </div>
 
-              {/* Lista de 3 Reseñas Realistas de Compradores Guatemaltecos */}
+              {/* Lista de Reseñas Verificadas de Compradores Guatemaltecos (En vivo + Iniciales) */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {GUATEMALAN_REVIEWS.map((review) => (
+                {[
+                  ...orders
+                    .filter(
+                      (o) =>
+                        o.sellerRating &&
+                        o.items.some(
+                          (it) =>
+                            it.sellerUsername.toLowerCase() === seller.username.toLowerCase()
+                        )
+                    )
+                    .map((o, i) => ({
+                      id: 1000 + i,
+                      buyerName: o.buyerName,
+                      buyerLocation: o.department || 'Guatemala',
+                      buyerAvatar:
+                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+                      rating: o.sellerRating || 5,
+                      date: o.createdAt,
+                      garmentPurchased:
+                        o.items.find(
+                          (it) =>
+                            it.sellerUsername.toLowerCase() === seller.username.toLowerCase()
+                        )?.title || 'Prenda verificada',
+                      comment:
+                        o.sellerReviewComment ||
+                        '¡Prenda impecable, medidas exactas y envío súper seguro!',
+                      fastDelivery: true,
+                    })),
+                  ...GUATEMALAN_REVIEWS,
+                ].map((review) => (
                   <div
                     key={review.id}
                     className="bg-white rounded-3xl p-6 border border-beige-200 shadow-xs flex flex-col justify-between"

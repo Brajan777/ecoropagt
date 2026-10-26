@@ -128,12 +128,13 @@ export default function SellerDashboardPage() {
     deleteGarment,
     openChatWithSeller,
     messages,
+    orders,
     isSellerLoggedIn,
     setIsSellerLoggedIn,
   } = useApp();
 
-  // Tabs del estudio: 'inventario' | 'perfil'
-  const [activeTab, setActiveTab] = useState<'inventario' | 'perfil'>('inventario');
+  // Tabs del estudio: 'inventario' | 'ventas' | 'perfil'
+  const [activeTab, setActiveTab] = useState<'inventario' | 'ventas' | 'perfil'>('inventario');
   const [statusFilter, setStatusFilter] = useState<'todos' | GarmentStatus>('todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -287,6 +288,9 @@ export default function SellerDashboardPage() {
 
   // Prendas de este vendedor
   const myGarments = garments.filter((g) => g.sellerUsername === currentSeller.username);
+  const sellerOrders = orders.filter((o) =>
+    o.items.some((it) => it.sellerUsername === currentSeller.username)
+  );
   const filteredGarments =
     statusFilter === 'todos'
       ? myGarments
@@ -641,6 +645,18 @@ export default function SellerDashboardPage() {
           </button>
 
           <button
+            onClick={() => setActiveTab('ventas')}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
+              activeTab === 'ventas'
+                ? 'bg-verde-600 text-white shadow-xs'
+                : 'bg-verde-50 text-verde-800 hover:bg-verde-100 border border-verde-200'
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>Mis Ventas y Liquidaciones ({sellerOrders.length})</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('perfil')}
             className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition flex items-center gap-2 cursor-pointer ${
               activeTab === 'perfil'
@@ -855,6 +871,140 @@ export default function SellerDashboardPage() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* TAB: MIS VENTAS, GUÍA CIEGA Y LIQUIDACIONES BANCARIAS */}
+      {activeTab === 'ventas' && (
+        <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-beige-200">
+            <div>
+              <h2 className="font-display text-lg font-extrabold text-grafito-900">
+                📦 Órdenes Vendidas, Guía Ciega y Liquidaciones Bancarias ({100 - commissionPct}% Neto)
+              </h2>
+              <p className="text-xs text-grafito-700">
+                Cada orden viaja con nuestro Protocolo de Guía Ciega: rotula la bolsa cerrada únicamente con el código #ECO-XXXXX sin exponer tu dirección ni teléfono.
+              </p>
+            </div>
+            <span className="px-3.5 py-1.5 rounded-xl bg-lavanda-50 border border-lavanda-200 text-xs font-bold text-lavanda-800">
+              🏦 Tu Cuenta Registrada: {currentSeller.bankName || 'Banco Industrial'} ({currentSeller.bankAccountType || 'Monetaria'})
+            </span>
+          </div>
+
+          {sellerOrders.length === 0 ? (
+            <div className="py-12 text-center space-y-2">
+              <ShoppingBag className="w-9 h-9 text-lavanda-500 mx-auto" />
+              <p className="text-sm font-bold text-grafito-900">
+                Aún no tienes órdenes registradas en @{currentSeller.username}
+              </p>
+              <p className="text-xs text-grafito-700">
+                Cuando un comprador confirme su bolsa con prendas tuyas, aquí aparecerá el código de Guía Ciega y el estado de tu liquidación bancaria.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {sellerOrders.map((order) => {
+                const myItems = order.items.filter(
+                  (it) => it.sellerUsername === currentSeller.username
+                );
+                const mySubtotal = myItems.reduce((acc, it) => acc + it.price, 0);
+                const myNet = Math.round(mySubtotal * ((100 - commissionPct) / 100));
+
+                return (
+                  <div
+                    key={order.id}
+                    className="p-5 rounded-2xl bg-beige-50/70 border border-beige-200 space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="px-3 py-1 rounded-xl bg-grafito-900 text-white text-xs font-extrabold">
+                          Orden #{order.id}
+                        </span>
+                        <span className="text-xs font-bold text-grafito-700">
+                          {order.createdAt}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-extrabold ${
+                            order.status === 'entregado'
+                              ? 'bg-verde-100 text-verde-800'
+                              : order.status === 'en_camino'
+                                ? 'bg-lavanda-100 text-lavanda-800'
+                                : 'bg-amber-100 text-amber-900'
+                          }`}
+                        >
+                          {order.status === 'entregado'
+                            ? '✅ Entregado al Comprador'
+                            : order.status === 'en_camino'
+                              ? '🚚 En Camino'
+                              : '⏳ Preparar Paquete Cerrado'}
+                        </span>
+
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-extrabold border ${
+                            order.sellerPayoutStatus === 'liquidado'
+                              ? 'bg-verde-600 text-white border-verde-700'
+                              : 'bg-white text-grafito-900 border-beige-300'
+                          }`}
+                        >
+                          {order.sellerPayoutStatus === 'liquidado'
+                            ? `💸 85% Liquidado en Banco (${order.sellerPayoutRef || 'Depositado'})`
+                            : `⏳ En Resguardo EcoRopaGT: Q${myNet}`}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-white border border-lavanda-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <p className="font-extrabold text-lavanda-900 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-verde-700" />
+                          <span>
+                            🛡️ Instrucción de Guía Ciega: Escribe afuera de la bolsa sellada únicamente #{order.id}
+                          </span>
+                        </p>
+                        <p className="text-[11px] text-grafito-700 mt-0.5">
+                          Destino protegido: <strong>{order.department || 'Guatemala'}</strong> • Paquetería:{' '}
+                          <strong>{order.courierName || 'Forza / Cargo Expreso'}</strong> • Guía:{' '}
+                          <strong className="text-lavanda-700">
+                            {order.trackingNumber || 'En emisión por EcoRopaGT'}
+                          </strong>
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-[11px] text-grafito-600">Tu ganancia neta ({100 - commissionPct}%):</p>
+                        <p className="font-display text-lg font-extrabold text-verde-700">
+                          Q{myNet}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {myItems.map((it, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-beige-200 text-xs"
+                        >
+                          <img
+                            src={it.image}
+                            alt={it.title}
+                            className="w-10 h-11 rounded-lg object-cover shrink-0"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-bold text-grafito-900 truncate">{it.title}</p>
+                            <p className="text-[11px] text-grafito-600">
+                              Talla {it.size} • Venta Q{it.price}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

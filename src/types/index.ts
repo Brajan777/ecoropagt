@@ -118,6 +118,10 @@ export interface Order {
   transferReference?: string; // Número de boleta o referencia cuando el comprador paga por transferencia/tarjeta
   trackingNumber?: string; // Número de guía de Forza Delivery o Cargo Expreso
   courierName?: 'Forza Delivery' | 'Cargo Expreso';
+  sellerPayoutStatus?: 'pendiente' | 'liquidado'; // Estado del pago del 85% neto al vendedor
+  sellerPayoutRef?: string; // Número de boleta de depósito bancario al vendedor
+  sellerRating?: number; // Calificación 1-5 estrellas otorgada por el comprador al recibir el pedido
+  sellerReviewComment?: string; // Reseña verificada post-compra
   items: OrderItemSummary[];
   subtotal: number;
   bundleDiscount: number;

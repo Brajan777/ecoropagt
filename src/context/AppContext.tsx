@@ -64,6 +64,12 @@ interface AppContextType {
     courierName: 'Forza Delivery' | 'Cargo Expreso',
     trackingNumber: string
   ) => void;
+  updateOrderPayout: (
+    orderId: string,
+    sellerPayoutStatus: 'pendiente' | 'liquidado',
+    sellerPayoutRef: string
+  ) => void;
+  submitOrderReview: (orderId: string, rating: number, comment: string) => void;
   deleteOrder: (orderId: string) => void;
   // Modal de Reglas y Garantía 24h
   isRulesModalOpen: boolean;
@@ -307,6 +313,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     messages?: InternalMessage[];
     orders?: Order[];
     newOrder?: Order;
+    orderReview?: { orderId: string; rating: number; comment: string };
     buyers?: BuyerProfile[];
     newBuyer?: BuyerProfile;
   }) => {
@@ -513,6 +520,65 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       syncToCloud({ orders: updated });
       return updated;
     });
+  };
+
+  const updateOrderPayout = (
+    orderId: string,
+    sellerPayoutStatus: 'pendiente' | 'liquidado',
+    sellerPayoutRef: string
+  ) => {
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
+        o.id === orderId ? { ...o, sellerPayoutStatus, sellerPayoutRef } : o
+      );
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ orders: updated });
+      return updated;
+    });
+  };
+
+  const submitOrderReview = (orderId: string, rating: number, comment: string) => {
+    const cleanRating = Math.max(1, Math.min(5, Number(rating) || 5));
+    const cleanComment = comment.trim();
+    const targetOrder = orders.find((o) => o.id === orderId);
+
+    setOrders((prev) => {
+      const updated = prev.map((o) =>
+        o.id === orderId
+          ? { ...o, sellerRating: cleanRating, sellerReviewComment: cleanComment }
+          : o
+      );
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
+    if (targetOrder) {
+      const sellerUsers = new Set(targetOrder.items.map((it) => it.sellerUsername));
+      setSellers((prev) => {
+        const updatedSellers = prev.map((s) => {
+          if (!sellerUsers.has(s.username)) return s;
+          const newCount = (s.reviewsCount || 1) + 1;
+          const newAvg = Number(
+            (((s.rating || 5) * (s.reviewsCount || 1) + cleanRating) / newCount).toFixed(1)
+          );
+          return { ...s, rating: newAvg, reviewsCount: newCount };
+        });
+        try {
+          localStorage.setItem('ecoropa_sellers', JSON.stringify(updatedSellers));
+        } catch {}
+        syncToCloud({
+          sellers: updatedSellers,
+          orderReview: { orderId, rating: cleanRating, comment: cleanComment },
+        });
+        return updatedSellers;
+      });
+    } else {
+      syncToCloud({ orderReview: { orderId, rating: cleanRating, comment: cleanComment } });
+    }
   };
 
   const deleteOrder = (orderId: string) => {
@@ -846,6 +912,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         createOrder,
         updateOrderStatus,
         updateOrderTracking,
+        updateOrderPayout,
+        submitOrderReview,
         deleteOrder,
         isRulesModalOpen,
         setIsRulesModalOpen,
