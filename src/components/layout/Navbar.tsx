@@ -351,11 +351,16 @@ export function Navbar() {
           </div>
           <button
             type="button"
-            onClick={() => handleOpenStudio('inventario')}
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
+            onClick={() => setIsChatOpen(true)}
+            className="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
           >
-            <SlidersHorizontal className="w-5 h-5 text-grafito-800 mb-0.5" />
-            <span>Mi Clóset</span>
+            <MessageSquare className="w-5 h-5 text-verde-600 mb-0.5" />
+            <span>Mensajes</span>
+            {messages.length > 0 && (
+              <span className="absolute top-1 right-3 w-4 h-4 rounded-full bg-lavanda-500 text-white text-[9px] font-extrabold flex items-center justify-center">
+                {messages.length}
+              </span>
+            )}
           </button>
           <button
             type="button"

@@ -71,4 +71,31 @@ export interface SiteContentConfig {
   heroImageUrl: string;
   ecoWaterStat: string;
   freeShippingThreshold: number;
+  commissionPercent?: number;
+}
+
+export type OrderStatus = 'pendiente' | 'en_camino' | 'entregado' | 'cancelado';
+
+export interface OrderItemSummary {
+  garmentId: number;
+  title: string;
+  price: number;
+  size: string;
+  image: string;
+  sellerUsername: string;
+}
+
+export interface Order {
+  id: string;
+  buyerName: string;
+  buyerPhone: string;
+  address: string;
+  paymentMethod: 'contra_entrega' | 'transferencia' | 'tarjeta';
+  items: OrderItemSummary[];
+  subtotal: number;
+  bundleDiscount: number;
+  shipping: number;
+  total: number;
+  status: OrderStatus;
+  createdAt: string;
 }

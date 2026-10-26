@@ -5,12 +5,15 @@ import {
   Garment,
   GarmentCategory,
   InternalMessage,
+  Order,
+  OrderStatus,
   SellerProfile,
   SiteContentConfig,
 } from '@/types';
 import {
   initialGarments,
   initialMessages,
+  initialOrders,
   initialSellers,
   initialSiteConfig,
 } from '@/data/mockData';
@@ -45,6 +48,11 @@ interface AppContextType {
   clearCart: () => void;
   isCartOpen: boolean;
   setIsCartOpen: (open: boolean) => void;
+  // Pedidos / Órdenes para el Admin
+  orders: Order[];
+  createOrder: (order: Order) => void;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  deleteOrder: (orderId: string) => void;
   // Mensajería Interna Privada
   messages: InternalMessage[];
   isChatOpen: boolean;
@@ -99,6 +107,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [garments, setGarments] = useState<Garment[]>(initialGarments);
   const [sellers, setSellers] = useState<SellerProfile[]>(initialSellers);
   const [messages, setMessages] = useState<InternalMessage[]>(initialMessages);
+  const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [currentSellerUsername, setCurrentSellerUsername] = useState<string>(
     initialSellers[0].username
   );
@@ -160,6 +169,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           if (Array.isArray(data.messages) && data.messages.length > 0) {
             setMessages(data.messages);
           }
+          if (Array.isArray(data.orders) && data.orders.length > 0) {
+            setOrders(data.orders);
+          }
           return;
         }
       } catch (e) {}
@@ -198,6 +210,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     sellers?: SellerProfile[];
     garments?: Garment[];
     messages?: InternalMessage[];
+    orders?: Order[];
+    newOrder?: Order;
   }) => {
     try {
       const adminToken =
@@ -221,6 +235,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== 'undefined' && isSellerLoggedIn) {
       sessionStorage.setItem('ecoropa_logged_seller', username);
     }
+  };
+
+  const createOrder = (order: Order) => {
+    setOrders((prev) => {
+      const updated = [order, ...prev];
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    syncToCloud({ newOrder: order });
+  };
+
+  const updateOrderStatus = (orderId: string, status: OrderStatus) => {
+    setOrders((prev) => {
+      const updated = prev.map((o) => (o.id === orderId ? { ...o, status } : o));
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ orders: updated });
+      return updated;
+    });
+
+    // Si el Admin marca la orden como entregada, marcar las prendas asociadas como vendidas automáticamente
+    if (status === 'entregado') {
+      const targetOrder = orders.find((o) => o.id === orderId);
+      if (targetOrder) {
+        const garmentIds = new Set(targetOrder.items.map((it) => it.garmentId));
+        setGarments((prev) => {
+          const updatedGarments = prev.map((g) =>
+            garmentIds.has(g.id) ? { ...g, status: 'vendida' as const } : g
+          );
+          try {
+            localStorage.setItem('ecoropa_garments', JSON.stringify(updatedGarments));
+          } catch {}
+          syncToCloud({ garments: updatedGarments });
+          return updatedGarments;
+        });
+      }
+    }
+  };
+
+  const deleteOrder = (orderId: string) => {
+    setOrders((prev) => {
+      const updated = prev.filter((o) => o.id !== orderId);
+      try {
+        localStorage.setItem('ecoropa_orders', JSON.stringify(updated));
+      } catch {}
+      syncToCloud({ orders: updated });
+      return updated;
+    });
   };
 
   const openChatWithSeller = (sellerUsername: string, garment?: Garment) => {
@@ -273,11 +338,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     tab: 'inventario' | 'subir' | 'perfil' | 'mensajes' = 'inventario',
     sellerUsername?: string
   ) => {
+    const isAdmin =
+      typeof window !== 'undefined' && Boolean(sessionStorage.getItem('ecoropa_admin_token'));
+    const loggedSeller =
+      typeof window !== 'undefined' ? sessionStorage.getItem('ecoropa_logged_seller') : null;
+
     if (sellerUsername) {
       setCurrentSellerUsername(sellerUsername);
-      setIsSellerLoggedIn(true);
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('ecoropa_logged_seller', sellerUsername);
+      if (isAdmin || loggedSeller === sellerUsername) {
+        setIsSellerLoggedIn(true);
+      } else {
+        setIsSellerLoggedIn(false);
       }
     }
     setStudioRequestedTab(tab);
@@ -520,6 +591,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearCart,
         isCartOpen,
         setIsCartOpen,
+        orders,
+        createOrder,
+        updateOrderStatus,
+        deleteOrder,
         messages,
         isChatOpen,
         setIsChatOpen,

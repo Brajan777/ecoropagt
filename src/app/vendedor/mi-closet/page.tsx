@@ -117,6 +117,7 @@ const SAMPLE_PRESETS: SamplePreset[] = [
 
 export default function SellerDashboardPage() {
   const {
+    siteConfig,
     currentSeller,
     sellers,
     setCurrentSellerByUsername,
@@ -127,6 +128,8 @@ export default function SellerDashboardPage() {
     deleteGarment,
     openChatWithSeller,
     messages,
+    isSellerLoggedIn,
+    setIsSellerLoggedIn,
   } = useApp();
 
   // Tabs del estudio: 'inventario' | 'perfil'
@@ -134,6 +137,51 @@ export default function SellerDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<'todos' | GarmentStatus>('todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isAdminSession, setIsAdminSession] = useState(false);
+  const [loginUsername, setLoginUsername] = useState(currentSeller.username);
+  const [loginWhatsapp, setLoginWhatsapp] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  useEffect(() => {
+    setLoginUsername(currentSeller.username);
+    if (typeof window !== 'undefined') {
+      setIsAdminSession(Boolean(sessionStorage.getItem('ecoropa_admin_token')));
+    }
+  }, [currentSeller.username, isSellerLoggedIn]);
+
+  const handleVerifySellerStudio = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginUsername.trim() || !loginWhatsapp.trim()) return;
+    setIsVerifying(true);
+    setLoginError('');
+    try {
+      const res = await fetch('/api/seller/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername,
+          whatsapp: loginWhatsapp,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setLoginError(data.error || 'Credenciales incorrectas para este clóset.');
+        setIsVerifying(false);
+        return;
+      }
+      setCurrentSellerByUsername(data.username);
+      setIsSellerLoggedIn(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('ecoropa_logged_seller', data.username);
+      }
+      setLoginWhatsapp('');
+      setIsVerifying(false);
+    } catch {
+      setLoginError('Error de conexión con el servidor.');
+      setIsVerifying(false);
+    }
+  };
 
   // Estado para formulario de nueva prenda
   const [title, setTitle] = useState('');
@@ -299,6 +347,83 @@ export default function SellerDashboardPage() {
     showToast(`¡Perfil de @${currentSeller.username} actualizado en tiempo real!`);
   };
 
+  const commissionPct = siteConfig.commissionPercent ?? 15;
+  const netSellerEarnings = Math.round(soldEarnings * ((100 - commissionPct) / 100));
+
+  if (!isSellerLoggedIn && !isAdminSession) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-3xl border border-beige-200 shadow-xl p-8 max-w-md w-full">
+          <div className="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-700 flex items-center justify-center mb-4">
+            <Lock className="w-6 h-6" />
+          </div>
+          <h1 className="font-display text-xl font-extrabold text-grafito-900">
+            Ingresar al Estudio de Mi Clóset
+          </h1>
+          <p className="text-xs text-grafito-700 mt-1 mb-5 leading-relaxed">
+            Para proteger tus prendas y precios, selecciona tu clóset e ingresa el número de WhatsApp privado con el que lo registraste en EcoRopaGT.
+          </p>
+
+          <form onSubmit={handleVerifySellerStudio} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-grafito-800 mb-1">
+                1. Selecciona tu Clóset Virtual *
+              </label>
+              <select
+                value={loginUsername}
+                onChange={(e) => {
+                  setLoginUsername(e.target.value);
+                  setLoginError('');
+                }}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+              >
+                {sellers.map((s) => (
+                  <option key={s.id} value={s.username}>
+                    @{s.username} — {s.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-grafito-800 mb-1">
+                2. Tu WhatsApp registrado (8 dígitos) *
+              </label>
+              <input
+                type="password"
+                required
+                value={loginWhatsapp}
+                onChange={(e) => {
+                  setLoginWhatsapp(e.target.value);
+                  setLoginError('');
+                }}
+                placeholder="Ingresa tu número registrado"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs sm:text-sm font-bold focus:outline-none focus:border-lavanda-500"
+              />
+              {loginError && (
+                <p className="text-xs text-red-600 font-semibold mt-1.5">{loginError}</p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={isVerifying}
+              className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm transition cursor-pointer disabled:opacity-50"
+            >
+              {isVerifying ? 'Verificando...' : 'Desbloquear Estudio de Vendedor'}
+            </button>
+          </form>
+
+          <div className="mt-5 pt-4 border-t border-beige-100 text-center">
+            <Link href="/" className="text-xs font-bold text-lavanda-600 hover:underline">
+              ← Volver al Catálogo Principal
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Notificación flotante */}
@@ -348,36 +473,51 @@ export default function SellerDashboardPage() {
           </div>
         </div>
 
-        {/* Selector de Clóset Activo (Simulador Multi-Vendedor) */}
+        {/* Selector de Clóset Activo (Solo visible para Admin) o Cierre de Sesión */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="bg-white px-3.5 py-2 rounded-2xl border border-beige-200 shadow-2xs flex items-center gap-2.5">
-            <div className="p-1.5 rounded-xl bg-lavanda-100 text-lavanda-600">
-              <Users className="w-4 h-4" />
+          {isAdminSession ? (
+            <div className="bg-white px-3.5 py-2 rounded-2xl border border-beige-200 shadow-2xs flex items-center gap-2.5">
+              <div className="p-1.5 rounded-xl bg-lavanda-100 text-lavanda-600">
+                <Users className="w-4 h-4" />
+              </div>
+              <div className="flex-1">
+                <label
+                  htmlFor="seller-switcher"
+                  className="block text-[10px] font-extrabold uppercase tracking-wider text-grafito-700"
+                >
+                  Modo Admin Multi-Clóset
+                </label>
+                <select
+                  id="seller-switcher"
+                  value={currentSeller.username}
+                  onChange={(e) => {
+                    setCurrentSellerByUsername(e.target.value);
+                    showToast(`Cambiaste al clóset de @${e.target.value}`);
+                  }}
+                  className="text-xs font-bold text-grafito-900 bg-transparent focus:outline-none cursor-pointer pr-2"
+                >
+                  {sellers.map((s) => (
+                    <option key={s.id} value={s.username}>
+                      @{s.username} — {s.displayName}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="flex-1">
-              <label
-                htmlFor="seller-switcher"
-                className="block text-[10px] font-extrabold uppercase tracking-wider text-grafito-700"
-              >
-                Simulador Multi-Vendedor
-              </label>
-              <select
-                id="seller-switcher"
-                value={currentSeller.username}
-                onChange={(e) => {
-                  setCurrentSellerByUsername(e.target.value);
-                  showToast(`Cambiaste al clóset de @${e.target.value}`);
-                }}
-                className="text-xs font-bold text-grafito-900 bg-transparent focus:outline-none cursor-pointer pr-2"
-              >
-                {sellers.map((s) => (
-                  <option key={s.id} value={s.username}>
-                    @{s.username} — {s.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsSellerLoggedIn(false);
+                if (typeof window !== 'undefined') {
+                  sessionStorage.removeItem('ecoropa_logged_seller');
+                }
+              }}
+              className="px-3.5 py-2.5 rounded-2xl bg-white hover:bg-red-50 border border-beige-300 text-xs font-bold text-red-600 transition cursor-pointer"
+            >
+              Cerrar sesión de @{currentSeller.username}
+            </button>
+          )}
 
           <div className="flex items-center gap-2.5">
             <Link
@@ -442,14 +582,16 @@ export default function SellerDashboardPage() {
 
         <div className="bg-white p-4 sm:p-5 rounded-2xl border border-beige-200 shadow-2xs">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-grafito-700">Ingresos Directos</span>
+            <span className="text-xs font-bold text-grafito-700">
+              Tu Ganancia Neta ({100 - commissionPct}%)
+            </span>
             <TrendingUp className="w-4 h-4 text-verde-600" />
           </div>
           <span className="font-display text-2xl sm:text-3xl font-extrabold text-verde-700">
-            Q{soldEarnings}
+            Q{netSellerEarnings}
           </span>
           <p className="text-[11px] text-grafito-700 mt-1">
-            De prendas marcadas vendidas
+            Ventas brutas Q{soldEarnings} • Comisión EcoRopa ({commissionPct}%)
           </p>
         </div>
       </div>
@@ -1076,7 +1218,7 @@ export default function SellerDashboardPage() {
                   </div>
                 </div>
 
-                {/* Asistente de Precio Circular */}
+                {/* Asistente de Precio Circular y Ganancia Neta */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-2 border-t border-beige-100">
                   <div className="flex items-center gap-2 text-xs text-grafito-700">
                     <Calculator className="w-4 h-4 text-verde-600 shrink-0" />
@@ -1094,6 +1236,20 @@ export default function SellerDashboardPage() {
                   >
                     Aplicar sugerido (Q{suggestedIdealPrice})
                   </button>
+                </div>
+
+                {/* Desglose transparente de comisión y pago al vendedor */}
+                <div className="p-3 rounded-xl bg-lavanda-50 border border-lavanda-200 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <span className="font-bold text-grafito-900">
+                    💰 Tú recibes libre ({100 - commissionPct}%):{' '}
+                    <strong className="text-verde-700 text-sm">
+                      Q{Math.round((Number(price) || 0) * ((100 - commissionPct) / 100))}
+                    </strong>
+                  </span>
+                  <span className="text-[11px] text-grafito-700">
+                    Comisión EcoRopaGT ({commissionPct}% = Q
+                    {Math.round((Number(price) || 0) * (commissionPct / 100))}) • Pago en 24-48h tras entrega
+                  </span>
                 </div>
               </div>
 

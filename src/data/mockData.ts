@@ -1,4 +1,4 @@
-import { Garment, InternalMessage, SellerProfile, SiteContentConfig } from '@/types';
+import { Garment, InternalMessage, Order, SellerProfile, SiteContentConfig } from '@/types';
 
 export const initialSiteConfig: SiteContentConfig = {
   announcementText: '10% OFF automático al llevar 2+ prendas del mismo clóset',
@@ -11,6 +11,7 @@ export const initialSiteConfig: SiteContentConfig = {
     'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1600&q=80',
   ecoWaterStat: 'Ahorra 2,700 L de agua por prenda',
   freeShippingThreshold: 250,
+  commissionPercent: 15,
 };
 
 export const initialSellers: SellerProfile[] = [
@@ -522,5 +523,32 @@ export const initialGarments: Garment[] = [
     status: 'disponible',
     views: 128,
     createdAt: '2026-10-25',
+  },
+];
+
+export const initialOrders: Order[] = [
+  {
+    id: 'ECO-89412',
+    buyerName: 'María Fernanda Cabrera',
+    buyerPhone: '50255441122',
+    address: 'Zona 14, Ciudad de Guatemala',
+    paymentMethod: 'contra_entrega',
+    items: [
+      {
+        garmentId: 101,
+        title: 'Vestido Midi Lino Natural Zara',
+        price: 185,
+        size: 'M / Mujer',
+        image:
+          'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80',
+        sellerUsername: 'sofia_gt',
+      },
+    ],
+    subtotal: 185,
+    bundleDiscount: 0,
+    shipping: 25,
+    total: 210,
+    status: 'pendiente',
+    createdAt: 'Hoy, 10:15 AM',
   },
 ];

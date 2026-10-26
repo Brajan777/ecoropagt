@@ -24,6 +24,7 @@ import {
 
 export function EmbeddedSellerStudio() {
   const {
+    siteConfig,
     currentSeller,
     sellers,
     setCurrentSellerByUsername,
@@ -43,6 +44,13 @@ export function EmbeddedSellerStudio() {
 
   const [studioTab, setStudioTab] = useState<'inventario' | 'subir' | 'perfil'>('inventario');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isAdminSession, setIsAdminSession] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsAdminSession(Boolean(sessionStorage.getItem('ecoropa_admin_token')));
+    }
+  }, [isSellerLoggedIn]);
 
   const showNotice = (msg: string) => {
     setToastMsg(msg);
@@ -52,8 +60,14 @@ export function EmbeddedSellerStudio() {
   // Control de modal de acceso / registro de vendedor
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [loginUsername, setLoginUsername] = useState(currentSeller.username);
   const [loginWhatsapp, setLoginWhatsapp] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [isVerifyingSeller, setIsVerifyingSeller] = useState(false);
+
+  useEffect(() => {
+    setLoginUsername(currentSeller.username);
+  }, [currentSeller.username]);
 
   // Campos para crear nuevo clóset
   const [newDisplayName, setNewDisplayName] = useState('');
@@ -87,20 +101,37 @@ export function EmbeddedSellerStudio() {
     showNotice(`¡Bienvenida/o a tu Clóset Virtual @${username}!`);
   };
 
-  const handleSellerLogin = (e: React.FormEvent) => {
+  const handleSellerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanPhone = loginWhatsapp.replace(/\D/g, '');
-    if (cleanPhone.length < 8) {
-      setLoginError('Por favor ingresa un número de WhatsApp válido (mínimo 8 dígitos).');
+    if (!loginUsername.trim() || !loginWhatsapp.trim()) {
+      setLoginError('Selecciona tu clóset e ingresa tu número de WhatsApp registrado.');
       return;
     }
 
-    const matched = sellers.find(
-      (s) => s.whatsapp.includes(cleanPhone) || cleanPhone.includes(s.whatsapp.slice(-8))
-    );
-
-    const targetUsername = matched ? matched.username : sellers[0].username;
-    loginAsSeller(targetUsername);
+    setIsVerifyingSeller(true);
+    setLoginError('');
+    try {
+      const res = await fetch('/api/seller/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername,
+          whatsapp: loginWhatsapp,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setLoginError(data.error || 'No se pudo verificar el acceso a este clóset.');
+        setIsVerifyingSeller(false);
+        return;
+      }
+      setIsVerifyingSeller(false);
+      setLoginWhatsapp('');
+      loginAsSeller(data.username);
+    } catch {
+      setLoginError('Error de conexión al verificar credenciales.');
+      setIsVerifyingSeller(false);
+    }
   };
 
   const handleCreateNewCloset = (e: React.FormEvent) => {
@@ -359,60 +390,50 @@ export function EmbeddedSellerStudio() {
                 {authMode === 'login' ? (
                   <div>
                     <h3 className="font-display text-lg sm:text-xl font-extrabold text-grafito-900">
-                      Acceso a tu Clóset Virtual
+                      Acceso Verificado a tu Clóset
                     </h3>
                     <p className="text-xs text-grafito-700 mt-1 mb-4 leading-relaxed">
-                      Selecciona uno de los clósets activos en 1 clic o ingresa con tu número de WhatsApp:
+                      Por seguridad, selecciona tu clóset e ingresa el número de WhatsApp privado con el que lo registraste en EcoRopaGT:
                     </p>
 
-                    {/* Botones de acceso en 1 clic */}
-                    <div className="space-y-2 mb-4">
-                      <span className="block text-[11px] font-bold uppercase tracking-wider text-grafito-600">
-                        Entrar en 1 clic a clóset existente:
-                      </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        {sellers.map((s) => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            onClick={() => loginAsSeller(s.username)}
-                            className="p-2.5 rounded-xl border border-beige-200 hover:border-lavanda-400 hover:bg-lavanda-50/50 flex items-center gap-2 text-left transition cursor-pointer"
-                          >
-                            <img
-                              src={s.avatar}
-                              alt={s.displayName}
-                              className="w-8 h-8 rounded-lg object-cover shrink-0"
-                            />
-                            <div className="min-w-0">
-                              <p className="text-xs font-bold text-grafito-900 truncate">
-                                {s.displayName}
-                              </p>
-                              <p className="text-[10px] font-semibold text-lavanda-600 truncate">
-                                @{s.username}
-                              </p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <form onSubmit={handleSellerLogin} className="space-y-3 pt-3 border-t border-beige-200">
+                    <form onSubmit={handleSellerLogin} className="space-y-3.5">
                       <div>
                         <label className="block text-xs font-bold text-grafito-800 mb-1">
-                          O ingresa con tu WhatsApp de verificación (Privado EcoRopaGT)
+                          1. Selecciona tu Clóset Virtual *
+                        </label>
+                        <select
+                          value={loginUsername}
+                          onChange={(e) => {
+                            setLoginUsername(e.target.value);
+                            setLoginError('');
+                          }}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-beige-300 text-xs sm:text-sm font-bold bg-beige-50 focus:border-lavanda-500 focus:outline-none cursor-pointer"
+                        >
+                          {sellers.map((s) => (
+                            <option key={s.id} value={s.username}>
+                              @{s.username} — {s.displayName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-grafito-800 mb-1">
+                          2. Tu WhatsApp registrado (Verificación privada) *
                         </label>
                         <input
-                          type="tel"
+                          type="password"
+                          required
                           value={loginWhatsapp}
                           onChange={(e) => {
                             setLoginWhatsapp(e.target.value);
                             setLoginError('');
                           }}
-                          placeholder="Ej. 55551234 (Nunca visible al público)"
+                          placeholder="Ingresa tus 8 dígitos de WhatsApp registrado"
                           className="w-full px-4 py-2.5 rounded-xl border border-beige-300 text-xs sm:text-sm font-bold bg-beige-50 focus:border-lavanda-500 focus:outline-none"
                         />
                         <p className="text-[10px] text-verde-700 mt-1 flex items-center gap-1">
-                          <Lock className="w-3 h-3" /> Tu número es privado y solo lo usa EcoRopaGT para validación.
+                          <Lock className="w-3 h-3" /> Validado en servidor • Nadie puede modificar tu clóset sin tu número.
                         </p>
                         {loginError && (
                           <p className="text-xs text-red-600 mt-1.5 font-semibold">{loginError}</p>
@@ -420,9 +441,10 @@ export function EmbeddedSellerStudio() {
                       </div>
                       <button
                         type="submit"
-                        className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-xs transition cursor-pointer"
+                        disabled={isVerifyingSeller}
+                        className="w-full py-3 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm shadow-xs transition disabled:opacity-50 cursor-pointer"
                       >
-                        Ingresar con WhatsApp
+                        {isVerifyingSeller ? 'Verificando clóset...' : 'Desbloquear Mi Clóset'}
                       </button>
                     </form>
                   </div>
@@ -579,21 +601,27 @@ export function EmbeddedSellerStudio() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 my-4 bg-white p-3 rounded-2xl border border-beige-200">
           <div className="flex items-center gap-2">
             <UserCheck className="w-4 h-4 text-verde-600 shrink-0" />
-            <span className="text-xs font-bold text-grafito-800">Clóset activo:</span>
-            <select
-              value={currentSeller.username}
-              onChange={(e) => {
-                setCurrentSellerByUsername(e.target.value);
-                showNotice(`Cambiaste al clóset @${e.target.value}`);
-              }}
-              className="px-3 py-1 rounded-xl bg-lavanda-100 text-xs font-extrabold text-lavanda-700 focus:outline-none cursor-pointer"
-            >
-              {sellers.map((s) => (
-                <option key={s.id} value={s.username}>
-                  @{s.username} ({s.displayName})
-                </option>
-              ))}
-            </select>
+            <span className="text-xs font-bold text-grafito-800">Clóset autenticado:</span>
+            {isAdminSession ? (
+              <select
+                value={currentSeller.username}
+                onChange={(e) => {
+                  setCurrentSellerByUsername(e.target.value);
+                  showNotice(`Cambiaste al clóset @${e.target.value}`);
+                }}
+                className="px-3 py-1 rounded-xl bg-lavanda-100 text-xs font-extrabold text-lavanda-700 focus:outline-none cursor-pointer"
+              >
+                {sellers.map((s) => (
+                  <option key={s.id} value={s.username}>
+                    @{s.username} ({s.displayName})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <span className="px-3 py-1 rounded-xl bg-verde-100 text-xs font-extrabold text-verde-800 flex items-center gap-1">
+                <Lock className="w-3 h-3" /> @{currentSeller.username} ({currentSeller.displayName})
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -862,6 +890,26 @@ export function EmbeddedSellerStudio() {
                 />
               </div>
             </div>
+
+            {/* Transparencia de Ganancia Neta para el Vendedor */}
+            {(() => {
+              const commPct = siteConfig.commissionPercent ?? 15;
+              const commQ = Math.round((Number(price) || 0) * (commPct / 100));
+              const sellerNetQ = Math.max(0, (Number(price) || 0) - commQ);
+              return (
+                <div className="p-3.5 rounded-2xl bg-lavanda-50/90 border border-lavanda-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div>
+                    <p className="font-extrabold text-grafito-900">
+                      💰 Tú recibes libre en tu cuenta ({100 - commPct}%):{' '}
+                      <span className="text-verde-700 text-sm">Q{sellerNetQ}</span>
+                    </p>
+                    <p className="text-[11px] text-grafito-700">
+                      Comisión EcoRopaGT ({commPct}% = Q{commQ}): incluye gestión de cobro seguro y coordinación con Forza / Cargo Expreso. Depósito en 24-48h tras la entrega.
+                    </p>
+                  </div>
+                </div>
+              );
+            })()}
 
             <button
               type="submit"

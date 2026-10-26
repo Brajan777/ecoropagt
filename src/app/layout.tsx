@@ -9,8 +9,39 @@ import { QuickViewModal } from '@/components/catalog/QuickViewModal';
 import { InternalChatDrawer } from '@/components/chat/InternalChatDrawer';
 
 export const metadata: Metadata = {
-  title: 'EcoRopaGT | Compra y Vende Ropa de Segunda Mano para Toda la Familia',
-  description: 'Marketplace de moda circular familiar en Guatemala. Clósets virtuales verificados, ropa de marca y excelente estado.',
+  title: 'EcoRopaGT | Clósets Virtuales y Moda Circular en Guatemala',
+  description:
+    'Compra y vende ropa de segunda mano impecable para Mujer, Hombre y Niños en Guatemala. Clósets verificados, medidas en cm, mensajería interna segura y envíos con Cargo Expreso y Forza.',
+  keywords: [
+    'ropa segunda mano guatemala',
+    'moda circular guatemala',
+    'closets virtuales guatemala',
+    'ecoropagt',
+    'comprar ropa zara guatemala',
+    'vender ropa usada guatemala',
+  ],
+  openGraph: {
+    title: 'EcoRopaGT | Clósets Familiares Verificados en Guatemala',
+    description:
+      'Ahorra hasta 70% en prendas de marca verificadas con medidas reales en cm y envío seguro a toda Guatemala.',
+    type: 'website',
+    locale: 'es_GT',
+    siteName: 'EcoRopaGT',
+    images: [
+      {
+        url: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=1200&q=80',
+        width: 1200,
+        height: 630,
+        alt: 'EcoRopaGT - Moda Circular en Guatemala',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'EcoRopaGT | Moda Circular Familiar en Guatemala',
+    description:
+      'Clósets virtuales verificados, mensajería privada y envío seguro a los 22 departamentos.',
+  },
 };
 
 export default function RootLayout({

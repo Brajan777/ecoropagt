@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { GarmentStatus, SellerProfile } from '@/types';
+import { GarmentStatus, Order, OrderStatus, SellerProfile } from '@/types';
 import {
   ShieldCheck,
   LayoutTemplate,
@@ -41,11 +41,14 @@ export default function PrivateAdminControlPage() {
     deleteGarment,
     updateGarmentStatus,
     messages,
+    orders,
+    updateOrderStatus,
+    deleteOrder,
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'content' | 'closets' | 'garments' | 'messages'>(
-    'content'
-  );
+  const [activeTab, setActiveTab] = useState<
+    'orders' | 'content' | 'closets' | 'garments' | 'messages'
+  >('orders');
   const [savedAlert, setSavedAlert] = useState(false);
   const [resetAlert, setResetAlert] = useState(false);
 
@@ -55,6 +58,7 @@ export default function PrivateAdminControlPage() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isCheckingAuth, setIsCheckingAuth] = useState(false);
   const [adminSellers, setAdminSellers] = useState<SellerProfile[]>(sellers);
+  const [adminOrders, setAdminOrders] = useState<Order[]>(orders);
 
   const loadUnmaskedAdminStore = async (token: string) => {
     try {
@@ -67,12 +71,16 @@ export default function PrivateAdminControlPage() {
         if (Array.isArray(data.sellers)) {
           setAdminSellers(data.sellers);
         }
+        if (Array.isArray(data.orders)) {
+          setAdminOrders(data.orders);
+        }
       }
     } catch {}
   };
 
   useEffect(() => {
     setAdminSellers(sellers);
+    setAdminOrders(orders);
     if (typeof window !== 'undefined') {
       const savedToken = sessionStorage.getItem('ecoropa_admin_token');
       if (savedToken) {
@@ -80,7 +88,7 @@ export default function PrivateAdminControlPage() {
         loadUnmaskedAdminStore(savedToken);
       }
     }
-  }, [sellers]);
+  }, [sellers, orders]);
 
   const handleServerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,6 +136,9 @@ export default function PrivateAdminControlPage() {
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(
     siteConfig.freeShippingThreshold
   );
+  const [commissionPercent, setCommissionPercent] = useState(
+    siteConfig.commissionPercent ?? 15
+  );
 
   useEffect(() => {
     setHeroTitle(siteConfig.heroTitle);
@@ -137,6 +148,7 @@ export default function PrivateAdminControlPage() {
     setAnnouncementText(siteConfig.announcementText);
     setAnnouncementSubtext(siteConfig.announcementSubtext);
     setFreeShippingThreshold(siteConfig.freeShippingThreshold);
+    setCommissionPercent(siteConfig.commissionPercent ?? 15);
   }, [siteConfig]);
 
   // Filtros de Moderación de Prendas
@@ -185,6 +197,7 @@ export default function PrivateAdminControlPage() {
       announcementText,
       announcementSubtext,
       freeShippingThreshold: Number(freeShippingThreshold),
+      commissionPercent: Number(commissionPercent) || 15,
     });
 
     setSavedAlert(true);
@@ -393,6 +406,18 @@ export default function PrivateAdminControlPage() {
       {/* Tabs de Navegación del Admin */}
       <div className="flex items-center gap-2 mb-6 border-b border-beige-200 pb-3 overflow-x-auto no-scrollbar">
         <button
+          onClick={() => setActiveTab('orders')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
+            activeTab === 'orders'
+              ? 'bg-verde-600 text-white shadow-xs'
+              : 'bg-white hover:bg-beige-100 text-grafito-700 border border-beige-200'
+          }`}
+        >
+          <Truck className="w-4 h-4" />
+          <span>1. Pedidos Recibidos ({adminOrders.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('content')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 cursor-pointer ${
             activeTab === 'content'
@@ -401,7 +426,7 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <LayoutTemplate className="w-4 h-4" />
-          <span>1. Editor de Imágenes y Textos (CMS)</span>
+          <span>2. Editor CMS y Comisión ({commissionPercent}%)</span>
         </button>
 
         <button
@@ -414,7 +439,7 @@ export default function PrivateAdminControlPage() {
         >
           <Store className="w-4 h-4" />
           <span>
-            2. Clósets y Teléfonos Privados ({adminSellers.filter((s) => s.isFeatured).length} en portada)
+            3. Clósets y Teléfonos Privados ({adminSellers.filter((s) => s.isFeatured).length} en portada)
           </span>
         </button>
 
@@ -427,7 +452,7 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>3. Moderación de Prendas ({garments.length})</span>
+          <span>4. Moderación de Prendas ({garments.length})</span>
         </button>
 
         <button
@@ -439,9 +464,167 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <MessageSquare className="w-4 h-4" />
-          <span>4. Auditoría de Mensajes ({messages.length})</span>
+          <span>5. Auditoría de Mensajes ({messages.length})</span>
         </button>
       </div>
+
+      {/* TAB 0: Bandeja de Pedidos Recibidos y Guías de Envío */}
+      {activeTab === 'orders' && (
+        <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-beige-200">
+            <div>
+              <h2 className="font-display text-lg font-bold text-grafito-900">
+                Bandeja de Pedidos, Guías de Envío y Liquidación a Vendedores
+              </h2>
+              <p className="text-xs text-grafito-700">
+                Aquí llegan todas las compras confirmadas en la bolsa con el teléfono privado del comprador, dirección de entrega y el cálculo automático de tu comisión ({commissionPercent}%).
+              </p>
+            </div>
+          </div>
+
+          {adminOrders.length === 0 ? (
+            <div className="py-12 text-center text-xs text-grafito-600">
+              Aún no hay pedidos registrados.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {adminOrders.map((order) => {
+                const commissionRate = (commissionPercent || 15) / 100;
+                const ecoCommissionQ = Math.round(
+                  (order.subtotal - order.bundleDiscount) * commissionRate
+                );
+                const sellerNetQ =
+                  order.subtotal - order.bundleDiscount - ecoCommissionQ;
+
+                return (
+                  <div
+                    key={order.id}
+                    className="p-5 rounded-2xl border border-beige-200 bg-beige-50/50 space-y-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-beige-200">
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <span className="px-3 py-1 rounded-xl bg-grafito-900 text-white text-xs font-extrabold">
+                          #{order.id}
+                        </span>
+                        <span className="text-xs font-bold text-grafito-900">
+                          Comprador: {order.buyerName}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg bg-verde-100 text-verde-800 border border-verde-300 text-xs font-bold">
+                          🔒 Teléfono Comprador: {order.buyerPhone}
+                        </span>
+                        <span className="text-xs text-grafito-700 flex items-center gap-1 font-semibold">
+                          <MapPin className="w-3.5 h-3.5 text-lavanda-600" />
+                          {order.address}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-1 rounded-lg bg-lavanda-100 text-lavanda-700 text-[11px] font-bold uppercase">
+                          {order.paymentMethod === 'contra_entrega'
+                            ? '💵 Contra Entrega'
+                            : order.paymentMethod === 'transferencia'
+                            ? '🏦 Transferencia'
+                            : '💳 Tarjeta'}
+                        </span>
+                        <select
+                          value={order.status}
+                          onChange={(e) => {
+                            const newSt = e.target.value as OrderStatus;
+                            updateOrderStatus(order.id, newSt);
+                            setAdminOrders((prev) =>
+                              prev.map((o) =>
+                                o.id === order.id ? { ...o, status: newSt } : o
+                              )
+                            );
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold border cursor-pointer ${
+                            order.status === 'entregado'
+                              ? 'bg-verde-100 border-verde-300 text-verde-800'
+                              : order.status === 'en_camino'
+                              ? 'bg-lavanda-100 border-lavanda-300 text-lavanda-800'
+                              : order.status === 'cancelado'
+                              ? 'bg-red-100 border-red-300 text-red-800'
+                              : 'bg-amber-100 border-amber-300 text-amber-900'
+                          }`}
+                        >
+                          <option value="pendiente">⏳ Pendiente de Recolección</option>
+                          <option value="en_camino">🚚 En Camino (Forza / Cargo Expreso)</option>
+                          <option value="entregado">✅ Entregado (Liquidar a Vendedor)</option>
+                          <option value="cancelado">❌ Cancelado</option>
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm(`¿Eliminar el pedido #${order.id}?`)) {
+                              deleteOrder(order.id);
+                              setAdminOrders((prev) =>
+                                prev.filter((o) => o.id !== order.id)
+                              );
+                            }
+                          }}
+                          className="p-2 rounded-xl text-grafito-600 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                          title="Eliminar pedido"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Prendas incluidas en el pedido */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      {order.items.map((it, idx) => {
+                        const sellerInfo = adminSellers.find(
+                          (s) => s.username === it.sellerUsername
+                        );
+                        return (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-3 p-2.5 rounded-xl bg-white border border-beige-200"
+                          >
+                            <img
+                              src={it.image}
+                              alt={it.title}
+                              className="w-11 h-12 rounded-lg object-cover shrink-0 bg-beige-100"
+                            />
+                            <div className="min-w-0 flex-1 text-xs">
+                              <p className="font-bold text-grafito-900 truncate">{it.title}</p>
+                              <p className="text-[11px] text-lavanda-600 font-semibold">
+                                Clóset: @{it.sellerUsername}{' '}
+                                {sellerInfo ? `(Tel: +${sellerInfo.whatsapp})` : ''}
+                              </p>
+                              <p className="font-extrabold text-grafito-900">Q{it.price}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Resumen Financiero de la Orden */}
+                    <div className="pt-3 border-t border-beige-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span className="text-grafito-700">
+                          Fecha: <strong>{order.createdAt}</strong>
+                        </span>
+                        <span className="text-verde-800 bg-verde-50 px-2.5 py-1 rounded-lg border border-verde-200 font-bold">
+                          Pago Neto al Vendedor ({100 - (commissionPercent || 15)}%): Q
+                          {sellerNetQ}
+                        </span>
+                        <span className="text-lavanda-800 bg-lavanda-50 px-2.5 py-1 rounded-lg border border-lavanda-200 font-bold">
+                          Tu Comisión EcoRopaGT ({commissionPercent || 15}%): Q{ecoCommissionQ}
+                        </span>
+                      </div>
+                      <div className="font-display text-sm font-extrabold text-grafito-900">
+                        Total Cobrado (con envío Q{order.shipping}):{' '}
+                        <span className="text-verde-700 text-base">Q{order.total}</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* TAB 1: Editor de Contenido / CMS */}
       {activeTab === 'content' && (
@@ -511,6 +694,20 @@ export default function PrivateAdminControlPage() {
                       value={freeShippingThreshold}
                       onChange={(e) => setFreeShippingThreshold(Number(e.target.value))}
                       className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-grafito-800 mb-1">
+                      Comisión EcoRopaGT (%)
+                    </label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={50}
+                      value={commissionPercent}
+                      onChange={(e) => setCommissionPercent(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-lavanda-700 focus:outline-none focus:border-lavanda-500"
                     />
                   </div>
                 </div>

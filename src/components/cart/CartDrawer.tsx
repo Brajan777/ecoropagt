@@ -25,11 +25,15 @@ export function CartDrawer() {
     updateGarmentStatus,
     sendMessage,
     openChatWithSeller,
+    createOrder,
   } = useApp();
 
   const [buyerName, setBuyerName] = useState('');
   const [buyerPhone, setBuyerPhone] = useState('');
   const [buyerAddress, setBuyerAddress] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'contra_entrega' | 'transferencia' | 'tarjeta'>(
+    'contra_entrega'
+  );
   const [orderConfirmedId, setOrderConfirmedId] = useState<string | null>(null);
   const [lastOrderSeller, setLastOrderSeller] = useState<string | null>(null);
 
@@ -71,7 +75,33 @@ export function CartDrawer() {
     const orderCode = `ECO-${Date.now().toString().slice(-5)}`;
     const firstSeller = cart[0].sellerUsername;
 
-    // 1. Marcar prendas como reservadas y notificar por mensajería interna sin exponer teléfonos
+    // 1. Registrar el Pedido Real en la base de datos para la Consola Admin (/panel-control-ecogt)
+    createOrder({
+      id: orderCode,
+      buyerName: buyerName.trim() || 'Comprador Verificado',
+      buyerPhone: buyerPhone.trim(),
+      address: buyerAddress.trim() || 'Guatemala',
+      paymentMethod,
+      items: cart.map((item) => ({
+        garmentId: item.id,
+        title: item.title,
+        price: item.price,
+        size: item.size,
+        image: item.image,
+        sellerUsername: item.sellerUsername,
+      })),
+      subtotal,
+      bundleDiscount,
+      shipping,
+      total: grandTotal,
+      status: 'pendiente',
+      createdAt: new Date().toLocaleString('es-GT', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      }),
+    });
+
+    // 2. Marcar prendas como reservadas y notificar por mensajería interna sin exponer teléfonos
     cart.forEach((item) => {
       updateGarmentStatus(item.id, 'reservada');
       sendMessage({
@@ -326,9 +356,27 @@ export function CartDrawer() {
                   required
                   value={buyerAddress}
                   onChange={(e) => setBuyerAddress(e.target.value)}
-                  placeholder="Zona / Municipio de entrega en Guatemala *"
+                  placeholder="Dirección exacta y Zona / Municipio en Guatemala *"
                   className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
                 />
+                <div>
+                  <label className="block text-[10px] font-bold text-grafito-700 mb-1">
+                    Método de Pago en Guatemala:
+                  </label>
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) =>
+                      setPaymentMethod(
+                        e.target.value as 'contra_entrega' | 'transferencia' | 'tarjeta'
+                      )
+                    }
+                    className="w-full px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-900 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+                  >
+                    <option value="contra_entrega">💵 Pago Contra Entrega (Forza / Cargo Expreso)</option>
+                    <option value="transferencia">🏦 Transferencia BI / Banrural / BAC</option>
+                    <option value="tarjeta">💳 Tarjeta o Visacuotas</option>
+                  </select>
+                </div>
               </form>
             </>
           )}

@@ -4,6 +4,7 @@ import path from 'path';
 import {
   initialGarments,
   initialMessages,
+  initialOrders,
   initialSellers,
   initialSiteConfig,
 } from '@/data/mockData';
@@ -24,6 +25,7 @@ function getInitialData() {
     sellers: initialSellers,
     garments: initialGarments,
     messages: initialMessages,
+    orders: initialOrders,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -40,7 +42,11 @@ function readLocalDb() {
   try {
     if (fs.existsSync(DB_PATH)) {
       const raw = fs.readFileSync(DB_PATH, 'utf-8');
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      return {
+        ...getInitialData(),
+        ...parsed,
+      };
     }
   } catch {
     // Ignorar error de lectura
@@ -82,12 +88,13 @@ async function getStoreData() {
 
       if (!error && data) {
         const rawConfig = data.site_config || initialSiteConfig;
-        const { _internalMessages, ...cleanConfig } = rawConfig as any;
+        const { _internalMessages, _orders, ...cleanConfig } = rawConfig as any;
         return {
           siteConfig: cleanConfig,
           sellers: data.sellers || initialSellers,
           garments: data.garments || initialGarments,
           messages: Array.isArray(_internalMessages) ? _internalMessages : initialMessages,
+          orders: Array.isArray(_orders) ? _orders : initialOrders,
           updatedAt: data.updated_at || new Date().toISOString(),
           source: 'supabase',
         };
@@ -96,7 +103,11 @@ async function getStoreData() {
       const seed = getInitialData();
       await supabase.from('app_store').upsert({
         id: 'main',
-        site_config: { ...seed.siteConfig, _internalMessages: seed.messages },
+        site_config: {
+          ...seed.siteConfig,
+          _internalMessages: seed.messages,
+          _orders: seed.orders,
+        },
         sellers: seed.sellers,
         garments: seed.garments,
         updated_at: seed.updatedAt,
@@ -115,7 +126,11 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
     try {
       const { error } = await supabase.from('app_store').upsert({
         id: 'main',
-        site_config: { ...updated.siteConfig, _internalMessages: updated.messages },
+        site_config: {
+          ...updated.siteConfig,
+          _internalMessages: updated.messages,
+          _orders: updated.orders,
+        },
         sellers: updated.sellers,
         garments: updated.garments,
         updated_at: updated.updatedAt,
@@ -193,8 +208,9 @@ export async function GET(request: Request) {
   return NextResponse.json(
     {
       ...data,
-      // Si NO es el administrador autenticado, enmascarar los teléfonos en la respuesta HTTP
+      // Si NO es el administrador autenticado, enmascarar los teléfonos y ocultar los datos privados de pedidos
       sellers: isAdmin ? data.sellers : maskSellersForPublic(data.sellers),
+      orders: isAdmin ? data.orders : [],
     },
     { headers: securityHeaders }
   );
@@ -247,7 +263,6 @@ export async function POST(request: Request) {
           bio: sanitizeString(incoming.bio, 350),
           location: sanitizeString(incoming.location, 80),
           whatsapp: realWhatsapp,
-          // Solo el Admin puede cambiar isFeatured o isVerified de un clóset existente
           isFeatured: isAdmin
             ? Boolean(incoming.isFeatured)
             : existing
@@ -285,11 +300,52 @@ export async function POST(request: Request) {
       }));
     }
 
+    // Protección 5: Registro seguro de pedidos
+    // Un comprador público puede agregar un pedido nuevo (`newOrder`), pero solo el Admin puede reemplazar o borrar la lista de pedidos
+    let mergedOrders = current.orders ?? initialOrders;
+    if (body.newOrder && typeof body.newOrder === 'object') {
+      const rawOrder = body.newOrder;
+      const sanitizedOrder = {
+        id: sanitizeString(rawOrder.id || `ECO-${Date.now().toString().slice(-5)}`, 30),
+        buyerName: sanitizeString(rawOrder.buyerName || 'Comprador Verificado', 80),
+        buyerPhone: sanitizeString(rawOrder.buyerPhone || '', 25),
+        address: sanitizeString(rawOrder.address || 'Guatemala', 200),
+        paymentMethod: (['contra_entrega', 'transferencia', 'tarjeta'].includes(
+          rawOrder.paymentMethod
+        )
+          ? rawOrder.paymentMethod
+          : 'contra_entrega') as 'contra_entrega' | 'transferencia' | 'tarjeta',
+        items: Array.isArray(rawOrder.items)
+          ? rawOrder.items.slice(0, 30).map((it: any) => ({
+              garmentId: Number(it.garmentId) || 0,
+              title: sanitizeString(it.title, 120),
+              price: Math.max(1, Number(it.price) || 0),
+              size: sanitizeString(it.size, 40),
+              image: sanitizeString(it.image, 500),
+              sellerUsername: sanitizeString(it.sellerUsername, 60),
+            }))
+          : [],
+        subtotal: Math.max(0, Number(rawOrder.subtotal) || 0),
+        bundleDiscount: Math.max(0, Number(rawOrder.bundleDiscount) || 0),
+        shipping: Math.max(0, Number(rawOrder.shipping) || 0),
+        total: Math.max(0, Number(rawOrder.total) || 0),
+        status: 'pendiente' as const,
+        createdAt: sanitizeString(
+          rawOrder.createdAt || new Date().toLocaleDateString('es-GT'),
+          40
+        ),
+      };
+      mergedOrders = [sanitizedOrder, ...mergedOrders].slice(0, 300);
+    } else if (isAdmin && Array.isArray(body.orders)) {
+      mergedOrders = body.orders.slice(0, 300);
+    }
+
     const updated = {
       siteConfig: isAdmin && body.siteConfig ? body.siteConfig : current.siteConfig,
       sellers: mergedSellers,
       garments: mergedGarments,
       messages: mergedMessages,
+      orders: mergedOrders,
       updatedAt: new Date().toISOString(),
     };
 
@@ -298,6 +354,7 @@ export async function POST(request: Request) {
       {
         ...saved,
         sellers: isAdmin ? saved.sellers : maskSellersForPublic(saved.sellers),
+        orders: isAdmin ? saved.orders : [],
       },
       { headers: securityHeaders }
     );
