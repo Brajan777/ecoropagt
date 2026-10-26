@@ -112,6 +112,22 @@ export function Footer() {
                 </button>
               </li>
               <li>
+                <Link
+                  href="/guia-closets#que-es-un-closet"
+                  className="hover:text-lavanda-600 font-semibold text-verde-800 flex items-center gap-1"
+                >
+                  <span>✨ ¿Qué es un Clóset? (Vende a tu estilo)</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/guia-closets#guia-fotos"
+                  className="hover:text-lavanda-600 text-grafito-800 font-medium"
+                >
+                  📸 Guía de Fotos & Modelo Circular
+                </Link>
+              </li>
+              <li>
                 <button
                   type="button"
                   onClick={() => handleOpenStudioFromFooter('subir')}
