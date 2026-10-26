@@ -298,17 +298,6 @@ export function EmbeddedSellerStudio() {
                 <Store className="w-4 h-4" />
                 <span>Ingresar a Mi Clóset (Vendedores)</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setAuthMode('register');
-                  setShowLoginModal(true);
-                }}
-                className="py-3 px-6 rounded-2xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Crear Nuevo Clóset Virtual</span>
-              </button>
               <Link
                 href="/vendedor/mi-closet"
                 className="py-2.5 px-6 rounded-2xl bg-white hover:bg-beige-100 border border-beige-300 text-grafito-800 font-bold text-xs text-center transition"
