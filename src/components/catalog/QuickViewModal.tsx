@@ -3,10 +3,29 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { X, ShoppingBag, Star, ArrowRight, Ruler, Sparkles } from 'lucide-react';
+import {
+  X,
+  ShoppingBag,
+  Star,
+  ArrowRight,
+  Ruler,
+  Sparkles,
+  Heart,
+  Check,
+  MessageCircle,
+} from 'lucide-react';
 
 export function QuickViewModal() {
-  const { quickViewItem, setQuickViewItem, addToCart } = useApp();
+  const {
+    quickViewItem,
+    setQuickViewItem,
+    addToCart,
+    cart,
+    setIsCartOpen,
+    wishlist,
+    toggleWishlist,
+    sellers,
+  } = useApp();
   const [selectedImgIdx, setSelectedImgIdx] = useState(0);
 
   useEffect(() => {
@@ -16,6 +35,11 @@ export function QuickViewModal() {
   if (!quickViewItem) return null;
 
   const item = quickViewItem;
+  const inCart = cart.some((c) => c.id === item.id);
+  const isFav = wishlist.includes(item.id);
+  const sellerProfile = sellers.find((s) => s.username === item.sellerUsername);
+  const sellerWhatsapp = sellerProfile?.whatsapp || '50255551234';
+
   const gallery =
     item.gallery && item.gallery.length > 0
       ? item.gallery
@@ -35,6 +59,12 @@ export function QuickViewModal() {
   const fitNote = item.measurements?.fitNote ?? 'Fiel a su talla • Corte cómodo';
 
   const handleBuy = () => {
+    if (item.status === 'vendida') return;
+    if (inCart) {
+      setQuickViewItem(null);
+      setIsCartOpen(true);
+      return;
+    }
     addToCart(item);
     setQuickViewItem(null);
   };
@@ -48,8 +78,9 @@ export function QuickViewModal() {
     >
       <div className="bg-beige-50 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full max-h-modal-safe overflow-y-auto shadow-2xl border border-beige-200 grid grid-cols-1 md:grid-cols-12 relative">
         <button
+          type="button"
           onClick={() => setQuickViewItem(null)}
-          className="sticky sm:absolute top-3 right-3 ml-auto mr-3 mt-3 sm:m-0 z-20 w-9 h-9 rounded-full bg-white/95 text-grafito-900 flex items-center justify-center shadow-md hover:bg-lavanda-100 transition"
+          className="sticky sm:absolute top-3 right-3 ml-auto mr-3 mt-3 sm:m-0 z-20 w-9 h-9 rounded-full bg-white/95 text-grafito-900 flex items-center justify-center shadow-md hover:bg-lavanda-100 transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -61,6 +92,19 @@ export function QuickViewModal() {
             <span className="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-grafito-900/75 text-white text-[10px] font-bold">
               {photoLabels[selectedImgIdx] || `Foto ${selectedImgIdx + 1}`}
             </span>
+
+            <button
+              type="button"
+              onClick={() => toggleWishlist(item.id)}
+              className="absolute bottom-2.5 right-2.5 px-3 py-1.5 rounded-full bg-white/95 text-grafito-800 text-xs font-bold shadow-md flex items-center gap-1.5 hover:scale-105 transition cursor-pointer"
+            >
+              <Heart
+                className={`w-4 h-4 ${
+                  isFav ? 'text-lavanda-500 fill-lavanda-500' : 'text-grafito-700'
+                }`}
+              />
+              <span>{isFav ? 'En favoritos' : 'Guardar'}</span>
+            </button>
           </div>
 
           {/* Miniaturas seleccionables */}
@@ -70,7 +114,7 @@ export function QuickViewModal() {
                 key={idx}
                 type="button"
                 onClick={() => setSelectedImgIdx(idx)}
-                className={`relative h-14 rounded-xl overflow-hidden border-2 transition ${
+                className={`relative h-14 rounded-xl overflow-hidden border-2 transition cursor-pointer ${
                   selectedImgIdx === idx
                     ? 'border-lavanda-500 ring-2 ring-lavanda-200'
                     : 'border-beige-200 opacity-70 hover:opacity-100'
@@ -123,6 +167,9 @@ export function QuickViewModal() {
               <span className="text-xs text-grafito-700/60 line-through">
                 Antes Q{item.retailPrice}
               </span>
+              <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-beige-100 text-grafito-700">
+                {item.condition}
+              </span>
             </div>
 
             {/* Banner de Paquete del Mismo Clóset (-10% Bundle) */}
@@ -161,22 +208,53 @@ export function QuickViewModal() {
           </div>
 
           <div className="space-y-2 pt-1 pb-2">
-            <button
-              onClick={handleBuy}
-              className="w-full py-3.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2"
-            >
-              <ShoppingBag className="w-4 h-4" />
-              <span>Agregar a la bolsa (Q{item.price})</span>
-            </button>
+            {item.status === 'vendida' ? (
+              <button
+                type="button"
+                disabled
+                className="w-full py-3.5 rounded-xl bg-beige-200 text-grafito-700/60 font-bold text-xs sm:text-sm cursor-not-allowed"
+              >
+                Prenda ya vendida
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleBuy}
+                className={`w-full py-3.5 rounded-xl font-bold text-xs sm:text-sm transition shadow-xs flex items-center justify-center gap-2 cursor-pointer ${
+                  inCart
+                    ? 'bg-verde-600 hover:bg-verde-700 text-white'
+                    : 'bg-lavanda-500 hover:bg-lavanda-600 text-white'
+                }`}
+              >
+                {inCart ? <Check className="w-4 h-4" /> : <ShoppingBag className="w-4 h-4" />}
+                <span>
+                  {inCart ? 'En tu bolsa • Ver mi bolsa' : `Agregar a la bolsa (Q${item.price})`}
+                </span>
+              </button>
+            )}
 
-            <Link
-              href={`/closet/${item.sellerUsername}`}
-              onClick={() => setQuickViewItem(null)}
-              className="w-full py-2.5 rounded-xl bg-white hover:bg-beige-100 border border-beige-200 text-grafito-800 font-bold text-xs transition flex items-center justify-center gap-1.5"
-            >
-              <span>Armar paquete en el clóset de @{item.sellerUsername} (-10%)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <Link
+                href={`/closet/${item.sellerUsername}`}
+                onClick={() => setQuickViewItem(null)}
+                className="py-2.5 px-3 rounded-xl bg-white hover:bg-beige-100 border border-beige-200 text-grafito-800 font-bold text-xs transition flex items-center justify-center gap-1"
+              >
+                <span>Ver clóset (-10%)</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+
+              <a
+                href={`https://wa.me/${sellerWhatsapp}?text=${encodeURIComponent(
+                  `¡Hola @${item.sellerUsername}! Me interesa tu prenda "${item.title}" (Q${item.price}) en EcoRopaGT.`
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                className="py-2.5 px-3 rounded-xl bg-verde-50 hover:bg-verde-100 border border-verde-200 text-verde-800 font-bold text-xs transition flex items-center justify-center gap-1.5"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-verde-700" />
+                <span>Preguntar al vendedor</span>
+              </a>
+            </div>
           </div>
         </div>
       </div>

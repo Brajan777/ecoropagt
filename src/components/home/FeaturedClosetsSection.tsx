@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export function FeaturedClosetsSection() {
-  const { sellers, garments, setCurrentSellerByUsername, setQuickViewItem } = useApp();
+  const { sellers, garments, triggerSellerStudio, setQuickViewItem } = useApp();
   const [selectedClosetUsername, setSelectedClosetUsername] = useState<string | null>(null);
   const [closetTab, setClosetTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
 
@@ -44,9 +44,11 @@ export function FeaturedClosetsSection() {
   };
 
   const goToManageCloset = (username: string) => {
-    setCurrentSellerByUsername(username);
-    const el = document.getElementById('mi-closet-virtual');
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+    triggerSellerStudio('inventario', username);
+    setTimeout(() => {
+      const el = document.getElementById('mi-closet-virtual');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 80);
   };
 
   return (
@@ -73,13 +75,18 @@ export function FeaturedClosetsSection() {
           >
             {showAllClosets ? 'Ver solo destacados' : `Ver todos los clósets (${sellers.length})`}
           </button>
-          <a
-            href="#mi-closet-virtual"
-            className="px-3.5 py-2 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1"
+          <button
+            type="button"
+            onClick={() => {
+              triggerSellerStudio('inventario');
+              const el = document.getElementById('mi-closet-virtual');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="px-3.5 py-2 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
           >
             <span>Abrir mi clóset</span>
             <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+          </button>
         </div>
       </div>
 

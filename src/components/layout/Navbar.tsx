@@ -19,6 +19,7 @@ import {
   Store,
   SlidersHorizontal,
   LayoutGrid,
+  ShieldCheck,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -28,7 +29,7 @@ export function Navbar() {
     cart,
     wishlist,
     setIsCartOpen,
-    setIsSellerStudioOpen,
+    triggerSellerStudio,
     searchQuery,
     setSearchQuery,
     selectedCategory,
@@ -37,32 +38,36 @@ export function Navbar() {
     setWishlistOnly,
   } = useApp();
 
-  const handleCategoryClick = (cat: 'todos' | GarmentCategory) => {
-    setSelectedCategory(cat);
+  const scrollToSection = (sectionId: string) => {
     if (pathname !== '/') {
-      router.push('/#catalogo');
+      router.push(`/#${sectionId}`);
     } else {
-      const el = document.getElementById('catalogo');
+      const el = document.getElementById(sectionId);
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleCategoryClick = (cat: 'todos' | GarmentCategory) => {
+    setSelectedCategory(cat);
+    scrollToSection('catalogo');
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (pathname !== '/') {
-      router.push('/#catalogo');
-    } else {
-      const el = document.getElementById('catalogo');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
+    scrollToSection('catalogo');
   };
 
   const handleToggleWishlistOnly = () => {
     setWishlistOnly(!wishlistOnly);
+    scrollToSection('catalogo');
+  };
+
+  const handleOpenStudio = (tab: 'inventario' | 'subir' | 'perfil') => {
+    triggerSellerStudio(tab);
     if (pathname !== '/') {
-      router.push('/#catalogo');
+      router.push('/#mi-closet-virtual');
     } else {
-      const el = document.getElementById('catalogo');
+      const el = document.getElementById('mi-closet-virtual');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     }
   };
@@ -121,7 +126,7 @@ export function Navbar() {
                   <button
                     type="button"
                     onClick={() => setSearchQuery('')}
-                    className="text-grafito-700 hover:text-grafito-900 ml-1"
+                    className="text-grafito-700 hover:text-grafito-900 ml-1 cursor-pointer"
                   >
                     <XCircle className="w-4 h-4 fill-current" />
                   </button>
@@ -132,8 +137,9 @@ export function Navbar() {
             {/* Controles Derechos */}
             <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
               <button
+                type="button"
                 onClick={handleToggleWishlistOnly}
-                className={`relative w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-xl border flex items-center justify-center transition ${
+                className={`relative w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-xl border flex items-center justify-center transition cursor-pointer ${
                   wishlistOnly
                     ? 'bg-lavanda-500 border-lavanda-500 text-white'
                     : 'border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800'
@@ -161,8 +167,9 @@ export function Navbar() {
               </button>
 
               <button
+                type="button"
                 onClick={() => setIsCartOpen(true)}
-                className="relative h-10 px-2.5 sm:px-3.5 sm:py-2.5 rounded-xl border border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800 text-xs font-semibold flex items-center gap-1.5 transition"
+                className="relative h-10 px-2.5 sm:px-3.5 sm:py-2.5 rounded-xl border border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
               >
                 <ShoppingBag className="w-5 h-5 text-lavanda-600" />
                 <span className="hidden lg:inline">Mi Bolsa</span>
@@ -172,8 +179,9 @@ export function Navbar() {
               </button>
 
               <button
-                onClick={() => setIsSellerStudioOpen(true)}
-                className="h-10 px-3 sm:px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-1.5"
+                type="button"
+                onClick={() => handleOpenStudio('subir')}
+                className="h-10 px-3 sm:px-4 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs sm:text-sm font-bold shadow-xs transition flex items-center gap-1.5 cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
                 <span>Vender</span>
@@ -190,7 +198,7 @@ export function Navbar() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Buscar vestido, jeans, Zara, @sofia_gt..."
-                className="w-full bg-transparent text-grafito-900 placeholder-grafito-700/60 focus:outline-none"
+                className="w-full bg-transparent text-grafito-900 placeholder-grafito-700/60 focus:outline-none text-xs"
               />
               {searchQuery && (
                 <button
@@ -207,19 +215,21 @@ export function Navbar() {
 
         {/* Tier 2: Píldoras deslizables */}
         <div className="border-t border-beige-200 bg-beige-50">
-          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center overflow-x-auto no-scrollbar">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between overflow-x-auto no-scrollbar">
             <nav className="flex items-center gap-1.5 py-1.5 text-xs font-medium text-grafito-700 whitespace-nowrap">
-              <a
-                href="/#closets-destacados"
-                className="px-3 py-1.5 sm:py-2 rounded-lg bg-verde-100 text-verde-800 hover:bg-verde-200 transition flex items-center gap-1 font-bold"
+              <button
+                type="button"
+                onClick={() => scrollToSection('closets-destacados')}
+                className="px-3 py-1.5 sm:py-2 rounded-lg bg-verde-100 text-verde-800 hover:bg-verde-200 transition flex items-center gap-1 font-bold cursor-pointer"
               >
                 <Store className="w-3.5 h-3.5 text-verde-700" /> ★ Clósets Top
-              </a>
+              </button>
 
               <button
+                type="button"
                 onClick={() => handleCategoryClick('todos')}
-                className={`px-3 py-1.5 sm:py-2 rounded-lg transition ${
-                  selectedCategory === 'todos'
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition cursor-pointer ${
+                  selectedCategory === 'todos' && pathname === '/'
                     ? 'bg-lavanda-100 text-lavanda-700 font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
                 }`}
@@ -227,8 +237,9 @@ export function Navbar() {
                 Todo
               </button>
               <button
+                type="button"
                 onClick={() => handleCategoryClick('mujer')}
-                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                   selectedCategory === 'mujer'
                     ? 'bg-lavanda-100 text-lavanda-700 font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
@@ -237,8 +248,9 @@ export function Navbar() {
                 <Sparkles className="w-3.5 h-3.5 text-lavanda-500" /> Mujer
               </button>
               <button
+                type="button"
                 onClick={() => handleCategoryClick('hombre')}
-                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                   selectedCategory === 'hombre'
                     ? 'bg-lavanda-100 text-lavanda-700 font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
@@ -247,8 +259,9 @@ export function Navbar() {
                 <Shirt className="w-3.5 h-3.5 text-verde-600" /> Hombre
               </button>
               <button
+                type="button"
                 onClick={() => handleCategoryClick('ninos')}
-                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                   selectedCategory === 'ninos'
                     ? 'bg-lavanda-100 text-lavanda-700 font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
@@ -257,8 +270,9 @@ export function Navbar() {
                 <Baby className="w-3.5 h-3.5 text-lavanda-500" /> Niños
               </button>
               <button
+                type="button"
                 onClick={() => handleCategoryClick('calzado')}
-                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 ${
+                className={`px-3 py-1.5 sm:py-2 rounded-lg transition flex items-center gap-1 cursor-pointer ${
                   selectedCategory === 'calzado'
                     ? 'bg-lavanda-100 text-lavanda-700 font-bold'
                     : 'hover:bg-beige-100 text-grafito-700'
@@ -268,12 +282,33 @@ export function Navbar() {
               </button>
 
               <button
-                onClick={() => setIsSellerStudioOpen(true)}
-                className="px-3 py-1.5 sm:py-2 rounded-lg text-lavanda-700 hover:bg-lavanda-50 font-bold transition flex items-center gap-1"
+                type="button"
+                onClick={() => handleOpenStudio('inventario')}
+                className="px-3 py-1.5 sm:py-2 rounded-lg text-lavanda-700 hover:bg-lavanda-50 font-bold transition flex items-center gap-1 cursor-pointer"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" /> Mi Clóset
               </button>
+
+              <Link
+                href="/vendedor/mi-closet"
+                className={`px-3 py-1.5 sm:py-2 rounded-lg font-semibold transition flex items-center gap-1 ${
+                  pathname === '/vendedor/mi-closet'
+                    ? 'bg-lavanda-100 text-lavanda-700 font-bold'
+                    : 'text-grafito-700 hover:bg-beige-100'
+                }`}
+              >
+                <span>Estudio Completo</span>
+              </Link>
             </nav>
+
+            <Link
+              href="/admin"
+              className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-grafito-600 hover:text-lavanda-700 hover:bg-beige-100 transition shrink-0"
+              title="Panel de Administración"
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-verde-600" />
+              <span>Admin</span>
+            </Link>
           </div>
         </div>
       </header>
@@ -281,39 +316,44 @@ export function Navbar() {
       {/* BARRA INFERIOR FIJA EN MÓVIL (ESTILO APP NATIVA) */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-beige-200 shadow-lg md:hidden pb-safe">
         <div className="grid grid-cols-5 items-center h-15 px-1 text-[10px] font-bold text-grafito-700">
-          <a
-            href="/#catalogo"
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition"
+          <button
+            type="button"
+            onClick={() => scrollToSection('catalogo')}
+            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
           >
             <LayoutGrid className="w-5 h-5 text-lavanda-600 mb-0.5" />
             <span>Catálogo</span>
-          </a>
-          <a
-            href="/#closets-destacados"
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition"
+          </button>
+          <button
+            type="button"
+            onClick={() => scrollToSection('closets-destacados')}
+            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
           >
             <Store className="w-5 h-5 text-verde-600 mb-0.5" />
             <span>Clósets</span>
-          </a>
+          </button>
           <div className="flex items-center justify-center -mt-4">
             <button
-              onClick={() => setIsSellerStudioOpen(true)}
-              className="w-12 h-12 rounded-2xl bg-lavanda-500 text-white shadow-md flex flex-col items-center justify-center active:scale-95 transition border-2 border-white"
+              type="button"
+              onClick={() => handleOpenStudio('subir')}
+              className="w-12 h-12 rounded-2xl bg-lavanda-500 text-white shadow-md flex flex-col items-center justify-center active:scale-95 transition border-2 border-white cursor-pointer"
             >
               <PlusCircle className="w-5 h-5" />
               <span className="text-[8px] font-extrabold">Vender</span>
             </button>
           </div>
           <button
-            onClick={() => setIsSellerStudioOpen(true)}
-            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition"
+            type="button"
+            onClick={() => handleOpenStudio('inventario')}
+            className="flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
           >
             <SlidersHorizontal className="w-5 h-5 text-grafito-800 mb-0.5" />
             <span>Mi Clóset</span>
           </button>
           <button
+            type="button"
             onClick={() => setIsCartOpen(true)}
-            className="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition"
+            className="relative flex flex-col items-center justify-center py-2 hover:text-lavanda-600 active:scale-95 transition cursor-pointer"
           >
             <ShoppingBag className="w-5 h-5 text-grafito-800 mb-0.5" />
             <span>Bolsa</span>

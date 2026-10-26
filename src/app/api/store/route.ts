@@ -39,7 +39,7 @@ function readLocalDb() {
     }
     fs.writeFileSync(DB_PATH, JSON.stringify(initialData, null, 2), 'utf-8');
   } catch {
-    // En entornos serverless (ej. Vercel sin Supabase aún) el filesystem es de solo lectura
+    // En entornos serverless el filesystem es de solo lectura
   }
   return initialData;
 }
@@ -52,7 +52,7 @@ function writeLocalDb(data: ReturnType<typeof getInitialData>) {
     }
     fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
   } catch {
-    // Ignorar en entornos de solo lectura si no hay filesystem escribible
+    // Ignorar en entornos de solo lectura
   }
 }
 
@@ -75,7 +75,6 @@ async function getStoreData() {
         };
       }
 
-      // Si no existe el registro inicial en Supabase, lo creamos con los datos semilla
       const seed = getInitialData();
       await supabase.from('app_store').upsert({
         id: 'main',
@@ -86,7 +85,7 @@ async function getStoreData() {
       });
       return { ...seed, source: 'supabase' };
     } catch {
-      // Fallback a archivo local si falla la conexión o la tabla aún no fue creada
+      // Fallback a archivo local
     }
   }
 
@@ -103,6 +102,56 @@ async function saveStoreData(updated: ReturnType<typeof getInitialData>) {
         garments: updated.garments,
         updated_at: updated.updatedAt,
       });
+
+      // Sincronizar también tablas relacionales sellers y garments en segundo plano
+      if (Array.isArray(updated.sellers) && updated.sellers.length > 0) {
+        await supabase.from('sellers').upsert(
+          updated.sellers.map((s) => ({
+            id: s.id,
+            username: s.username,
+            display_name: s.displayName,
+            bio: s.bio,
+            avatar: s.avatar,
+            cover_image: s.coverImage || null,
+            location: s.location,
+            rating: s.rating,
+            reviews_count: s.reviewsCount,
+            sales_count: s.salesCount,
+            is_verified: s.isVerified,
+            is_featured: s.isFeatured,
+            joined_date: s.joinedDate,
+            whatsapp: s.whatsapp,
+          }))
+        );
+      }
+
+      if (Array.isArray(updated.garments) && updated.garments.length > 0) {
+        await supabase.from('garments').upsert(
+          updated.garments.map((g) => ({
+            id: g.id,
+            title: g.title,
+            brand: g.brand,
+            category: g.category,
+            size: g.size,
+            gender: g.gender,
+            condition: g.condition,
+            price: g.price,
+            retail_price: g.retailPrice,
+            seller_username: g.sellerUsername,
+            seller_name: g.sellerName,
+            likes: g.likes,
+            image: g.image,
+            gallery: g.gallery || [],
+            measurements: g.measurements || null,
+            notes: g.notes,
+            status: g.status,
+            views: g.views,
+            created_at: g.createdAt,
+            updated_at: new Date().toISOString(),
+          }))
+        );
+      }
+
       if (!error) {
         return { ...updated, source: 'supabase' };
       }

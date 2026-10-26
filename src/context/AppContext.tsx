@@ -13,10 +13,21 @@ interface AppContextType {
   updateGarmentStatus: (id: number, status: Garment['status']) => void;
   deleteGarment: (id: number) => void;
   sellers: SellerProfile[];
+  addSeller: (data: {
+    username: string;
+    displayName: string;
+    bio: string;
+    location: string;
+    whatsapp: string;
+    avatar?: string;
+    coverImage?: string;
+  }) => SellerProfile;
   toggleFeaturedSeller: (username: string) => void;
   updateSellerProfile: (username: string, data: Partial<SellerProfile>) => void;
   currentSeller: SellerProfile;
   setCurrentSellerByUsername: (username: string) => void;
+  isSellerLoggedIn: boolean;
+  setIsSellerLoggedIn: (val: boolean) => void;
   cart: Garment[];
   addToCart: (garment: Garment) => void;
   removeFromCart: (garmentId: number) => void;
@@ -25,6 +36,12 @@ interface AppContextType {
   setIsCartOpen: (open: boolean) => void;
   isSellerStudioOpen: boolean;
   setIsSellerStudioOpen: (open: boolean) => void;
+  studioActionCounter: number;
+  studioRequestedTab: 'inventario' | 'subir' | 'perfil';
+  triggerSellerStudio: (
+    tab?: 'inventario' | 'subir' | 'perfil',
+    sellerUsername?: string
+  ) => void;
   wishlist: number[];
   toggleWishlist: (garmentId: number) => void;
   quickViewItem: Garment | null;
@@ -39,6 +56,12 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+function mergeMissingInitialGarments(loaded: Garment[]): Garment[] {
+  const existingIds = new Set(loaded.map((g) => g.id));
+  const missing = initialGarments.filter((g) => !existingIds.has(g.id));
+  return missing.length > 0 ? [...loaded, ...missing] : loaded;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [siteConfig, setSiteConfig] = useState<SiteContentConfig>(initialSiteConfig);
   const [garments, setGarments] = useState<Garment[]>(initialGarments);
@@ -46,9 +69,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentSellerUsername, setCurrentSellerUsername] = useState<string>(
     initialSellers[0].username
   );
+  const [isSellerLoggedIn, setIsSellerLoggedIn] = useState(false);
   const [cart, setCart] = useState<Garment[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSellerStudioOpen, setIsSellerStudioOpen] = useState(false);
+  const [studioActionCounter, setStudioActionCounter] = useState(0);
+  const [studioRequestedTab, setStudioRequestedTab] = useState<'inventario' | 'subir' | 'perfil'>(
+    'inventario'
+  );
   const [wishlist, setWishlist] = useState<number[]>([]);
   const [quickViewItem, setQuickViewItem] = useState<Garment | null>(null);
 
@@ -58,14 +86,27 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   // Sincronización con API Cloud Store (/api/store) y localStorage
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedSeller = sessionStorage.getItem('ecoropa_logged_seller');
+      if (savedSeller) {
+        setIsSellerLoggedIn(true);
+        setCurrentSellerUsername(savedSeller);
+      }
+    }
+
     async function loadCloudStore() {
       try {
         const res = await fetch('/api/store', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (data.siteConfig) setSiteConfig(data.siteConfig);
-          if (data.garments) setGarments(data.garments);
-          if (data.sellers) setSellers(data.sellers);
+          if (Array.isArray(data.garments) && data.garments.length > 0) {
+            const merged = mergeMissingInitialGarments(data.garments);
+            setGarments(merged);
+          }
+          if (Array.isArray(data.sellers) && data.sellers.length > 0) {
+            setSellers(data.sellers);
+          }
           return;
         }
       } catch (e) {}
@@ -75,7 +116,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (savedConfig) setSiteConfig(JSON.parse(savedConfig));
 
         const savedGarments = localStorage.getItem('ecoropa_garments');
-        if (savedGarments) setGarments(JSON.parse(savedGarments));
+        if (savedGarments) {
+          const parsed = JSON.parse(savedGarments);
+          if (Array.isArray(parsed)) setGarments(mergeMissingInitialGarments(parsed));
+        }
 
         const savedSellers = localStorage.getItem('ecoropa_sellers');
         if (savedSellers) setSellers(JSON.parse(savedSellers));
@@ -112,6 +156,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const setCurrentSellerByUsername = (username: string) => {
     setCurrentSellerUsername(username);
+    if (typeof window !== 'undefined' && isSellerLoggedIn) {
+      sessionStorage.setItem('ecoropa_logged_seller', username);
+    }
+  };
+
+  const triggerSellerStudio = (
+    tab: 'inventario' | 'subir' | 'perfil' = 'inventario',
+    sellerUsername?: string
+  ) => {
+    if (sellerUsername) {
+      setCurrentSellerUsername(sellerUsername);
+      setIsSellerLoggedIn(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('ecoropa_logged_seller', sellerUsername);
+      }
+    }
+    setStudioRequestedTab(tab);
+    setIsSellerStudioOpen(true);
+    setStudioActionCounter((c) => c + 1);
   };
 
   const updateSiteConfig = (newConfig: Partial<SiteContentConfig>) => {
@@ -184,6 +247,74 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       syncToCloud({ garments: updated });
       return updated;
     });
+  };
+
+  const addSeller = (data: {
+    username: string;
+    displayName: string;
+    bio: string;
+    location: string;
+    whatsapp: string;
+    avatar?: string;
+    coverImage?: string;
+  }): SellerProfile => {
+    const cleanUsername = data.username
+      .trim()
+      .toLowerCase()
+      .replace(/^@/, '')
+      .replace(/[^a-z0-9_]/g, '_');
+
+    const existing = sellers.find((s) => s.username.toLowerCase() === cleanUsername);
+    if (existing) {
+      setCurrentSellerUsername(existing.username);
+      setIsSellerLoggedIn(true);
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('ecoropa_logged_seller', existing.username);
+      }
+      return existing;
+    }
+
+    const newSeller: SellerProfile = {
+      id: `s_${Date.now()}`,
+      username: cleanUsername || `closet_${Date.now().toString().slice(-4)}`,
+      displayName: data.displayName.trim() || 'Nuevo Clóset',
+      bio:
+        data.bio.trim() ||
+        'Clóset familiar de moda circular en Guatemala. Prendas cuidadas y verificadas.',
+      avatar:
+        data.avatar?.trim() ||
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
+      coverImage:
+        data.coverImage?.trim() ||
+        'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=1200&q=80',
+      location: data.location.trim() || 'Ciudad de Guatemala',
+      rating: 5.0,
+      reviewsCount: 1,
+      salesCount: 0,
+      isVerified: true,
+      isFeatured: true,
+      joinedDate: 'Octubre 2026',
+      whatsapp: data.whatsapp.replace(/\D/g, '').startsWith('502')
+        ? data.whatsapp.replace(/\D/g, '')
+        : `502${data.whatsapp.replace(/\D/g, '')}`,
+    };
+
+    setSellers((prev) => {
+      const updated = [newSeller, ...prev];
+      try {
+        localStorage.setItem('ecoropa_sellers', JSON.stringify(updated));
+      } catch (e) {}
+      syncToCloud({ sellers: updated });
+      return updated;
+    });
+
+    setCurrentSellerUsername(newSeller.username);
+    setIsSellerLoggedIn(true);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('ecoropa_logged_seller', newSeller.username);
+    }
+
+    return newSeller;
   };
 
   const toggleFeaturedSeller = (username: string) => {
@@ -261,10 +392,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         updateGarmentStatus,
         deleteGarment,
         sellers,
+        addSeller,
         toggleFeaturedSeller,
         updateSellerProfile,
         currentSeller,
         setCurrentSellerByUsername,
+        isSellerLoggedIn,
+        setIsSellerLoggedIn,
         cart,
         addToCart,
         removeFromCart,
@@ -273,6 +407,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setIsCartOpen,
         isSellerStudioOpen,
         setIsSellerStudioOpen,
+        studioActionCounter,
+        studioRequestedTab,
+        triggerSellerStudio,
         wishlist,
         toggleWishlist,
         quickViewItem,

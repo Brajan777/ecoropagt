@@ -140,10 +140,46 @@ export default function SellerDashboardPage() {
   const [condition, setCondition] = useState<GarmentCondition>('Como nuevo');
   const [price, setPrice] = useState<number>(185);
   const [retailPrice, setRetailPrice] = useState<number>(450);
+  const [widthCm, setWidthCm] = useState<number>(48);
+  const [lengthCm, setLengthCm] = useState<number>(66);
+  const [fitNote, setFitNote] = useState('Fiel a su talla, corte cómodo.');
   const [image, setImage] = useState(
     'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80'
   );
   const [notes, setNotes] = useState('Prenda en excelente estado, sin marcas de uso.');
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 700;
+        let w = img.width;
+        let h = img.height;
+        if (w > h && w > maxDim) {
+          h = Math.round((h * maxDim) / w);
+          w = maxDim;
+        } else if (h > maxDim) {
+          w = Math.round((w * maxDim) / h);
+          h = maxDim;
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          setImage(canvas.toDataURL('image/jpeg', 0.82));
+        }
+      };
+      if (typeof event.target?.result === 'string') {
+        img.src = event.target.result;
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Estado para formulario de Personalizar Perfil del Clóset
   const [profileDisplayName, setProfileDisplayName] = useState(currentSeller.displayName);
@@ -227,6 +263,15 @@ export default function SellerDashboardPage() {
       image:
         image.trim() ||
         'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80',
+      gallery: [
+        image.trim() ||
+          'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?auto=format&fit=crop&w=700&q=80',
+      ],
+      measurements: {
+        widthCm: Number(widthCm) || 48,
+        lengthCm: Number(lengthCm) || 66,
+        fitNote: fitNote.trim() || 'Fiel a su talla',
+      },
       notes: notes.trim(),
       sellerUsername: currentSeller.username,
       sellerName: currentSeller.displayName,
@@ -1048,17 +1093,71 @@ export default function SellerDashboardPage() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-grafito-800 mb-1">
-                  URL de la Foto Personalizada
-                </label>
-                <input
-                  type="url"
-                  value={image}
-                  onChange={(e) => setImage(e.target.value)}
-                  placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    Subir Foto desde Celular / PC
+                  </label>
+                  <label className="w-full px-3.5 py-2.5 rounded-xl bg-lavanda-50 hover:bg-lavanda-100 border border-dashed border-lavanda-400 text-xs font-bold text-lavanda-700 flex items-center justify-center gap-2 cursor-pointer transition">
+                    <Camera className="w-4 h-4" />
+                    <span>📸 Elegir foto de galería / cámara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileUpload}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-grafito-800 mb-1">
+                    O pegar URL de la Foto
+                  </label>
+                  <input
+                    type="text"
+                    value={image}
+                    onChange={(e) => setImage(e.target.value)}
+                    placeholder="https://images.unsplash.com/..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-beige-300 text-xs focus:outline-none focus:border-lavanda-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 bg-verde-50/70 p-3 rounded-2xl border border-verde-200">
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                    Ancho / Pecho (cm)
+                  </label>
+                  <input
+                    type="number"
+                    value={widthCm}
+                    onChange={(e) => setWidthCm(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-verde-200 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                    Largo Total (cm)
+                  </label>
+                  <input
+                    type="number"
+                    value={lengthCm}
+                    onChange={(e) => setLengthCm(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-verde-200 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-grafito-800 mb-1">
+                    Nota de calce
+                  </label>
+                  <input
+                    type="text"
+                    value={fitNote}
+                    onChange={(e) => setFitNote(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-white border border-verde-200 text-xs"
+                  />
+                </div>
               </div>
 
               <div>

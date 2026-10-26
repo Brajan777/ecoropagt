@@ -281,7 +281,79 @@
       "status": "disponible",
       "views": 76,
       "createdAt": "2026-10-21"
+    },
+    {
+      "id": 109,
+      "title": "Botines Chelsea Cuero Café Artesanal",
+      "brand": "Massimo Dutti",
+      "category": "calzado",
+      "size": "Talla 38 EU / Mujer",
+      "gender": "Mujer",
+      "condition": "Como nuevo",
+      "price": 340,
+      "retailPrice": 890,
+      "sellerUsername": "mariana_closet",
+      "sellerName": "Mariana Castillo",
+      "likes": 29,
+      "image": "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=700&q=80",
+      "measurements": {
+        "widthCm": 9,
+        "lengthCm": 24,
+        "fitNote": "Plantilla: 24.5 cm • Tacón cómodo de 4 cm"
+      },
+      "notes": "Cuero genuino hidratado, suela con 95% de vida útil y elásticos laterales intactos.",
+      "status": "disponible",
+      "views": 164,
+      "createdAt": "2026-10-22"
+    },
+    {
+      "id": 110,
+      "title": "Tenis Urbanos Blancos Retro Court",
+      "brand": "Nike & Adidas",
+      "category": "calzado",
+      "size": "Talla 41 EU / Unisex",
+      "gender": "Unisex",
+      "condition": "Excelente estado",
+      "price": 260,
+      "retailPrice": 680,
+      "sellerUsername": "carlos_vintage",
+      "sellerName": "Carlos Méndez",
+      "likes": 34,
+      "image": "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=700&q=80",
+      "measurements": {
+        "widthCm": 10,
+        "lengthCm": 26,
+        "fitNote": "Plantilla: 26.5 cm (8.5 US) • Limpieza profunda"
+      },
+      "notes": "Calzado sanitizado y verificado, costuras limpias y suela antideslizante impecable.",
+      "status": "disponible",
+      "views": 230,
+      "createdAt": "2026-10-23"
+    },
+    {
+      "id": 111,
+      "title": "Suéter Tejido Cable-Knit Azul Marino",
+      "brand": "Ralph Lauren",
+      "category": "hombre",
+      "size": "M / Hombre",
+      "gender": "Hombre",
+      "condition": "Como nuevo",
+      "price": 275,
+      "retailPrice": 750,
+      "sellerUsername": "carlos_vintage",
+      "sellerName": "Carlos Méndez",
+      "likes": 22,
+      "image": "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=700&q=80",
+      "measurements": {
+        "widthCm": 52,
+        "lengthCm": 69,
+        "fitNote": "100% algodón peinado • Cuello redondo clásico"
+      },
+      "notes": "Tejido grueso original sin bolitas ni estiramientos, ideal para clima fresco de Antigua o Xela.",
+      "status": "disponible",
+      "views": 145,
+      "createdAt": "2026-10-24"
     }
   ],
-  "updatedAt": "2026-10-23T04:53:55.221Z"
+  "updatedAt": "2026-10-26T05:58:46.736Z"
 }

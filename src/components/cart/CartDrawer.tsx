@@ -1,11 +1,22 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
-import { ShoppingBag, X, Trash2, ArrowRight, Sparkles } from 'lucide-react';
+import { ShoppingBag, X, Trash2, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export function CartDrawer() {
-  const { cart, removeFromCart, isCartOpen, setIsCartOpen, siteConfig } = useApp();
+  const {
+    cart,
+    removeFromCart,
+    clearCart,
+    isCartOpen,
+    setIsCartOpen,
+    siteConfig,
+    sellers,
+    updateGarmentStatus,
+  } = useApp();
+  const [orderSent, setOrderSent] = useState(false);
 
   if (!isCartOpen) return null;
 
@@ -33,7 +44,8 @@ export function CartDrawer() {
   const isFreeShipping = subtotalAfterBundle >= freeThreshold;
   const pct = Math.min(100, Math.round((subtotalAfterBundle / freeThreshold) * 100));
 
-  const uniqueClosetsCount = Object.keys(sellerCounts).length;
+  const uniqueClosets = Object.keys(sellerCounts);
+  const uniqueClosetsCount = uniqueClosets.length;
   const shipping = cart.length === 0 ? 0 : isFreeShipping ? 0 : uniqueClosetsCount * 25;
   const grandTotal = subtotalAfterBundle + shipping;
 
@@ -65,13 +77,28 @@ export function CartDrawer() {
         `¿Me indican los pasos para coordinar la entrega? ¡Gracias!`
     );
 
-    window.open(`https://wa.me/50255551234?text=${message}`, '_blank');
+    const targetSeller =
+      uniqueClosetsCount === 1
+        ? sellers.find((s) => s.username === uniqueClosets[0])
+        : null;
+    const whatsappPhone = targetSeller?.whatsapp || '50255551234';
+
+    // Marcar prendas como reservadas en el sistema
+    cart.forEach((item) => {
+      updateGarmentStatus(item.id, 'reservada');
+    });
+
+    setOrderSent(true);
+    window.open(`https://wa.me/${whatsappPhone}?text=${message}`, '_blank');
   };
 
   return (
     <>
       <div
-        onClick={() => setIsCartOpen(false)}
+        onClick={() => {
+          setIsCartOpen(false);
+          setOrderSent(false);
+        }}
         className="fixed inset-0 bg-grafito-900/50 backdrop-blur-xs z-50 transition-opacity"
       />
 
@@ -80,14 +107,32 @@ export function CartDrawer() {
           <div className="flex items-center justify-between">
             <h3 className="font-display text-lg font-extrabold text-grafito-900 flex items-center gap-2">
               <ShoppingBag className="w-5 h-5 text-lavanda-500" />
-              <span>Tu Bolsa Circular</span>
+              <span>Tu Bolsa Circular ({cart.length})</span>
             </h3>
-            <button
-              onClick={() => setIsCartOpen(false)}
-              className="p-2 rounded-lg hover:bg-beige-200 text-grafito-700 transition"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {cart.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearCart();
+                    setOrderSent(false);
+                  }}
+                  className="px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-600 hover:bg-red-50 transition cursor-pointer"
+                >
+                  Vaciar
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCartOpen(false);
+                  setOrderSent(false);
+                }}
+                className="p-2 rounded-lg hover:bg-beige-200 text-grafito-700 transition cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div className="mt-3 bg-verde-100 p-3 rounded-xl border border-verde-200">
@@ -114,8 +159,31 @@ export function CartDrawer() {
 
         {/* Lista de Prendas + Indicador de Bundle por Clóset */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+          {orderSent && (
+            <div className="p-4 rounded-2xl bg-verde-50 border border-verde-300 text-verde-900 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-xs text-verde-800">
+                <CheckCircle2 className="w-4 h-4 text-verde-600 shrink-0" />
+                <span>¡Pedido enviado por WhatsApp y prendas reservadas!</span>
+              </div>
+              <p className="text-[11px] text-grafito-700">
+                Tus prendas quedaron marcadas como <strong>Reservadas</strong> mientras coordinas tu entrega.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  clearCart();
+                  setOrderSent(false);
+                  setIsCartOpen(false);
+                }}
+                className="w-full py-2 rounded-xl bg-white border border-verde-300 text-xs font-bold text-verde-800 hover:bg-verde-100 transition cursor-pointer"
+              >
+                Limpiar bolsa y seguir explorando
+              </button>
+            </div>
+          )}
+
           {cart.length === 0 ? (
-            <div className="text-center py-16 space-y-2">
+            <div className="text-center py-16 space-y-3">
               <div className="w-12 h-12 rounded-2xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center mx-auto text-2xl">
                 <ShoppingBag className="w-6 h-6" />
               </div>
@@ -123,6 +191,13 @@ export function CartDrawer() {
               <p className="text-xs text-grafito-700 max-w-xs mx-auto">
                 Lleva 2 o más prendas del mismo clóset para activar un <strong>10% de descuento</strong> automático y pagar 1 solo envío.
               </p>
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(false)}
+                className="px-4 py-2 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition cursor-pointer"
+              >
+                Explorar Catálogo
+              </button>
             </div>
           ) : (
             <>
@@ -134,13 +209,21 @@ export function CartDrawer() {
                   </span>
                 </div>
               ) : (
-                <div className="p-2.5 rounded-xl bg-beige-100 border border-beige-200 text-[11px] text-grafito-700 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-lavanda-500 shrink-0" />
-                  <span>
-                    Tip: Agrega una 2da prenda del clóset de{' '}
-                    <strong>@{cart[0].sellerUsername}</strong> y recibe <strong>10% OFF</strong> + 1
-                    solo envío.
-                  </span>
+                <div className="p-2.5 rounded-xl bg-beige-100 border border-beige-200 text-[11px] text-grafito-700 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-lavanda-500 shrink-0" />
+                    <span>
+                      Agrega otra prenda de <strong>@{cart[0].sellerUsername}</strong> para{' '}
+                      <strong>10% OFF</strong>.
+                    </span>
+                  </div>
+                  <Link
+                    href={`/closet/${cart[0].sellerUsername}`}
+                    onClick={() => setIsCartOpen(false)}
+                    className="text-[11px] font-bold text-lavanda-600 hover:underline shrink-0"
+                  >
+                    Ver clóset →
+                  </Link>
                 </div>
               )}
 
@@ -161,15 +244,17 @@ export function CartDrawer() {
                         <span className="text-[10px] font-bold text-lavanda-600 truncate">
                           {item.brand} • {item.size}
                         </span>
-                        <span
+                        <Link
+                          href={`/closet/${item.sellerUsername}`}
+                          onClick={() => setIsCartOpen(false)}
                           className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${
                             hasBundle
                               ? 'bg-verde-100 text-verde-700'
-                              : 'bg-beige-100 text-grafito-700'
+                              : 'bg-beige-100 text-grafito-700 hover:text-lavanda-600'
                           }`}
                         >
                           @{item.sellerUsername} {hasBundle ? '(-10%)' : ''}
-                        </span>
+                        </Link>
                       </div>
                       <h4 className="text-xs font-bold text-grafito-900 truncate mt-0.5">
                         {item.title}
@@ -184,8 +269,9 @@ export function CartDrawer() {
                       </div>
                     </div>
                     <button
+                      type="button"
                       onClick={() => removeFromCart(item.id)}
-                      className="p-2 text-grafito-700 hover:text-red-500 transition rounded-lg hover:bg-beige-100"
+                      className="p-2 text-grafito-700 hover:text-red-500 transition rounded-lg hover:bg-beige-100 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -230,8 +316,9 @@ export function CartDrawer() {
             </div>
 
             <button
+              type="button"
               onClick={handleCheckoutWhatsApp}
-              className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl bg-verde-600 hover:bg-verde-700 text-white font-bold text-sm shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
             >
               <span>Confirmar Pedido por WhatsApp</span>
               <ArrowRight className="w-4 h-4" />
