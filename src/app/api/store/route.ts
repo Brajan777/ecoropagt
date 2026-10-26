@@ -339,10 +339,55 @@ export async function POST(request: Request) {
       });
     }
 
-    // Protección 3: Sanitizar prendas y moderación de texto
+    // Protección 3: Sanitizar prendas, moderación de texto y fusión atómica por prenda (evita que subidas simultáneas se pisen)
     let mergedGarments = current.garments;
-    if (Array.isArray(body.garments)) {
-      mergedGarments = body.garments.slice(0, 500).map((g: any) => ({
+    if (body.newGarment && typeof body.newGarment === 'object') {
+      const g = body.newGarment;
+      const sanitizedGarment = {
+        ...g,
+        id: Number(g.id) || Date.now(),
+        title: sanitizePublicListingText(sanitizeString(g.title, 120)),
+        brand: sanitizePublicListingText(sanitizeString(g.brand, 60)),
+        size: sanitizeString(g.size, 40),
+        notes: sanitizePublicListingText(sanitizeString(g.notes, 400)),
+        status: g.status || 'pendiente_aprobacion',
+        submittedAt: sanitizeString(g.submittedAt || new Date().toLocaleString('es-GT'), 60),
+        price: Math.max(1, Math.min(50000, Number(g.price) || 100)),
+        retailPrice: Math.max(1, Math.min(100000, Number(g.retailPrice) || 200)),
+      };
+      const exists = mergedGarments.some((item: any) => item.id === sanitizedGarment.id);
+      mergedGarments = exists
+        ? mergedGarments.map((item: any) =>
+            item.id === sanitizedGarment.id ? sanitizedGarment : item
+          )
+        : [sanitizedGarment, ...mergedGarments].slice(0, 1000);
+    } else if (body.garmentUpdate && typeof body.garmentUpdate === 'object') {
+      const { id, ...patch } = body.garmentUpdate;
+      mergedGarments = mergedGarments.map((item: any) =>
+        item.id === Number(id)
+          ? {
+              ...item,
+              ...patch,
+              title: patch.title
+                ? sanitizePublicListingText(sanitizeString(patch.title, 120))
+                : item.title,
+              notes:
+                patch.notes !== undefined
+                  ? sanitizePublicListingText(sanitizeString(patch.notes, 400))
+                  : item.notes,
+              rejectionReason:
+                patch.rejectionReason !== undefined
+                  ? sanitizeString(patch.rejectionReason, 250)
+                  : item.rejectionReason,
+            }
+          : item
+      );
+    } else if (body.deleteGarmentId) {
+      mergedGarments = mergedGarments.filter(
+        (item: any) => item.id !== Number(body.deleteGarmentId)
+      );
+    } else if (Array.isArray(body.garments)) {
+      mergedGarments = body.garments.slice(0, 1000).map((g: any) => ({
         ...g,
         title: sanitizePublicListingText(sanitizeString(g.title, 120)),
         brand: sanitizePublicListingText(sanitizeString(g.brand, 60)),

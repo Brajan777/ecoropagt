@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { GarmentCategory, GarmentCondition } from '@/types';
+import { validateSafeText } from '@/lib/contentModeration';
+import { compressAndUploadImage } from '@/lib/imageUpload';
 import {
   Store,
   PlusCircle,
@@ -221,44 +223,16 @@ export function EmbeddedSellerStudio() {
   ]);
   const [notes, setNotes] = useState('Prenda impecable, verificada y lista para estrenar.');
 
-  // Compresión de fotos desde Cámara / Galería del celular en cliente (<canvas>)
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compresión WebP + subida automática a Supabase Storage (gratis)
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    Array.from(files)
-      .slice(0, 3)
-      .forEach((file) => {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const maxDim = 700;
-            let w = img.width;
-            let h = img.height;
-            if (w > h && w > maxDim) {
-              h = Math.round((h * maxDim) / w);
-              w = maxDim;
-            } else if (h > maxDim) {
-              w = Math.round((w * maxDim) / h);
-              h = maxDim;
-            }
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, w, h);
-              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
-              setUploadedPhotos((prev) => [compressedDataUrl, ...prev].slice(0, 3));
-            }
-          };
-          if (typeof event.target?.result === 'string') {
-            img.src = event.target.result;
-          }
-        };
-        reader.readAsDataURL(file);
-      });
+    const selected = Array.from(files).slice(0, 3);
+    for (const file of selected) {
+      const uploadedUrl = await compressAndUploadImage(file, 'prendas', 900, 0.78);
+      setUploadedPhotos((prev) => [uploadedUrl, ...prev].slice(0, 3));
+    }
   };
 
   const myGarments = garments.filter((g) => g.sellerUsername === currentSeller.username);
@@ -273,6 +247,12 @@ export function EmbeddedSellerStudio() {
   const handleUploadSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    const textCheck = validateSafeText(title, brand, notes, fitNote);
+    if (!textCheck.valid) {
+      alert(`⚠️ Moderación Automática de Texto:\n\n${textCheck.reason}`);
+      return;
+    }
 
     addGarment({
       title,
@@ -293,12 +273,15 @@ export function EmbeddedSellerStudio() {
       notes,
       sellerUsername: currentSeller.username,
       sellerName: currentSeller.displayName,
-      status: 'disponible',
+      status: 'pendiente_aprobacion',
+      submittedAt: new Date().toLocaleString('es-GT'),
     });
 
     setTitle('');
     setStudioTab('inventario');
-    showNotice(`¡"${title}" fue publicada con medidas y fotos en @${currentSeller.username}!`);
+    showNotice(
+      `⏱️ ¡"${title}" fue enviada a revisión (1 a 12 hrs) antes de publicarse en el catálogo!`
+    );
   };
 
   const handleProfileSave = (e: React.FormEvent) => {

@@ -318,6 +318,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     siteConfig?: SiteContentConfig;
     sellers?: SellerProfile[];
     garments?: Garment[];
+    newGarment?: Garment;
+    garmentUpdate?: Partial<Garment> & { id: number };
+    deleteGarmentId?: number;
     messages?: InternalMessage[];
     orders?: Order[];
     newOrder?: Order;
@@ -723,9 +726,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
       } catch (e) {}
-      syncToCloud({ garments: updated });
       return updated;
     });
+    syncToCloud({ newGarment });
   };
 
   const updateGarmentStatus = (
@@ -733,25 +736,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     status: Garment['status'],
     rejectionReason?: string
   ) => {
+    const cleanReason =
+      status === 'rechazada'
+        ? rejectionReason ?? 'No cumple criterios de calidad o texto.'
+        : undefined;
     setGarments((prev) => {
       const updated = prev.map((g) =>
         g.id === id
           ? {
               ...g,
               status,
-              rejectionReason:
-                status === 'rechazada'
-                  ? rejectionReason ?? g.rejectionReason ?? 'No cumple criterios de calidad o texto.'
-                  : undefined,
+              rejectionReason: cleanReason,
             }
           : g
       );
       try {
         localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
       } catch (e) {}
-      syncToCloud({ garments: updated });
       return updated;
     });
+    syncToCloud({ garmentUpdate: { id, status, rejectionReason: cleanReason } });
   };
 
   const updateGarmentDetails = (
@@ -763,9 +767,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
       } catch (e) {}
-      syncToCloud({ garments: updated });
       return updated;
     });
+    syncToCloud({ garmentUpdate: { id, ...data } });
   };
 
   const deleteGarment = (id: number) => {
@@ -774,9 +778,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
       } catch (e) {}
-      syncToCloud({ garments: updated });
       return updated;
     });
+    syncToCloud({ deleteGarmentId: id });
   };
 
   const addSeller = (data: {

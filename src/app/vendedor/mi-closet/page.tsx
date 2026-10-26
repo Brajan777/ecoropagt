@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { GarmentCategory, GarmentCondition, GarmentStatus } from '@/types';
 import { validateSafeText } from '@/lib/contentModeration';
+import { compressAndUploadImage } from '@/lib/imageUpload';
 import {
   Store,
   PlusCircle,
@@ -231,37 +232,11 @@ export default function SellerDashboardPage() {
   );
   const [notes, setNotes] = useState('Prenda en excelente estado, sin marcas de uso.');
 
-  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 700;
-        let w = img.width;
-        let h = img.height;
-        if (w > h && w > maxDim) {
-          h = Math.round((h * maxDim) / w);
-          w = maxDim;
-        } else if (h > maxDim) {
-          w = Math.round((w * maxDim) / h);
-          h = maxDim;
-        }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(img, 0, 0, w, h);
-          setImage(canvas.toDataURL('image/jpeg', 0.82));
-        }
-      };
-      if (typeof event.target?.result === 'string') {
-        img.src = event.target.result;
-      }
-    };
-    reader.readAsDataURL(file);
+    const uploadedUrl = await compressAndUploadImage(file, 'prendas', 900, 0.78);
+    setImage(uploadedUrl);
   };
 
   // Estado para formulario de Personalizar Perfil del Clóset
