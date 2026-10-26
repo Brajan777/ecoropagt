@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { BuyerProfile, GarmentStatus, Order, OrderStatus, SellerProfile } from '@/types';
+import { validateSafeText } from '@/lib/contentModeration';
 import {
   ShieldCheck,
   LayoutTemplate,
@@ -41,6 +42,7 @@ export default function PrivateAdminControlPage() {
     garments,
     deleteGarment,
     updateGarmentStatus,
+    updateGarmentDetails,
     messages,
     orders,
     updateOrderStatus,
@@ -189,6 +191,16 @@ export default function PrivateAdminControlPage() {
     [adminSellers]
   );
 
+  const pendingApprovalGarments = useMemo(
+    () => garments.filter((g) => g.status === 'pendiente_aprobacion'),
+    [garments]
+  );
+
+  const [editingGarmentId, setEditingGarmentId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editNotes, setEditNotes] = useState('');
+  const [rejectionReasons, setRejectionReasons] = useState<Record<number, string>>({});
+
   const filteredGarments = useMemo(() => {
     return garments.filter((item) => {
       const matchesSeller =
@@ -237,12 +249,16 @@ export default function PrivateAdminControlPage() {
 
   const getStatusBadgeClasses = (status: GarmentStatus) => {
     switch (status) {
+      case 'pendiente_aprobacion':
+        return 'bg-amber-100 text-amber-900 border-amber-300';
       case 'disponible':
         return 'bg-verde-100 text-verde-800 border-verde-300';
       case 'reservada':
         return 'bg-lavanda-100 text-lavanda-700 border-lavanda-300';
       case 'vendida':
         return 'bg-beige-200 text-grafito-700 border-beige-300';
+      case 'rechazada':
+        return 'bg-red-100 text-red-800 border-red-300';
     }
   };
 
@@ -483,7 +499,12 @@ export default function PrivateAdminControlPage() {
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>5. Moderación de Prendas ({garments.length})</span>
+          <span>5. Aprobación y Prendas ({garments.length})</span>
+          {pendingApprovalGarments.length > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-amber-400 text-grafito-900 text-[10px] font-extrabold">
+              ⏱️ {pendingApprovalGarments.length} por aprobar
+            </span>
+          )}
         </button>
 
         <button
@@ -1533,143 +1554,366 @@ export default function PrivateAdminControlPage() {
         </div>
       )}
 
-      {/* TAB 5: Moderación de Prendas */}
+      {/* TAB 5: Moderación y Aprobación de Prendas (Plazo 1 a 12 hrs) */}
       {activeTab === 'garments' && (
-        <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-beige-200">
-            <div>
-              <h2 className="font-display text-lg font-bold text-grafito-900">
-                Moderación Global de Prendas en EcoRopaGT
-              </h2>
+        <div className="space-y-6">
+          {/* COLA DE APROBACIÓN DE PRENDAS (1 A 12 HORAS) */}
+          <div className="bg-amber-50/80 rounded-3xl border border-amber-200 p-6 sm:p-8 shadow-2xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-amber-200/80">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-200 text-amber-950 text-xs font-extrabold mb-1.5">
+                  <span>⏱️ Ventana de Moderación: 1 a 12 Horas</span>
+                </div>
+                <h2 className="font-display text-lg sm:text-xl font-extrabold text-grafito-900">
+                  Cola de Prendas Pendientes de Aprobación ({pendingApprovalGarments.length})
+                </h2>
+                <p className="text-xs text-grafito-700 mt-0.5">
+                  Ninguna prenda nueva aparece en el catálogo público hasta que valides aquí que las fotos (luz natural, sin cama desordenada) y el texto cumplen con el estándar EcoRopaGT.
+                </p>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 text-grafito-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={garmentSearch}
-                  onChange={(e) => setGarmentSearch(e.target.value)}
-                  placeholder="Buscar prenda o marca..."
-                  className="pl-8 pr-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs text-grafito-800 focus:outline-none focus:border-lavanda-500"
-                />
+            {pendingApprovalGarments.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-amber-200/80 p-6 text-center">
+                <CheckCircle2 className="w-7 h-7 text-verde-600 mx-auto mb-1.5" />
+                <p className="text-sm font-bold text-grafito-900">
+                  ¡Todo al día! No hay prendas pendientes en la cola de 1 a 12 horas
+                </p>
+                <p className="text-xs text-grafito-600 mt-0.5">
+                  Cuando un vendedor suba una prenda nueva desde su clóset, aparecerá aquí para tu aprobación.
+                </p>
               </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {pendingApprovalGarments.map((item) => {
+                  const textAnalysis = validateSafeText(item.title, item.brand, item.notes);
+                  const isEditingThis = editingGarmentId === item.id;
 
-              <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-300 rounded-xl px-2.5 py-1.5">
-                <Filter className="w-3.5 h-3.5 text-lavanda-600" />
-                <select
-                  value={selectedSellerFilter}
-                  onChange={(e) => setSelectedSellerFilter(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none"
-                >
-                  <option value="todos">Todos los vendedores</option>
-                  {adminSellers.map((s) => (
-                    <option key={s.id} value={s.username}>
-                      @{s.username} ({s.displayName})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  return (
+                    <div
+                      key={item.id}
+                      className="bg-white rounded-2xl border border-amber-300 p-5 shadow-2xs flex flex-col justify-between gap-4"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-3.5">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-20 h-24 rounded-xl object-cover border border-beige-200 shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center justify-between gap-1 mb-1">
+                              <span className="text-[11px] font-extrabold text-lavanda-700">
+                                Clóset: @{item.sellerUsername}
+                              </span>
+                              <span className="text-[10px] font-bold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
+                                Subida: {item.submittedAt || item.createdAt}
+                              </span>
+                            </div>
 
-              <select
-                value={selectedStatusFilter}
-                onChange={(e) =>
-                  setSelectedStatusFilter(e.target.value as 'todos' | GarmentStatus)
-                }
-                className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-800 focus:outline-none focus:border-lavanda-500"
-              >
-                <option value="todos">Todos los estados</option>
-                <option value="disponible">Disponible</option>
-                <option value="reservada">Reservada</option>
-                <option value="vendida">Vendida</option>
-              </select>
-            </div>
-          </div>
+                            {isEditingThis ? (
+                              <div className="space-y-2 mt-1">
+                                <input
+                                  type="text"
+                                  value={editTitle}
+                                  onChange={(e) => setEditTitle(e.target.value)}
+                                  className="w-full px-2.5 py-1.5 rounded-lg bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-900"
+                                  placeholder="Título de la prenda"
+                                />
+                                <textarea
+                                  rows={2}
+                                  value={editNotes}
+                                  onChange={(e) => setEditNotes(e.target.value)}
+                                  className="w-full px-2.5 py-1.5 rounded-lg bg-beige-50 border border-beige-300 text-xs text-grafito-800"
+                                  placeholder="Descripción verificada"
+                                />
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateGarmentDetails(item.id, {
+                                        title: editTitle.trim() || item.title,
+                                        notes: editNotes.trim(),
+                                      });
+                                      setEditingGarmentId(null);
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-grafito-900 text-white text-[11px] font-bold cursor-pointer"
+                                  >
+                                    Guardar Texto
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setEditingGarmentId(null)}
+                                    className="px-2.5 py-1 rounded-lg bg-beige-100 text-grafito-700 text-[11px] font-bold cursor-pointer"
+                                  >
+                                    Cancelar
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <h3 className="font-bold text-sm text-grafito-900">{item.title}</h3>
+                                <p className="text-xs text-grafito-700 font-semibold">
+                                  {item.brand} • Talla {item.size} • {item.condition} •{' '}
+                                  <strong className="text-grafito-900">Q{item.price}</strong>
+                                </p>
+                                <div className="mt-2 p-2.5 rounded-xl bg-beige-50 border border-beige-200 text-xs text-grafito-800">
+                                  <p className="font-bold text-[10px] uppercase tracking-wider text-grafito-600 mb-0.5">
+                                    Texto / Descripción del Vendedor:
+                                  </p>
+                                  <p>{item.notes || 'Sin descripción adicional.'}</p>
+                                  {item.measurements && (
+                                    <p className="text-[11px] text-lavanda-700 font-semibold mt-1">
+                                      📏 Medidas: Ancho {item.measurements.widthCm}cm × Largo{' '}
+                                      {item.measurements.lengthCm}cm ({item.measurements.fitNote})
+                                    </p>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                          </div>
+                        </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-beige-50 text-grafito-700 uppercase font-bold text-[10px] border-b border-beige-200">
-                <tr>
-                  <th className="py-3 px-4">Prenda</th>
-                  <th className="py-3 px-4">Vendedor</th>
-                  <th className="py-3 px-4">Precio</th>
-                  <th className="py-3 px-4">Estado (Cambiar)</th>
-                  <th className="py-3 px-4">Métricas</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-beige-100">
-                {filteredGarments.map((item) => (
-                  <tr key={item.id} className="hover:bg-beige-50/60 transition">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={item.image}
-                          alt={item.title}
-                          className="w-11 h-13 rounded-xl object-cover bg-beige-100 border border-beige-200 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="font-bold text-grafito-900 truncate max-w-xs">
-                            {item.title}
-                          </p>
-                          <span className="text-[11px] text-lavanda-600 font-semibold">
-                            {item.brand} • Talla {item.size}
-                          </span>
+                        <div className="flex items-center justify-between gap-2 text-[11px]">
+                          {textAnalysis.valid ? (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-verde-50 border border-verde-200 text-verde-800 font-bold">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-verde-600" />
+                              Filtro de Texto: Limpio (sin teléfonos ni palabras prohibidas)
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-red-800 font-bold">
+                              ⚠️ Alerta de Texto: {textAnalysis.reason}
+                            </span>
+                          )}
+
+                          {!isEditingThis && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingGarmentId(item.id);
+                                setEditTitle(item.title);
+                                setEditNotes(item.notes);
+                              }}
+                              className="text-lavanda-700 hover:underline font-bold cursor-pointer shrink-0"
+                            >
+                              ✎ Editar Texto
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </td>
 
-                    <td className="py-3 px-4 text-grafito-800">
-                      <Link
-                        href={`/closet/${item.sellerUsername}`}
-                        className="font-bold text-grafito-900 hover:text-lavanda-600 inline-flex items-center gap-1"
-                      >
-                        <span>@{item.sellerUsername}</span>
-                        <ExternalLink className="w-3 h-3 text-grafito-500" />
-                      </Link>
-                    </td>
+                      <div className="pt-3 border-t border-beige-200 space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={rejectionReasons[item.id] ?? ''}
+                            onChange={(e) =>
+                              setRejectionReasons((prev) => ({
+                                ...prev,
+                                [item.id]: e.target.value,
+                              }))
+                            }
+                            placeholder="Motivo si rechazas (ej. Foto oscura / Texto incompleto)..."
+                            className="flex-1 px-3 py-1.5 rounded-xl bg-beige-50 border border-beige-300 text-xs text-grafito-800 focus:outline-none focus:border-red-400"
+                          />
+                        </div>
 
-                    <td className="py-3 px-4">
-                      <span className="font-extrabold text-grafito-900">Q{item.price}</span>
-                    </td>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => updateGarmentStatus(item.id, 'disponible')}
+                            className="flex-1 py-2 px-4 rounded-xl bg-verde-600 hover:bg-verde-700 text-white text-xs font-extrabold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span>✓ Aprobar y Publicar en Catálogo</span>
+                          </button>
 
-                    <td className="py-3 px-4">
-                      <select
-                        value={item.status}
-                        onChange={(e) =>
-                          updateGarmentStatus(item.id, e.target.value as GarmentStatus)
-                        }
-                        className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold focus:outline-none cursor-pointer ${getStatusBadgeClasses(
-                          item.status
-                        )}`}
-                      >
-                        <option value="disponible">Disponible</option>
-                        <option value="reservada">Reservada</option>
-                        <option value="vendida">Vendida</option>
-                      </select>
-                    </td>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              updateGarmentStatus(
+                                item.id,
+                                'rechazada',
+                                rejectionReasons[item.id]?.trim() ||
+                                  'La foto o descripción no cumple con la guía de calidad EcoRopaGT.'
+                              )
+                            }
+                            className="py-2 px-3.5 rounded-xl bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 text-xs font-bold transition cursor-pointer"
+                          >
+                            ✕ Rechazar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
-                    <td className="py-3 px-4 text-grafito-700 font-semibold">
-                      <span>{item.views} vistas</span>
-                    </td>
+          <div className="bg-white rounded-3xl border border-beige-200 p-6 sm:p-8 shadow-2xs">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-beige-200">
+              <div>
+                <h2 className="font-display text-lg font-bold text-grafito-900">
+                  Inventario y Moderación Global de Prendas & Textos
+                </h2>
+              </div>
 
-                    <td className="py-3 px-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (confirm(`¿Eliminar la prenda "${item.title}" del catálogo?`)) {
-                            deleteGarment(item.id);
-                          }
-                        }}
-                        className="p-2 rounded-xl text-grafito-700 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </td>
+              <div className="flex flex-wrap items-center gap-2.5">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-grafito-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={garmentSearch}
+                    onChange={(e) => setGarmentSearch(e.target.value)}
+                    placeholder="Buscar prenda, marca o texto..."
+                    className="pl-8 pr-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs text-grafito-800 focus:outline-none focus:border-lavanda-500"
+                  />
+                </div>
+
+                <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-300 rounded-xl px-2.5 py-1.5">
+                  <Filter className="w-3.5 h-3.5 text-lavanda-600" />
+                  <select
+                    value={selectedSellerFilter}
+                    onChange={(e) => setSelectedSellerFilter(e.target.value)}
+                    className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none"
+                  >
+                    <option value="todos">Todos los vendedores</option>
+                    {adminSellers.map((s) => (
+                      <option key={s.id} value={s.username}>
+                        @{s.username} ({s.displayName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <select
+                  value={selectedStatusFilter}
+                  onChange={(e) =>
+                    setSelectedStatusFilter(e.target.value as 'todos' | GarmentStatus)
+                  }
+                  className="px-3 py-2 rounded-xl bg-beige-50 border border-beige-300 text-xs font-bold text-grafito-800 focus:outline-none focus:border-lavanda-500"
+                >
+                  <option value="todos">Todos los estados</option>
+                  <option value="pendiente_aprobacion">⏱️ Pendiente de Aprobación (1-12h)</option>
+                  <option value="disponible">Disponible (Aprobada)</option>
+                  <option value="reservada">Reservada</option>
+                  <option value="vendida">Vendida</option>
+                  <option value="rechazada">✕ Rechazada</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-beige-50 text-grafito-700 uppercase font-bold text-[10px] border-b border-beige-200">
+                  <tr>
+                    <th className="py-3 px-4">Prenda y Texto</th>
+                    <th className="py-3 px-4">Vendedor</th>
+                    <th className="py-3 px-4">Precio</th>
+                    <th className="py-3 px-4">Estado / Aprobación</th>
+                    <th className="py-3 px-4">Métricas</th>
+                    <th className="py-3 px-4 text-right">Acciones</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-beige-100">
+                  {filteredGarments.map((item) => (
+                    <tr key={item.id} className="hover:bg-beige-50/60 transition">
+                      <td className="py-3 px-4">
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-11 h-13 rounded-xl object-cover bg-beige-100 border border-beige-200 shrink-0"
+                          />
+                          <div className="min-w-0 max-w-md">
+                            <p className="font-bold text-grafito-900 truncate">{item.title}</p>
+                            <span className="text-[11px] text-lavanda-600 font-semibold block">
+                              {item.brand} • Talla {item.size}
+                            </span>
+                            <p className="text-[11px] text-grafito-600 line-clamp-2 mt-0.5">
+                              {item.notes}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 px-4 text-grafito-800">
+                        <Link
+                          href={`/closet/${item.sellerUsername}`}
+                          className="font-bold text-grafito-900 hover:text-lavanda-600 inline-flex items-center gap-1"
+                        >
+                          <span>@{item.sellerUsername}</span>
+                          <ExternalLink className="w-3 h-3 text-grafito-500" />
+                        </Link>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <span className="font-extrabold text-grafito-900">Q{item.price}</span>
+                      </td>
+
+                      <td className="py-3 px-4">
+                        <select
+                          value={item.status}
+                          onChange={(e) =>
+                            updateGarmentStatus(item.id, e.target.value as GarmentStatus)
+                          }
+                          className={`px-2.5 py-1 rounded-lg border text-[11px] font-bold focus:outline-none cursor-pointer ${getStatusBadgeClasses(
+                            item.status
+                          )}`}
+                        >
+                          <option value="pendiente_aprobacion">⏱️ Pendiente (1-12h)</option>
+                          <option value="disponible">✓ Disponible (Aprobada)</option>
+                          <option value="reservada">Reservada</option>
+                          <option value="vendida">Vendida</option>
+                          <option value="rechazada">✕ Rechazada</option>
+                        </select>
+                      </td>
+
+                      <td className="py-3 px-4 text-grafito-700 font-semibold">
+                        <span>{item.views} vistas</span>
+                      </td>
+
+                      <td className="py-3 px-4 text-right">
+                        <div className="inline-flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newTitle = prompt('Editar título de la prenda:', item.title);
+                              if (newTitle === null) return;
+                              const newNotes = prompt(
+                                'Editar descripción / notas de la prenda:',
+                                item.notes
+                              );
+                              if (newNotes === null) return;
+                              updateGarmentDetails(item.id, {
+                                title: newTitle.trim() || item.title,
+                                notes: newNotes.trim(),
+                              });
+                            }}
+                            className="px-2.5 py-1.5 rounded-xl text-[11px] font-bold text-lavanda-700 hover:bg-lavanda-50 transition cursor-pointer"
+                            title="Editar título o descripción"
+                          >
+                            ✎ Texto
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (confirm(`¿Eliminar la prenda "${item.title}" del catálogo?`)) {
+                                deleteGarment(item.id);
+                              }
+                            }}
+                            className="p-2 rounded-xl text-grafito-700 hover:text-red-600 hover:bg-red-50 transition cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useApp } from '@/context/AppContext';
 import { GarmentCategory, GarmentCondition, GarmentStatus } from '@/types';
+import { validateSafeText } from '@/lib/contentModeration';
 import {
   Store,
   PlusCircle,
@@ -355,6 +356,12 @@ export default function SellerDashboardPage() {
     e.preventDefault();
     if (!title.trim()) return;
 
+    const textCheck = validateSafeText(title, brand, notes, fitNote);
+    if (!textCheck.valid) {
+      alert(`⚠️ Moderación Automática de Texto:\n\n${textCheck.reason}`);
+      return;
+    }
+
     addGarment({
       title: title.trim(),
       brand: brand.trim() || 'Selección EcoRopa',
@@ -379,16 +386,24 @@ export default function SellerDashboardPage() {
       notes: notes.trim(),
       sellerUsername: currentSeller.username,
       sellerName: currentSeller.displayName,
-      status: 'disponible',
+      status: 'pendiente_aprobacion',
+      submittedAt: new Date().toLocaleString('es-GT'),
     });
 
     setIsModalOpen(false);
     setTitle('');
-    showToast(`¡Prenda publicada en el clóset de @${currentSeller.username}!`);
+    showToast(
+      `⏱️ ¡Prenda enviada a revisión! Nuestro equipo validará fotos y texto en un plazo de 1 a 12 hrs antes de publicarla.`
+    );
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    const textCheck = validateSafeText(profileDisplayName, profileBio);
+    if (!textCheck.valid) {
+      alert(`⚠️ Moderación Automática de Texto:\n\n${textCheck.reason}`);
+      return;
+    }
     updateSellerProfile(currentSeller.username, {
       displayName: profileDisplayName.trim() || currentSeller.displayName,
       bio: profileBio.trim(),
@@ -415,6 +430,11 @@ export default function SellerDashboardPage() {
       e.preventDefault();
       if (!newDisplayName.trim() || !newUsername.trim()) {
         setLoginError('Completa tu nombre y el @usuario de tu clóset.');
+        return;
+      }
+      const textCheck = validateSafeText(newDisplayName, newUsername, newBio);
+      if (!textCheck.valid) {
+        setLoginError(textCheck.reason || 'Texto no permitido.');
         return;
       }
       const created = addSeller({
@@ -953,17 +973,23 @@ export default function SellerDashboardPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              {(['todos', 'disponible', 'reservada', 'vendida'] as const).map((st) => (
+              {(
+                ['todos', 'pendiente_aprobacion', 'disponible', 'reservada', 'vendida'] as const
+              ).map((st) => (
                 <button
                   key={st}
                   onClick={() => setStatusFilter(st)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold capitalize transition cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
                     statusFilter === st
                       ? 'bg-lavanda-100 text-lavanda-700 border border-lavanda-300'
                       : 'bg-beige-50 text-grafito-700 hover:bg-beige-100 border border-beige-200'
                   }`}
                 >
-                  {st === 'todos' ? `Todas (${myGarments.length})` : st}
+                  {st === 'todos'
+                    ? `Todas (${myGarments.length})`
+                    : st === 'pendiente_aprobacion'
+                      ? '⏱️ En Revisión (1-12h)'
+                      : st}
                 </button>
               ))}
 
@@ -1079,25 +1105,47 @@ export default function SellerDashboardPage() {
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <select
-                            value={item.status}
-                            onChange={(e) => {
-                              const newStatus = e.target.value as GarmentStatus;
-                              updateGarmentStatus(item.id, newStatus);
-                              showToast(`Estado de "${item.title}" cambiado a ${newStatus}`);
-                            }}
-                            className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border cursor-pointer ${
-                              item.status === 'disponible'
-                                ? 'bg-verde-50 border-verde-200 text-verde-700'
-                                : item.status === 'reservada'
-                                ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                : 'bg-red-50 border-red-200 text-red-700'
-                            }`}
-                          >
-                            <option value="disponible">Disponible</option>
-                            <option value="reservada">Reservada</option>
-                            <option value="vendida">Vendida</option>
-                          </select>
+                          {item.status === 'pendiente_aprobacion' ? (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-100 border border-amber-300 text-amber-900 text-[11px] font-extrabold">
+                                ⏱️ En Revisión (1 a 12 hrs)
+                              </span>
+                              <p className="text-[10px] text-grafito-600">
+                                Validando calidad de fotos y texto
+                              </p>
+                            </div>
+                          ) : item.status === 'rechazada' ? (
+                            <div className="space-y-1">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-red-100 border border-red-300 text-red-800 text-[11px] font-extrabold">
+                                ✕ Rechazada por Moderación
+                              </span>
+                              {item.rejectionReason && (
+                                <p className="text-[10px] text-red-700 font-semibold max-w-[180px]">
+                                  Motivo: {item.rejectionReason}
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <select
+                              value={item.status}
+                              onChange={(e) => {
+                                const newStatus = e.target.value as GarmentStatus;
+                                updateGarmentStatus(item.id, newStatus);
+                                showToast(`Estado de "${item.title}" cambiado a ${newStatus}`);
+                              }}
+                              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold border cursor-pointer ${
+                                item.status === 'disponible'
+                                  ? 'bg-verde-50 border-verde-200 text-verde-700'
+                                  : item.status === 'reservada'
+                                  ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                  : 'bg-red-50 border-red-200 text-red-700'
+                              }`}
+                            >
+                              <option value="disponible">Disponible</option>
+                              <option value="reservada">Reservada</option>
+                              <option value="vendida">Vendida</option>
+                            </select>
+                          )}
                         </td>
 
                         <td className="py-3.5 px-4 text-right">

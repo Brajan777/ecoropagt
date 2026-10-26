@@ -26,7 +26,15 @@ interface AppContextType {
   resetDemoData: () => void;
   garments: Garment[];
   addGarment: (garment: Omit<Garment, 'id' | 'views' | 'likes' | 'createdAt'>) => void;
-  updateGarmentStatus: (id: number, status: Garment['status']) => void;
+  updateGarmentStatus: (
+    id: number,
+    status: Garment['status'],
+    rejectionReason?: string
+  ) => void;
+  updateGarmentDetails: (
+    id: number,
+    data: Partial<Pick<Garment, 'title' | 'brand' | 'notes' | 'price' | 'status' | 'rejectionReason'>>
+  ) => void;
   deleteGarment: (id: number) => void;
   sellers: SellerProfile[];
   addSeller: (data: {
@@ -706,6 +714,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       id: Date.now(),
       views: 1,
       likes: 0,
+      submittedAt: data.submittedAt || new Date().toLocaleString('es-GT'),
       createdAt: new Date().toISOString().split('T')[0],
     };
 
@@ -719,9 +728,38 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const updateGarmentStatus = (id: number, status: Garment['status']) => {
+  const updateGarmentStatus = (
+    id: number,
+    status: Garment['status'],
+    rejectionReason?: string
+  ) => {
     setGarments((prev) => {
-      const updated = prev.map((g) => (g.id === id ? { ...g, status } : g));
+      const updated = prev.map((g) =>
+        g.id === id
+          ? {
+              ...g,
+              status,
+              rejectionReason:
+                status === 'rechazada'
+                  ? rejectionReason ?? g.rejectionReason ?? 'No cumple criterios de calidad o texto.'
+                  : undefined,
+            }
+          : g
+      );
+      try {
+        localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
+      } catch (e) {}
+      syncToCloud({ garments: updated });
+      return updated;
+    });
+  };
+
+  const updateGarmentDetails = (
+    id: number,
+    data: Partial<Pick<Garment, 'title' | 'brand' | 'notes' | 'price' | 'status' | 'rejectionReason'>>
+  ) => {
+    setGarments((prev) => {
+      const updated = prev.map((g) => (g.id === id ? { ...g, ...data } : g));
       try {
         localStorage.setItem('ecoropa_garments', JSON.stringify(updated));
       } catch (e) {}
@@ -893,6 +931,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         garments,
         addGarment,
         updateGarmentStatus,
+        updateGarmentDetails,
         deleteGarment,
         sellers,
         addSeller,

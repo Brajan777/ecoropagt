@@ -1,6 +1,11 @@
 export type GarmentCategory = 'mujer' | 'hombre' | 'ninos' | 'calzado';
 export type GarmentCondition = 'Nuevo con etiqueta' | 'Como nuevo' | 'Excelente estado';
-export type GarmentStatus = 'disponible' | 'reservada' | 'vendida';
+export type GarmentStatus =
+  | 'pendiente_aprobacion'
+  | 'disponible'
+  | 'reservada'
+  | 'vendida'
+  | 'rechazada';
 
 export interface GarmentMeasurements {
   widthCm: number;
@@ -26,6 +31,8 @@ export interface Garment {
   measurements?: GarmentMeasurements;
   notes: string;
   status: GarmentStatus;
+  rejectionReason?: string;
+  submittedAt?: string;
   views: number;
   createdAt: string;
 }

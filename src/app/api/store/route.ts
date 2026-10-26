@@ -11,6 +11,7 @@ import {
 } from '@/data/mockData';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { isValidAdminToken, sanitizeString } from '@/lib/adminAuth';
+import { sanitizePublicListingText } from '@/lib/contentModeration';
 
 const DB_PATH = path.join(process.cwd(), 'data', 'cloud-store.json');
 
@@ -311,8 +312,8 @@ export async function POST(request: Request) {
         return {
           ...existing,
           ...incoming,
-          displayName: sanitizeString(incoming.displayName, 80),
-          bio: sanitizeString(incoming.bio, 350),
+          displayName: sanitizePublicListingText(sanitizeString(incoming.displayName, 80)),
+          bio: sanitizePublicListingText(sanitizeString(incoming.bio, 350)),
           location: sanitizeString(incoming.location, 80),
           whatsapp: realWhatsapp,
           pickupAddress: realPickupAddress,
@@ -338,15 +339,17 @@ export async function POST(request: Request) {
       });
     }
 
-    // Protección 3: Sanitizar prendas
+    // Protección 3: Sanitizar prendas y moderación de texto
     let mergedGarments = current.garments;
     if (Array.isArray(body.garments)) {
       mergedGarments = body.garments.slice(0, 500).map((g: any) => ({
         ...g,
-        title: sanitizeString(g.title, 120),
-        brand: sanitizeString(g.brand, 60),
+        title: sanitizePublicListingText(sanitizeString(g.title, 120)),
+        brand: sanitizePublicListingText(sanitizeString(g.brand, 60)),
         size: sanitizeString(g.size, 40),
-        notes: sanitizeString(g.notes, 400),
+        notes: sanitizePublicListingText(sanitizeString(g.notes, 400)),
+        rejectionReason: g.rejectionReason ? sanitizeString(g.rejectionReason, 250) : undefined,
+        submittedAt: g.submittedAt ? sanitizeString(g.submittedAt, 60) : undefined,
         price: Math.max(1, Math.min(50000, Number(g.price) || 100)),
         retailPrice: Math.max(1, Math.min(100000, Number(g.retailPrice) || 200)),
       }));

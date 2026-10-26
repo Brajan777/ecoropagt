@@ -79,6 +79,11 @@ export function ProductGrid() {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
     const list = garments.filter((item) => {
+      // 0. Solo mostrar en el catálogo público las prendas aprobadas (ocultar pendientes de aprobación 1-12h y rechazadas)
+      if (item.status === 'pendiente_aprobacion' || item.status === 'rechazada') {
+        return false;
+      }
+
       // 1. Filtro de búsqueda global (título, marca, vendedor, notas, talla, categoría)
       const matchSearch =
         normalizedQuery === '' ||
