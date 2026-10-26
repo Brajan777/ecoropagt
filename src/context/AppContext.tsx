@@ -117,6 +117,11 @@ interface AppContextType {
   ) => void;
   wishlist: number[];
   toggleWishlist: (garmentId: number) => void;
+  followedClosets: string[];
+  toggleFollowCloset: (sellerUsername: string) => void;
+  readNotificationIds: number[];
+  markNotificationRead: (garmentId: number) => void;
+  markAllNotificationsRead: () => void;
   quickViewItem: Garment | null;
   setQuickViewItem: (item: Garment | null) => void;
   searchQuery: string;
@@ -184,6 +189,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     'inventario' | 'subir' | 'perfil' | 'mensajes'
   >('inventario');
   const [wishlist, setWishlist] = useState<number[]>([]);
+  const [followedClosets, setFollowedClosets] = useState<string[]>(['sofia_gt']);
+  const [readNotificationIds, setReadNotificationIds] = useState<number[]>([]);
   const [quickViewItem, setQuickViewItem] = useState<Garment | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -311,6 +318,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       const savedWishlist = localStorage.getItem('ecoropa_wishlist');
       if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
+
+      const savedFollowed = localStorage.getItem('ecoropa_followed_closets');
+      if (savedFollowed) setFollowedClosets(JSON.parse(savedFollowed));
+
+      const savedReadNotifs = localStorage.getItem('ecoropa_read_notifs');
+      if (savedReadNotifs) setReadNotificationIds(JSON.parse(savedReadNotifs));
     } catch (e) {}
   }, []);
 
@@ -926,6 +939,45 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const toggleFollowCloset = (sellerUsername: string) => {
+    const clean = sellerUsername.trim().toLowerCase().replace(/^@/, '');
+    setFollowedClosets((prev) => {
+      const exists = prev.some((u) => u.toLowerCase() === clean);
+      const updated = exists
+        ? prev.filter((u) => u.toLowerCase() !== clean)
+        : [...prev, clean];
+      try {
+        localStorage.setItem('ecoropa_followed_closets', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const markNotificationRead = (garmentId: number) => {
+    setReadNotificationIds((prev) => {
+      if (prev.includes(garmentId)) return prev;
+      const updated = [...prev, garmentId];
+      try {
+        localStorage.setItem('ecoropa_read_notifs', JSON.stringify(updated));
+      } catch (e) {}
+      return updated;
+    });
+  };
+
+  const markAllNotificationsRead = () => {
+    const allFollowedGarmentIds = garments
+      .filter(
+        (g) =>
+          g.status === 'disponible' &&
+          followedClosets.some((u) => u.toLowerCase() === g.sellerUsername.toLowerCase())
+      )
+      .map((g) => g.id);
+    setReadNotificationIds(allFollowedGarmentIds);
+    try {
+      localStorage.setItem('ecoropa_read_notifs', JSON.stringify(allFollowedGarmentIds));
+    } catch (e) {}
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -985,6 +1037,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         triggerSellerStudio,
         wishlist,
         toggleWishlist,
+        followedClosets,
+        toggleFollowCloset,
+        readNotificationIds,
+        markNotificationRead,
+        markAllNotificationsRead,
         quickViewItem,
         setQuickViewItem,
         searchQuery,

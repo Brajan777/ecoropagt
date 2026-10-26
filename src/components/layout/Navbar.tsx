@@ -23,6 +23,8 @@ import {
   MessageSquare,
   UserCheck,
   Home,
+  Bell,
+  CheckCircle2,
 } from 'lucide-react';
 
 export function Navbar() {
@@ -31,6 +33,12 @@ export function Navbar() {
   const {
     cart,
     wishlist,
+    garments,
+    followedClosets,
+    readNotificationIds,
+    markNotificationRead,
+    markAllNotificationsRead,
+    setQuickViewItem,
     messages,
     currentBuyer,
     setIsBuyerAuthOpen,
@@ -44,6 +52,25 @@ export function Navbar() {
     wishlistOnly,
     setWishlistOnly,
   } = useApp();
+
+  const [isNotifOpen, setIsNotifOpen] = React.useState(false);
+
+  // Nuevas prendas publicadas/aprobadas en los clósets que sigue el usuario
+  const followedNewGarments = React.useMemo(() => {
+    const followedSet = new Set(followedClosets.map((u) => u.toLowerCase()));
+    return [...garments]
+      .filter(
+        (g) =>
+          g.status === 'disponible' && followedSet.has(g.sellerUsername.toLowerCase())
+      )
+      .sort((a, b) => b.id - a.id)
+      .slice(0, 12);
+  }, [garments, followedClosets]);
+
+  const unreadNotifCount = React.useMemo(
+    () => followedNewGarments.filter((g) => !readNotificationIds.includes(g.id)).length,
+    [followedNewGarments, readNotificationIds]
+  );
 
   const handleCategoryClick = (cat: 'todos' | GarmentCategory) => {
     setSelectedCategory(cat);
@@ -150,6 +177,141 @@ export function Navbar() {
                     : 'Registrarme / Mi Envío'}
                 </span>
               </button>
+
+              {/* Campana de Notificaciones de Clósets Seguidos */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setIsNotifOpen((prev) => !prev)}
+                  className={`relative w-10 h-10 sm:w-auto sm:h-auto sm:p-2.5 rounded-xl border flex items-center justify-center transition cursor-pointer ${
+                    isNotifOpen
+                      ? 'bg-lavanda-500 border-lavanda-500 text-white'
+                      : 'border-beige-200 bg-white hover:bg-lavanda-50 text-grafito-800'
+                  }`}
+                  title="Notificaciones de nuevas prendas en los clósets que sigues"
+                >
+                  <Bell
+                    className={`w-5 h-5 ${
+                      isNotifOpen
+                        ? 'text-white'
+                        : unreadNotifCount > 0
+                        ? 'text-lavanda-600'
+                        : 'text-grafito-700'
+                    }`}
+                  />
+                  {unreadNotifCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-verde-600 text-white text-[10px] font-extrabold flex items-center justify-center">
+                      {unreadNotifCount}
+                    </span>
+                  )}
+                </button>
+
+                {isNotifOpen && (
+                  <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl border border-beige-200 shadow-2xl z-50 overflow-hidden">
+                    <div className="p-3.5 bg-beige-50 border-b border-beige-200 flex items-center justify-between gap-2">
+                      <div>
+                        <p className="text-xs font-extrabold text-grafito-900">
+                          🔔 Nuevas Prendas de Clósets que Sigues
+                        </p>
+                        <p className="text-[10px] text-grafito-600">
+                          Siguiendo a {followedClosets.length} clóset(s) verificado(s)
+                        </p>
+                      </div>
+                      {unreadNotifCount > 0 && (
+                        <button
+                          type="button"
+                          onClick={markAllNotificationsRead}
+                          className="text-[10px] font-bold text-lavanda-600 hover:underline cursor-pointer shrink-0"
+                        >
+                          Marcar leídas
+                        </button>
+                      )}
+                    </div>
+
+                    {followedClosets.length === 0 ? (
+                      <div className="p-6 text-center space-y-2">
+                        <Bell className="w-7 h-7 text-grafito-400 mx-auto" />
+                        <p className="text-xs font-bold text-grafito-900">
+                          Aún no sigues ningún clóset
+                        </p>
+                        <p className="text-[11px] text-grafito-600">
+                          Presiona &quot;+ Seguir&quot; en tus clósets favoritos para recibir alertas cada vez que suban ropa nueva.
+                        </p>
+                        <Link
+                          href="/closets"
+                          onClick={() => setIsNotifOpen(false)}
+                          className="inline-block mt-1 px-3.5 py-1.5 rounded-xl bg-lavanda-500 text-white text-xs font-bold"
+                        >
+                          Explorar Clósets →
+                        </Link>
+                      </div>
+                    ) : followedNewGarments.length === 0 ? (
+                      <div className="p-6 text-center text-xs text-grafito-600">
+                        Los clósets que sigues aún no tienen prendas disponibles.
+                      </div>
+                    ) : (
+                      <div className="max-h-80 overflow-y-auto divide-y divide-beige-100">
+                        {followedNewGarments.map((item) => {
+                          const isUnread = !readNotificationIds.includes(item.id);
+                          return (
+                            <button
+                              key={item.id}
+                              type="button"
+                              onClick={() => {
+                                markNotificationRead(item.id);
+                                setIsNotifOpen(false);
+                                setQuickViewItem(item);
+                              }}
+                              className={`w-full p-3 text-left flex items-center gap-3 hover:bg-beige-50 transition cursor-pointer ${
+                                isUnread ? 'bg-lavanda-50/40' : 'bg-white'
+                              }`}
+                            >
+                              <img
+                                src={item.image}
+                                alt={item.title}
+                                className="w-11 h-13 rounded-xl object-cover border border-beige-200 shrink-0"
+                              />
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center justify-between gap-1">
+                                  <span className="text-[10px] font-extrabold text-lavanda-700">
+                                    @{item.sellerUsername} subió prenda
+                                  </span>
+                                  {isUnread && (
+                                    <span className="px-1.5 py-0.5 rounded-full bg-verde-600 text-white text-[9px] font-extrabold">
+                                      NUEVA
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-xs font-bold text-grafito-900 truncate">
+                                  {item.title}
+                                </p>
+                                <p className="text-[11px] text-grafito-600">
+                                  {item.brand} • Talla {item.size} •{' '}
+                                  <strong className="text-verde-700">Q{item.price}</strong>
+                                </p>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    <div className="p-2.5 bg-beige-50 border-t border-beige-200 flex items-center justify-between text-[11px]">
+                      <span className="text-grafito-600 truncate">
+                        Siguiendo:{' '}
+                        {followedClosets.map((u) => `@${u}`).join(', ') || 'ninguno'}
+                      </span>
+                      <Link
+                        href="/closets"
+                        onClick={() => setIsNotifOpen(false)}
+                        className="font-bold text-lavanda-700 hover:underline shrink-0 ml-2"
+                      >
+                        Ver clósets →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"

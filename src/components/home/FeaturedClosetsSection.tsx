@@ -20,6 +20,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  Bell,
 } from 'lucide-react';
 
 const CLOSETS_PER_PAGE = 6;
@@ -27,7 +28,15 @@ const CLOSETS_PER_PAGE = 6;
 export function FeaturedClosetsSection() {
   const pathname = usePathname();
   const router = useRouter();
-  const { sellers, garments, triggerSellerStudio, setQuickViewItem, openChatWithSeller } = useApp();
+  const {
+    sellers,
+    garments,
+    followedClosets,
+    toggleFollowCloset,
+    triggerSellerStudio,
+    setQuickViewItem,
+    openChatWithSeller,
+  } = useApp();
   const [selectedClosetUsername, setSelectedClosetUsername] = useState<string | null>(null);
   const [closetTab, setClosetTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
 
@@ -361,6 +370,28 @@ export function FeaturedClosetsSection() {
                   >
                     <Store className="w-3.5 h-3.5" />
                     <span>{isSelected ? 'Abierto Abajo' : 'Ver Clóset'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => toggleFollowCloset(seller.username)}
+                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition flex items-center gap-1 cursor-pointer ${
+                      followedClosets.some(
+                        (u) => u.toLowerCase() === seller.username.toLowerCase()
+                      )
+                        ? 'bg-lavanda-100 border-lavanda-300 text-lavanda-800'
+                        : 'bg-white hover:bg-lavanda-50 border-beige-200 text-grafito-800'
+                    }`}
+                    title="Recibir notificación cuando este clóset suba nuevas prendas"
+                  >
+                    <Bell className="w-3.5 h-3.5" />
+                    <span>
+                      {followedClosets.some(
+                        (u) => u.toLowerCase() === seller.username.toLowerCase()
+                      )
+                        ? 'Siguiendo'
+                        : '+ Seguir'}
+                    </span>
                   </button>
 
                   <button

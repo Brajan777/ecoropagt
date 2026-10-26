@@ -26,6 +26,7 @@ import {
   ShoppingBag,
   Award,
   ArrowRight,
+  Bell,
 } from 'lucide-react';
 
 interface Props {
@@ -94,7 +95,15 @@ const CATEGORIES: { id: 'todos' | GarmentCategory; label: string }[] = [
 ];
 
 export default function ClosetProfilePage({ params }: Props) {
-  const { sellers, garments, orders, setCurrentSellerByUsername, openChatWithSeller } = useApp();
+  const {
+    sellers,
+    garments,
+    orders,
+    followedClosets,
+    toggleFollowCloset,
+    setCurrentSellerByUsername,
+    openChatWithSeller,
+  } = useApp();
 
   const [activeTab, setActiveTab] = useState<'disponibles' | 'vendidas' | 'resenas'>('disponibles');
   const [internalSearch, setInternalSearch] = useState('');
@@ -321,8 +330,30 @@ export default function ClosetProfilePage({ params }: Props) {
             {/* Botones de Acción */}
             <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
               <button
+                type="button"
+                onClick={() => toggleFollowCloset(seller.username)}
+                className={`py-3 px-4 rounded-xl border text-xs sm:text-sm font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                  followedClosets.some(
+                    (u) => u.toLowerCase() === seller.username.toLowerCase()
+                  )
+                    ? 'bg-lavanda-100 border-lavanda-400 text-lavanda-800'
+                    : 'bg-white hover:bg-lavanda-50 border-beige-200 text-grafito-900'
+                }`}
+                title="Recibir alerta en tu campana de notificaciones cuando este clóset publique ropa nueva"
+              >
+                <Bell className="w-4 h-4" />
+                <span>
+                  {followedClosets.some(
+                    (u) => u.toLowerCase() === seller.username.toLowerCase()
+                  )
+                    ? '🔔 Siguiendo Clóset (Alertas Activas)'
+                    : '+ Seguir Clóset'}
+                </span>
+              </button>
+
+              <button
                 onClick={handleShare}
-                className="p-3 rounded-xl border border-beige-200 bg-white hover:bg-beige-100 text-grafito-800 transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-3 rounded-xl border border-beige-200 bg-white hover:bg-beige-100 text-grafito-800 transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer"
                 title="Compartir Clóset"
               >
                 <Share2 className="w-4 h-4" />
