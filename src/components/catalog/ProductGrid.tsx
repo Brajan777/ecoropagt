@@ -171,45 +171,19 @@ export function ProductGrid() {
 
   return (
     <section id="catalogo" className="py-6 sm:py-8 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      {/* Brand Chips Bar (Visible en tablet y desktop para no saturar móviles) */}
-      <div className="hidden sm:block mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-display text-sm sm:text-base font-bold text-grafito-800">
-            Filtrar por marca o selección
-          </h3>
-          {isFiltered && (
-            <button
-              type="button"
-              onClick={resetFilters}
-              className="text-xs font-bold text-lavanda-600 hover:underline flex items-center gap-1 cursor-pointer"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>Limpiar todos los filtros</span>
-            </button>
-          )}
+      {/* Encabezado limpio del Catálogo */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-4 gap-2">
+        <div>
+          <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-grafito-900">
+            Prendas del Catálogo
+          </h2>
+          <p className="text-xs sm:text-sm text-grafito-700 mt-0.5">
+            Cada prenda incluye medidas reales en cm y estado verificado.
+          </p>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-          {popularBrands.map((b) => (
-            <button
-              key={b}
-              type="button"
-              onClick={() => handleBrandChip(b)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold shrink-0 transition cursor-pointer ${
-                activeBrandChip === b
-                  ? 'bg-lavanda-500 text-white shadow-2xs'
-                  : 'bg-white hover:bg-lavanda-50 border border-beige-200 text-grafito-800'
-              }`}
-            >
-              {b === 'todas' ? 'Todas las prendas' : b}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Barra de Filtro Rápido por Talla (Visible en Móvil y Desktop) */}
-      <div className="mb-4">
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1.5">
+        {/* Barra de Filtro Rápido por Talla */}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
           {quickSizes.map((sz) => (
             <button
               key={sz.id}
@@ -376,6 +350,19 @@ export function ProductGrid() {
                 <option value="Hombre">Hombre</option>
                 <option value="Niños">Niños y Bebés</option>
                 <option value="Unisex">Unisex</option>
+              </select>
+
+              {/* Marca */}
+              <select
+                value={brandFilter}
+                onChange={(e) => handleBrandChip(e.target.value)}
+                className="px-3 py-2 rounded-xl bg-beige-50 hover:bg-beige-100 border border-beige-200 text-xs font-semibold text-grafito-800 focus:outline-none focus:border-lavanda-500 cursor-pointer"
+              >
+                {popularBrands.map((b) => (
+                  <option key={b} value={b}>
+                    {b === 'todas' ? 'Marca: Todas' : b}
+                  </option>
+                ))}
               </select>
 
               {/* Estado */}

@@ -6,107 +6,26 @@ import { HeroBanner } from '@/components/home/HeroBanner';
 import { FeaturedClosetsSection } from '@/components/home/FeaturedClosetsSection';
 import { ProductGrid } from '@/components/catalog/ProductGrid';
 import {
-  ShieldCheck,
   Truck,
   PackageCheck,
   Lock,
   ArrowRight,
-  Store,
-  PlusCircle,
-  LayoutGrid,
 } from 'lucide-react';
 
 export default function HomePage() {
   return (
     <div>
-      {/* 1. Hero Principal editable desde el panel Admin */}
+      {/* 1. Hero Visual Dividido (Imagen 100% visible) */}
       <HeroBanner />
 
-      {/* 2. Accesos Directos a las Páginas Dedicadas */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <Link
-            href="/catalogo"
-            className="group bg-white hover:bg-lavanda-50/60 border border-beige-200 hover:border-lavanda-400 rounded-2xl p-4 transition flex items-center justify-between shadow-2xs"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-lavanda-100 text-lavanda-600 flex items-center justify-center shrink-0">
-                <LayoutGrid className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-extrabold text-grafito-900 group-hover:text-lavanda-700">
-                  Catálogo y Tallas
-                </p>
-                <p className="text-[11px] text-grafito-600">Explorar por talla y marca</p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-grafito-400 group-hover:text-lavanda-600 group-hover:translate-x-0.5 transition" />
-          </Link>
-
-          <Link
-            href="/closets"
-            className="group bg-white hover:bg-verde-50/60 border border-beige-200 hover:border-verde-400 rounded-2xl p-4 transition flex items-center justify-between shadow-2xs"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-verde-100 text-verde-700 flex items-center justify-center shrink-0">
-                <Store className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-extrabold text-grafito-900 group-hover:text-verde-800">
-                  Directorio Clósets
-                </p>
-                <p className="text-[11px] text-grafito-600">Familias verificadas</p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-grafito-400 group-hover:text-verde-700 group-hover:translate-x-0.5 transition" />
-          </Link>
-
-          <Link
-            href="/vendedor/mi-closet"
-            className="group bg-white hover:bg-lavanda-50/60 border border-beige-200 hover:border-lavanda-400 rounded-2xl p-4 transition flex items-center justify-between shadow-2xs"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-lavanda-500 text-white flex items-center justify-center shrink-0">
-                <PlusCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-extrabold text-grafito-900 group-hover:text-lavanda-700">
-                  Vender / Mi Clóset
-                </p>
-                <p className="text-[11px] text-grafito-600">Gana el 85% por prenda</p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-grafito-400 group-hover:text-lavanda-600 group-hover:translate-x-0.5 transition" />
-          </Link>
-
-          <Link
-            href="/envios-y-garantia"
-            className="group bg-white hover:bg-verde-50/60 border border-beige-200 hover:border-verde-400 rounded-2xl p-4 transition flex items-center justify-between shadow-2xs"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-verde-100 text-verde-700 flex items-center justify-center shrink-0">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div>
-                <p className="text-xs sm:text-sm font-extrabold text-grafito-900 group-hover:text-verde-800">
-                  Envíos y Garantía
-                </p>
-                <p className="text-[11px] text-grafito-600">Guía ciega y pago seguro</p>
-              </div>
-            </div>
-            <ArrowRight className="w-4 h-4 text-grafito-400 group-hover:text-verde-700 group-hover:translate-x-0.5 transition" />
-          </Link>
-        </div>
-      </section>
-
-      {/* 3. Vista Previa de Clósets Destacados */}
+      {/* 2. Clósets Destacados Directamente */}
       <FeaturedClosetsSection />
 
-      {/* 4. Vista Previa del Catálogo */}
+      {/* 3. Prendas de Catálogo Directamente */}
       <ProductGrid />
 
-      {/* 5. Banner Resumen de Confianza con Enlace a la Página Exclusiva */}
-      <section className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 4. Banner Resumen de Confianza al final de la página */}
+      <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-verde-100/80 border border-verde-200 rounded-3xl p-6 sm:p-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <div className="max-w-2xl">
@@ -124,7 +43,7 @@ export default function HomePage() {
               href="/envios-y-garantia"
               className="px-5 py-3 rounded-xl bg-grafito-900 hover:bg-grafito-800 text-white text-xs font-bold inline-flex items-center gap-2 self-start md:self-auto shrink-0 transition"
             >
-              <span>Ver Guía de Envíos y Garantía 24h</span>
+              <span>Ver Detalles de Garantía</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

@@ -123,111 +123,96 @@ export function FeaturedClosetsSection() {
       {/* Encabezado de la sección */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-6 gap-3">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-lavanda-100 text-lavanda-700 text-xs font-bold mb-2">
-            <Store className="w-3.5 h-3.5" />
-            <span>Comunidad & Directorio de Clósets Verificados ({sellers.length})</span>
-          </div>
           <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-grafito-900">
             {showDirectoryMode
               ? 'Directorio Completo de Clósets en Guatemala'
-              : '★ Clósets Destacados de la Semana'}
+              : '★ Clósets Destacados'}
           </h2>
           <p className="text-xs sm:text-sm text-grafito-700 mt-1">
-            Explora por zona, reputación o estilo y comunícate por mensajería interna 100% segura.
+            Vitrinas verificadas con 10% OFF automático al llevar 3+ prendas del mismo clóset.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => {
-              setShowDirectoryMode(!showDirectoryMode);
-              setCurrentPage(1);
-            }}
-            className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-beige-100 border border-beige-300 text-xs font-bold text-grafito-800 transition cursor-pointer"
-          >
+        <button
+          type="button"
+          onClick={() => {
+            setShowDirectoryMode(!showDirectoryMode);
+            setCurrentPage(1);
+          }}
+          className="px-4 py-2.5 rounded-xl bg-white hover:bg-beige-100 border border-beige-300 text-xs font-bold text-grafito-800 transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+        >
+          <span>
             {showDirectoryMode
               ? 'Ver solo Top 3 destacados'
-              : `Explorar todos los clósets (${sellers.length})`}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              triggerSellerStudio('inventario');
-              router.push('/vendedor/mi-closet');
-            }}
-            className="px-3.5 py-2.5 rounded-xl bg-lavanda-500 hover:bg-lavanda-600 text-white text-xs font-bold transition flex items-center gap-1 cursor-pointer"
-          >
-            <span>Abrir mi clóset</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
+              : `Ver todos los clósets (${sellers.length})`}
+          </span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      {/* Barra de Buscador, Filtro por Zona y Ordenamiento de Clósets (Escalable a cientos de clósets) */}
-      <div className="bg-white rounded-2xl border border-beige-200 p-3.5 mb-6 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 text-lavanda-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={closetSearch}
-            onChange={(e) => {
-              setClosetSearch(e.target.value);
-              if (e.target.value.trim()) setShowDirectoryMode(true);
-              setCurrentPage(1);
-            }}
-            placeholder="Buscar clóset por @usuario, nombre, ubicación (Zona 14, Antigua, Xela) o estilo..."
-            className="w-full pl-10 pr-8 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs text-grafito-900 placeholder:text-grafito-600 focus:outline-none focus:border-lavanda-500"
-          />
-          {closetSearch && (
-            <button
-              type="button"
-              onClick={() => setClosetSearch('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-grafito-600 hover:text-grafito-900 cursor-pointer"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-200 rounded-xl px-3 py-2">
-            <MapPin className="w-3.5 h-3.5 text-lavanda-600" />
-            <select
-              value={locationFilter}
+      {/* Barra de Buscador, Filtro por Zona y Ordenamiento de Clósets (Solo visible en modo Directorio) */}
+      {showDirectoryMode && (
+        <div className="bg-white rounded-2xl border border-beige-200 p-3.5 mb-6 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-lavanda-600 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={closetSearch}
               onChange={(e) => {
-                setLocationFilter(e.target.value);
-                if (e.target.value !== 'todas') setShowDirectoryMode(true);
+                setClosetSearch(e.target.value);
                 setCurrentPage(1);
               }}
-              className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none cursor-pointer"
-            >
-              <option value="todas">Ubicación: Toda Guatemala</option>
-              <option value="Guatemala">Ciudad de Guatemala</option>
-              <option value="Antigua">Antigua Guatemala</option>
-              <option value="Carretera">Carretera a El Salvador</option>
-              <option value="Quetzaltenango">Quetzaltenango (Xela)</option>
-            </select>
+              placeholder="Buscar clóset por @usuario, nombre, ubicación (Zona 14, Antigua, Xela) o estilo..."
+              className="w-full pl-10 pr-8 py-2 rounded-xl bg-beige-50 border border-beige-200 text-xs text-grafito-900 placeholder:text-grafito-600 focus:outline-none focus:border-lavanda-500"
+            />
+            {closetSearch && (
+              <button
+                type="button"
+                onClick={() => setClosetSearch('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-grafito-600 hover:text-grafito-900 cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
 
-          <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-200 rounded-xl px-3 py-2">
-            <Filter className="w-3.5 h-3.5 text-verde-600" />
-            <select
-              value={closetSort}
-              onChange={(e) => {
-                setClosetSort(e.target.value as any);
-                setShowDirectoryMode(true);
-              }}
-              className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none cursor-pointer"
-            >
-              <option value="destacados">Ordenar: Destacados ★</option>
-              <option value="ventas">Más ventas realizadas</option>
-              <option value="rating">Mejor calificación</option>
-              <option value="prendas">Más prendas disponibles</option>
-            </select>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-200 rounded-xl px-3 py-2">
+              <MapPin className="w-3.5 h-3.5 text-lavanda-600" />
+              <select
+                value={locationFilter}
+                onChange={(e) => {
+                  setLocationFilter(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none cursor-pointer"
+              >
+                <option value="todas">Ubicación: Toda Guatemala</option>
+                <option value="Guatemala">Ciudad de Guatemala</option>
+                <option value="Antigua">Antigua Guatemala</option>
+                <option value="Carretera">Carretera a El Salvador</option>
+                <option value="Quetzaltenango">Quetzaltenango (Xela)</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-1.5 bg-beige-50 border border-beige-200 rounded-xl px-3 py-2">
+              <Filter className="w-3.5 h-3.5 text-verde-600" />
+              <select
+                value={closetSort}
+                onChange={(e) => {
+                  setClosetSort(e.target.value as any);
+                }}
+                className="bg-transparent text-xs font-bold text-grafito-800 focus:outline-none cursor-pointer"
+              >
+                <option value="destacados">Ordenar: Destacados ★</option>
+                <option value="ventas">Más ventas realizadas</option>
+                <option value="rating">Mejor calificación</option>
+                <option value="prendas">Más prendas disponibles</option>
+              </select>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Grid de Tarjetas de Clósets */}
       {paginatedSellers.length === 0 ? (
@@ -409,49 +394,39 @@ export function FeaturedClosetsSection() {
         </div>
       )}
 
-      {/* Controles de Paginación y Directorio Completo */}
-      <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-beige-100/70 px-4 py-3 rounded-2xl border border-beige-200">
-        <span className="text-xs font-semibold text-grafito-700">
-          Mostrando <strong>{paginatedSellers.length}</strong> de{' '}
-          <strong>{filteredSellers.length}</strong> clósets verificados
-        </span>
+      {/* Controles de Paginación (Solo visibles en modo Directorio) */}
+      {showDirectoryMode && (
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 bg-beige-100/70 px-4 py-3 rounded-2xl border border-beige-200">
+          <span className="text-xs font-semibold text-grafito-700">
+            Mostrando <strong>{paginatedSellers.length}</strong> de{' '}
+            <strong>{filteredSellers.length}</strong> clósets verificados
+          </span>
 
-        <div className="flex items-center gap-2">
-          {!showDirectoryMode ? (
-            <button
-              type="button"
-              onClick={() => setShowDirectoryMode(true)}
-              className="px-4 py-2 rounded-xl bg-white hover:bg-lavanda-50 border border-beige-300 text-xs font-bold text-lavanda-700 transition cursor-pointer"
-            >
-              Ver directorio completo ({sellers.length} clósets) →
-            </button>
-          ) : (
-            totalPages > 1 && (
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  disabled={safePage <= 1}
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="p-2 rounded-xl bg-white border border-beige-200 disabled:opacity-40 cursor-pointer"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <span className="text-xs font-bold px-2">
-                  Página {safePage} de {totalPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  className="p-2 rounded-xl bg-white border border-beige-200 disabled:opacity-40 cursor-pointer"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            )
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                className="p-2 rounded-xl bg-white border border-beige-200 disabled:opacity-40 cursor-pointer"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs font-bold px-2">
+                Página {safePage} de {totalPages}
+              </span>
+              <button
+                type="button"
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                className="p-2 rounded-xl bg-white border border-beige-200 disabled:opacity-40 cursor-pointer"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           )}
         </div>
-      </div>
+      )}
 
       {/* VISOR DE CLÓSET VIRTUAL DESPLEGABLE EN LA MISMA PÁGINA */}
       {activeCloset && (
