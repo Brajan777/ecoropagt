@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppProvider } from '@/context/AppContext';
-import { AnnouncementBar } from '@/components/layout/AnnouncementBar';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
@@ -64,7 +63,6 @@ export default function RootLayout({
       <body className="antialiased selection:bg-lavanda-500 selection:text-white min-h-screen flex flex-col justify-between">
         <AppProvider>
           <div>
-            <AnnouncementBar />
             <Navbar />
             <main>{children}</main>
           </div>
